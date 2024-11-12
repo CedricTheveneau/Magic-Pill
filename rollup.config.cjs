@@ -28,7 +28,7 @@ module.exports = () => {
         ]
       }),
       postcss({
-        extract: 'index.css',
+        extract: 'magicpill.css',
         minimize: true,
       }),
       terser(),
