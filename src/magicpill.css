@@ -1,31 +1,107 @@
 /* Font import */
-@import url('https://fonts.googleapis.com/css2?family=Overlock:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&family=Overlock:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap');
 
 /* CSS variables */
 :root {
  --themeDark: #141414;
  --themeLight: #F9F9F9;
- --font-family: "Overlock", sans-serif;
+ --font-text: "Overlock", sans-serif;
+ --font-accent: "Lexend", sans-serif;
  --normal: normal;
  --italic: italic;
  --medium: 400;
  --bold: 700;
  --black: 900;
+ --success: #3F7253;
+ --danger: #FC5D6A;
+ --textSize: 19.4px;
+ --titleSize: 31.42px;
 }
 
 /* General */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
  box-sizing: border-box;
  margin: 0;
  padding: 0;
- font-family: var(--font-family);
+ font-family: var(--font-text);
 }
 
 .magicPill {
+ position: absolute;
+ top: calc(95dvh - 110px);
+ left: 50%;
+ transform: translateX(-50%);
  padding: 25px;
  display: flex;
  gap: 25px;
  background-color: var(--themeDark);
  color: var(--themeLight);
  border-radius: 100px;
+ align-items: center;
+ justify-content: center;
+
+ >.message,
+ .info {
+  font-style: var(--italic);
+  font-size: var(--textSize);
+
+  >.title {
+   font-size: var(--titleSize);
+  }
+ }
+
+ >.message {
+  padding-left: 25px;
+  border-left: 1px solid var(--themeLight);
+  font-style: var(--italic);
+  font-size: 19.4px;
+ }
+
+ >.CTA {
+  font-family: var(--font-accent);
+  font-size: var(--textSize);
+  font-weight: var(--bold);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 15px;
+ }
+
+ >.info {
+  display: grid;
+  padding: 50px;
+  z-index: -1;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: var(--themeDark);
+  border-radius: 55px;
+  bottom: 0px;
+  transition: height 250ms ease-in-out, bottom 250ms ease-in-out, border-radius 250ms ease-in-out;
+ }
+
+ >.info::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background-color: var(--themeDark);
+  border-radius: 55px;
+  transition: height 250ms 250ms ease-in-out;
+ }
+
+ >.info.active {
+  border-radius: 50px 50px 0px 0px;
+  bottom: calc(106.5px / 2);
+  height: fit-content !important;
+ }
+
+ >.info.active::after {
+  height: 0%;
+ }
 }

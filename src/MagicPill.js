@@ -80,7 +80,7 @@ const MagicPill = ({ pillData }) => {
     <div className='magicPill'>
       {IconComponent && <IconComponent className="icon"/>}
       <p className='message'>{message}</p>
-      {ctaLink && !info && <a className='CTA' href={ctaLink}>{CTAIconComponent && <CTAIconComponent className="label" />}{" "}{ctaLabel}</a>}
+      {ctaLink && !info && <a className='CTA' href={ctaLink}>{CTAIconComponent && <CTAIconComponent className="label" />}<span>{ctaLabel}</span></a>}
       {ctaLink && info && 
   <button 
     className='CTA' 
@@ -94,7 +94,7 @@ const MagicPill = ({ pillData }) => {
     {!temporaryCTAIcon === ctaIcon ? ctaLabel : closeLabel}
   </button>
 }
-      {info && <div className='info'><p className='title'>{title}</p><div className='content' dangerouslySetInnerHTML={ {__html: content} }></div></div>}
+      {info && <div className={!collapsed ? 'info active' : 'info'}><p className='title'>{title}</p><div className='content' dangerouslySetInnerHTML={ {__html: content} }></div></div>}
     </div>
   );
 };
