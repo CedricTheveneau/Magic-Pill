@@ -28,7 +28,7 @@ module.exports = () => {
         ]
       }),
       postcss({
-        extract: true,
+        extract: 'index.css',
         minimize: true,
       }),
       terser(),
