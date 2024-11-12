@@ -10,7 +10,7 @@
     "url": "https://github.com/CedricTheveneau/Magic-Pill"
   },
   "scripts": {
-    "build": "rollup -c && cp src/index.d.ts dist/index.d.ts && cp magicpill.css dist/magicpill.css",
+    "build": "rollup -c && cp src/index.d.ts dist/index.d.ts && cp src/magicpill.css dist/magicpill.css",
     "prepare": "npm run build"
   },
   "peerDependencies": {
