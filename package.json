@@ -35,5 +35,8 @@
   "files": [
     "dist",
     "src/magicpill.css"
-  ]
+  ],
+  "dependencies": {
+    "@rollup/plugin-babel": "^6.0.4"
+  }
 }

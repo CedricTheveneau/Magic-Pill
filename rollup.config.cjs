@@ -1,4 +1,4 @@
-const babel = require('rollup-plugin-babel');
+const babel = require('@rollup/plugin-babel');
 const { terser } = require('rollup-plugin-terser');
 const pkg = require('./package.json');
 const postcss = require('rollup-plugin-postcss');
