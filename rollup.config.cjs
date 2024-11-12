@@ -1,4 +1,4 @@
-const babel = require('@rollup/plugin-babel');
+const babel = require('@rollup/plugin-babel').default;
 const { terser } = require('rollup-plugin-terser');
 const pkg = require('./package.json');
 const postcss = require('rollup-plugin-postcss');
@@ -19,7 +19,14 @@ module.exports = () => {
       },
     ],
     plugins: [
-      babel({ exclude: 'node_modules/**' }),
+      babel({
+        exclude: 'node_modules/**',
+        babelHelpers: 'bundled',
+        presets: [
+          '@babel/preset-env',
+          '@babel/preset-react'
+        ]
+      }),
       postcss({
         extract: true,
         minimize: true,

@@ -37,6 +37,7 @@
     "src/magicpill.css"
   ],
   "dependencies": {
+    "@babel/preset-env": "^7.26.0",
     "@rollup/plugin-babel": "^6.0.4"
   }
 }
