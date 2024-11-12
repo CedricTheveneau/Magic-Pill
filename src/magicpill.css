@@ -48,6 +48,7 @@
   font-size: var(--textSize);
 
   >.title {
+   font-weight: var(--black);
    font-size: var(--titleSize);
   }
  }
@@ -72,6 +73,7 @@
 
  >.info {
   display: grid;
+  gap: 25px;
   padding: 50px;
   z-index: -1;
   position: absolute;

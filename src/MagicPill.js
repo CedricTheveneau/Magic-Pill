@@ -90,8 +90,7 @@ const MagicPill = ({ pillData }) => {
     }}
   >
     {CTAIconComponent && <CTAIconComponent className="label" />}
-    {" "}
-    {!temporaryCTAIcon === ctaIcon ? ctaLabel : closeLabel}
+    <span>{!temporaryCTAIcon === ctaIcon ? ctaLabel : closeLabel}</span>
   </button>
 }
       {info && <div className={!collapsed ? 'info active' : 'info'}><p className='title'>{title}</p><div className='content' dangerouslySetInnerHTML={ {__html: content} }></div></div>}
