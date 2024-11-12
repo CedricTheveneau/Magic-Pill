@@ -3,7 +3,7 @@ const { terser } = require('rollup-plugin-terser');
 const pkg = require('./package.json');
 const postcss = require('rollup-plugin-postcss');
 
-module.exports = async () => {
+module.exports = () => {
   return {
     input: 'src/MagicPill.js',
     output: [
