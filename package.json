@@ -1,6 +1,6 @@
 {
   "name": "magic-pill",
-  "version": "2.0.4",
+  "version": "3.0.0",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "description": "A new way to guide your audience and bring them contextual information through your app",
