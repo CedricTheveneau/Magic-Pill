@@ -94,7 +94,7 @@ const MagicPill = ({ pillData }) => {
     {!temporaryCTAIcon === ctaIcon ? ctaLabel : closeLabel}
   </button>
 }
-      {info && <div className='info'><p className='title'>{title}</p><div className='content' dangerouslySetInnerHTML={content}></div></div>}
+      {info && <div className='info'><p className='title'>{title}</p><div className='content' dangerouslySetInnerHTML={ {__html: content} }></div></div>}
     </div>
   );
 };
