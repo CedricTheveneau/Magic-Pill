@@ -1,0 +1,31 @@
+/* Font import */
+@import url('https://fonts.googleapis.com/css2?family=Overlock:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap');
+
+/* CSS variables */
+:root {
+ --themeDark: #141414;
+ --themeLight: #F9F9F9;
+ --font-family: "Overlock", sans-serif;
+ --normal: normal;
+ --italic: italic;
+ --medium: 400;
+ --bold: 700;
+ --black: 900;
+}
+
+/* General */
+*, *::before, *::after {
+ box-sizing: border-box;
+ margin: 0;
+ padding: 0;
+ font-family: var(--font-family);
+}
+
+.magicpill {
+ padding: 25px;
+ display: flex;
+ gap: 25px;
+ background-color: var(--themeDark);
+ color: var(--themeLight);
+ border-radius: 100px;
+}
