@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import DOMPurify from "dompurify";
 import './magicpill.css';
 
 import ArrowLabel from './icons/arrow_label.js';
@@ -24,10 +23,6 @@ const MagicPill = ({ pillData }) => {
 
   const [collapsed, setCollapsed] = useState(true);
   const [temporaryCTAIcon, setTemporaryCTAIcon] = useState(ctaIcon)
-
-  const createMarkup = (html) => {
-    return { __html: DOMPurify.sanitize(html) };
-  };
 
   let IconComponent;
   let CTAIconComponent;
@@ -99,7 +94,7 @@ const MagicPill = ({ pillData }) => {
     {!temporaryCTAIcon === ctaIcon ? ctaLabel : closeLabel}
   </button>
 }
-      {info && <div className='info'><p className='title'>{title}</p><div className='content' dangerouslySetInnerHTML={createMarkup(content)}></div></div>}
+      {info && <div className='info'><p className='title'>{title}</p><div className='content' dangerouslySetInnerHTML={content}></div></div>}
     </div>
   );
 };
