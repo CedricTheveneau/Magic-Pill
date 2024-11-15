@@ -84,9 +84,9 @@ const MagicPill = ({ pillData }) => {
     setTimeout(() => {setActive(false); setExit(true)}, 7500)
   }
 
-  useEffect((
-    displayMagicPill()
-  ), [])
+  useEffect(() => {
+    displayMagicPill();
+  }, []);
 
   return (
     <div className={exit ? 'magicPill out' : active ? 'magicPill active' : 'magicPill entry'}>

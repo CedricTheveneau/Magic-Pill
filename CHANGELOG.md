@@ -1,5 +1,9 @@
 # Changelog
 
+## [6.1.15]
+### Fixed
+- Fixed an issue regarding the useEffect which could create errors leading to crashes because of bad syntax. It's now fixed and the component should render correctly without causing crashes
+
 ## [6.1.14]
 ### Added
 - Added a default props, so that Magic Pill displays a friendly default message if there is an issue with the given props
