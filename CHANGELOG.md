@@ -1,5 +1,11 @@
 # Changelog
 
+## [6.1.20]
+### Fixed
+- Implemented a more refined logic to prevent animation on hover and resume it on mouse leave (still in progress)
+- Simplified the info div animation and removed the ::after pseudo-element
+- Added a new animation for the CTA : when the info div is expanded, the button moves to the center of Magic Pill
+
 ## [6.1.19]
 ### Fixed
 - Added the import of useRef, which I forgot in the previous release

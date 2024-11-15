@@ -96,7 +96,7 @@ html {
         background-color: var(--themeLight);
         border: transparent;
         border-radius: 100px;
-        transition: width 250ms ease-in-out, max-width 250ms ease-in-out;
+        transition: width 250ms ease-in-out, max-width 250ms ease-in-out, left 250ms ease-in-out, transform 250ms ease-in-out;
         cursor: pointer;
 
         >svg {
@@ -120,45 +120,26 @@ html {
       >.info {
         display: grid;
         gap: 25px;
-        padding: 50px;
+        padding: 50px 50px 85px 50px;
         z-index: -1;
         position: absolute;
         left: 0;
         width: 100%;
         height: 100%;
         background-color: var(--themeDark);
-        border-radius: 55px;
+        border-radius: 40px;
         bottom: 0px;
         transition: height 250ms 250ms ease-in-out, bottom 250ms 250ms ease-in-out, border-radius 250ms 250ms ease-in-out;
       }
 
-      >.info::after {
-        content: '';
-        position: absolute;
-        width: 95%;
-        height: 95%;
-        top: 50%;
-        left: 50%;
-        transform: translateX(-50%) translateY(-50%);
-        background-color: var(--themeDark);
-        border-radius: 55px;
-        transition: top 250ms ease-in-out, height 250ms ease-in-out;
-      }
-
       >.info.active {
-        border-radius: 50px 50px 0px 0px;
-        bottom: calc(106.5px / 2);
+        bottom: 0;
         height: fit-content !important;
         transition: height 250ms 0ms ease-in-out, bottom 250ms 0ms ease-in-out, border-radius 250ms 0ms ease-in-out;
         >* {
           opacity: 1;
           transition: opacity 250ms 250ms ease-in-out;
         }
-      }
-
-      >.info.active::after {
-        height: 50px;
-        top: 100%;
       }
     }
 
@@ -197,6 +178,11 @@ html {
       >svg,
       p {
         z-index: -1;
+      }
+      >button.CTA {
+        position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
       }
     }
   }
