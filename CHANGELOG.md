@@ -1,5 +1,9 @@
 # Changelog
 
+## [6.1.21]
+### Fixed
+- Refined a bit more the logic regarding entry and exit animations to prevent buggy visuals (still in progress)
+
 ## [6.1.20]
 ### Fixed
 - Implemented a more refined logic to prevent animation on hover and resume it on mouse leave (still in progress)
