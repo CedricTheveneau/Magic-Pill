@@ -90,13 +90,11 @@ const MagicPill = ({ pillData }) => {
   };
 
   const startExitAnimation = () => {
-    if (active && !hovering) {
-      clearExitAnimation();
-      timeoutRef.current = setTimeout(() => {
-        setActive(false);
-        setTimeout(() => setExit(true), 500);
-      }, 5000);
-    }
+    clearExitAnimation();
+    timeoutRef.current = setTimeout(() => {
+      setActive(false);
+      setTimeout(() => setExit(true), 500);
+    }, 5000);
   };
 
   const clearExitAnimation = () => {
@@ -127,7 +125,7 @@ const MagicPill = ({ pillData }) => {
   }, [hasEntered]);
 
   useEffect(() => {
-    if (active) {
+    if (active && !hovering) {
       startExitAnimation();
     }
   }, [active, hovering]);
