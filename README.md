@@ -10,8 +10,8 @@ Thank you for your patience and to all people who already have shown interest in
 ## Badges
 ![npm version](https://img.shields.io/npm/v/magic-pill?color=blue)
 ![npm downloads](https://img.shields.io/npm/dt/magic-pill?color=green)
-[![DeepScan grade](https://deepscan.io/api/teams/23515/projects/27286/branches/870934/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=23515&pid=27286&bid=870934)
-[![Known Vulnerabilities](https://snyk.io/test/github/CedricTheveneau/Voyage_Stoique-Back/badge.svg)](https://snyk.io/test/github/CedricTheveneau/Voyage_Stoique-Back)
+[![DeepScan grade](https://deepscan.io/api/teams/23515/projects/28307/branches/911491/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=23515&pid=28307&bid=911491)
+[![Known Vulnerabilities](https://snyk.io/test/github/CedricTheveneau/Magic-Pill/badge.svg)](https://snyk.io/test/github/CedricTheveneau/Magic-Pill)
 ## Introduction
 Magic Pill is a simple yet powerful React component that lets you show contextual information to your users. It mimicks Apple's Dynamic Island's behavior and is inspired by Xbox's achievement notification as well.
 You can show notifications with a quick action, or even some additional content based on the content the users are seeing.
