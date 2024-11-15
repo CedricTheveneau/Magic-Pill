@@ -39,7 +39,7 @@ import 'magic-pill/dist/magicpill.css';
 Add Magic Pill to any project simply by importing it into your app and calling it inside the component : 
 ```js
 import React from 'react';
-import { MagicPill } from 'magic-pill';
+import MagicPill from 'magic-pill';
 
 export default function App() {
 // pillData would be stored in a global Context and updated dynamically through other components

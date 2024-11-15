@@ -18,13 +18,6 @@
   --titleSize: 31.42px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --themeDark: #F9F9F9;
-    --themeLight: #141414;
-  }
-}
-
 /* General */
 *,
 *::before,
