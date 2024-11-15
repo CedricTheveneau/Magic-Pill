@@ -1,5 +1,9 @@
 # Changelog
 
+## [6.1.26]
+### Fixed
+- Backtracked to V6.1.20 after various fails. V6.1.20 was the closest to actually being usable 
+
 ## [6.1.22] -> [6.1.25]
 ### Fixed
 - Refined a bit more the logic regarding classes applied to Magic Pill upon animations to prevent buggy visuals (still in progress)
