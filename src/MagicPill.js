@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './magicpill.css';
 
 import ArrowLabel from './icons/arrow_label.js';
@@ -17,6 +17,8 @@ import InfoIcon from './icons/info.js';
 import QuestionmarkIcon from './icons/questionmark.js';
 
 const MagicPill = ({ pillData }) => {
+  const [active, setActive] = useState(false)
+  const [exit, setExit] = useState(true)
   const { icon, message, cta, info } = pillData;
   const { icon: ctaIcon, label: ctaLabel, link: ctaLink } = cta || {};
   const { title, content, closeLabel } = info || {};
@@ -76,8 +78,18 @@ const MagicPill = ({ pillData }) => {
       CTAIconComponent = null;
   }
 
+  const displayMagicPill = () => {
+    setExit(!exit)
+    setTimeout(() => setActive(!active), 2500)
+    setTimeout(() => {setActive(!active); setExit(!exit)}, 5000)
+  }
+
+  useEffect((
+    displayMagicPill
+  ), [])
+
   return (
-    <div className='magicPill'>
+    <div className={exit ? 'magicPill out' : active ? 'magicPill active' : 'magicPill entry'}>
       {IconComponent && <IconComponent className="icon"/>}
       <p className='message'>{message}</p>
       {ctaLink && !info && <a className='CTA' href={ctaLink}>{CTAIconComponent && <CTAIconComponent className="label" />}<span>{ctaLabel}</span></a>}
