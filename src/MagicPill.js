@@ -102,6 +102,14 @@ const MagicPill = ({ pillData }) => {
     }
   };
 
+  useEffect(() => {
+    displayMagicPill();
+  
+    return () => {
+      clearExitAnimation();
+    };
+  }, []);
+
   const handleMouseEnter = () => {
     setHovering(true);
     clearExitAnimation();
@@ -116,7 +124,7 @@ const MagicPill = ({ pillData }) => {
     if (active) {
       startExitAnimation();
     }
-  }, [active, hovering]);
+  }, [active, hovering]); 
 
   return (
     <div className={exit ? 'magicPill out' : active ? 'magicPill active' : 'magicPill entry'} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} >
