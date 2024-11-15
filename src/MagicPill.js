@@ -20,12 +20,12 @@ const MagicPill = ({ pillData }) => {
   const [active, setActive] = useState(false);
   const [exit, setExit] = useState(true);
   const [hovering, setHovering] = useState(false);
+  const timeoutRef = useRef(null);
   const { icon, message, cta, info } = pillData;
   const { icon: ctaIcon, label: ctaLabel, link: ctaLink } = cta || {};
   const { title, content, closeLabel } = info || {};
 
   const [collapsed, setCollapsed] = useState(true);
-  let exitTimeout = null;
 
   let IconComponent;
   let CTAIconComponent;
@@ -83,29 +83,39 @@ const MagicPill = ({ pillData }) => {
   const displayMagicPill = () => {
     setExit(false);
     setTimeout(() => setActive(true), 2500);
-    setTimeout(() => {
-      setActive(false);
-      setExit(true);
-    }, 7500);
+  };
+
+  const startExitAnimation = () => {
+    timeoutRef.current = setTimeout(() => {
+      if (!hovering) {
+        setActive(false);
+        setTimeout(() => setExit(true), 500);
+      }
+    }, 5000);
+  };
+
+  const clearExitAnimation = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
   };
 
   const handleMouseEnter = () => {
     setHovering(true);
-    if (exitTimeout) clearTimeout(exitTimeout);
+    clearExitAnimation();
   };
 
   const handleMouseLeave = () => {
     setHovering(false);
-    exitTimeout = setTimeout(() => {
-      if (!hovering) setExit(true);
-    }, 5000);
+    startExitAnimation();
   };
 
   useEffect(() => {
     displayMagicPill();
 
     return () => {
-      if (exitTimeout) clearTimeout(exitTimeout);
+      clearExitAnimation();
     };
   }, []);
 

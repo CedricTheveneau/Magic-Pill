@@ -1,5 +1,9 @@
 # Changelog
 
+## [6.1.18]
+### Fixed
+- Reworked the logic regarding animation pausing on hover (still a work in progress)
+
 ## [6.1.17]
 ### Added
 - Added logic to prevent exit animation when the mouse enters Magic Pill. Once the mouse leaves, a five seconds timer starts, if the mouse hasn't entered, it triggers the exit animation, if it enters again, the timer is reset to five seconds.
