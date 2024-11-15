@@ -83,8 +83,10 @@ const MagicPill = ({ pillData }) => {
 
   const displayMagicPill = () => {
     setExit(false);
-    setHasEntered(true);
-    setTimeout(() => setActive(true), 2500);
+    setTimeout(() => {
+      setActive(true);
+      setTimeout(() => setHasEntered(true), 2500);
+    }, 2500);
   };
 
   const startExitAnimation = () => {
