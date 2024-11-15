@@ -1,189 +1,195 @@
 /* Font import */
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&family=Overlock:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap');
 
-/* CSS variables */
-.magicPill {
-  --themeDark: #141414;
-  --themeLight: #F9F9F9;
-  --font-text: "Overlock", sans-serif;
-  --font-accent: "Lexend", sans-serif;
-  --normal: normal;
-  --italic: italic;
-  --medium: 400;
-  --bold: 700;
-  --black: 900;
-  --success: #3F7253;
-  --danger: #FC5D6A;
-  --textSize: 19.4px;
-  --titleSize: 31.42px;
-}
+html {
+  >body {
 
-/* General */
-.magicPill,
-.magicPill::before,
-.magicPill::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: var(--font-text);
-}
-
-.magicPill {
-  scale: 0;
-  position: absolute;
-  top: calc(95dvh - 110px);
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 25px;
-  display: flex;
-  gap: 25px;
-  background-color: var(--themeDark);
-  color: var(--themeLight);
-  border-radius: 100px;
-  align-items: center;
-  justify-content: flex-start;
-  max-width: 104.5px;
-  overflow: hidden;
-  transform-origin: left;
-  transition: width 250ms ease-in-out, max-width 250ms ease-in-out;
-
-  >svg {
-    min-width: calc(110px / 2);
-    width: 100%;
-    transition: width 250ms ease-in-out, min-width 250ms ease-in-out;
-  }
-
-  >.message,
-  .info {
-    font-style: var(--italic);
-    font-size: var(--textSize);
-
-    >.title {
-      font-weight: var(--black);
-      font-size: var(--titleSize);
-    }
-  }
-
-  >.message {
-    padding-left: 25px;
-    border-left: 1px solid var(--themeLight);
-    font-style: var(--italic);
-    font-size: 19.4px;
-    min-width: max-content;
-  }
-
-  >.CTA {
-    font-family: var(--font-accent);
-    font-size: var(--textSize);
-    font-weight: var(--bold);
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 10px;
-    padding: 15px;
-    max-width: 54.5px;
-    min-width: 54.5px;
-    overflow: hidden;
-    background-color: var(--themeLight);
-    border: transparent;
-    border-radius: 100px;
-    transition: width 250ms ease-in-out, max-width 250ms ease-in-out;
-    cursor: pointer;
-
-    >svg {
-      min-width: calc(54.5px / 2);
-      width: 100%;
-      z-index: 1;
+    /* CSS variables */
+    .magicPill {
+      --themeDark: #141414;
+      --themeLight: #F9F9F9;
+      --font-text: "Overlock", sans-serif;
+      --font-accent: "Lexend", sans-serif;
+      --normal: normal;
+      --italic: italic;
+      --medium: 400;
+      --bold: 700;
+      --black: 900;
+      --success: #3F7253;
+      --danger: #FC5D6A;
+      --textSize: 19.4px;
+      --titleSize: 31.42px;
     }
 
-    >span {
-      z-index: 1;
-      font-family: var(--font-accent);
+    /* General */
+    .magicPill,
+    .magicPill::before,
+    .magicPill::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-text);
+    }
+
+    .magicPill {
+      scale: 0;
+      position: absolute;
+      top: calc(95dvh - 110px);
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 25px;
+      display: flex;
+      gap: 25px;
+      background-color: var(--themeDark);
+      color: var(--themeLight);
+      border-radius: 100px;
+      align-items: center;
+      justify-content: flex-start;
+      max-width: 104.5px;
+      overflow: hidden;
+      transform-origin: left;
+      transition: width 250ms ease-in-out, max-width 250ms ease-in-out;
+
+      >svg {
+        min-width: calc(110px / 2);
+        width: 100%;
+        transition: width 250ms ease-in-out, min-width 250ms ease-in-out;
+      }
+
+      >.message,
+      .info {
+        font-style: var(--italic);
+        font-size: var(--textSize);
+
+        >.title {
+          font-weight: var(--black);
+          font-size: var(--titleSize);
+        }
+      }
+
+      >.message {
+        padding-left: 25px;
+        border-left: 1px solid var(--themeLight);
+        font-style: var(--italic);
+        font-size: 19.4px;
+        min-width: max-content;
+      }
+
+      >.CTA {
+        font-family: var(--font-accent);
+        font-size: var(--textSize);
+        font-weight: var(--bold);
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 10px;
+        padding: 15px;
+        max-width: 54.5px;
+        min-width: 54.5px;
+        overflow: hidden;
+        background-color: var(--themeLight);
+        border: transparent;
+        border-radius: 100px;
+        transition: width 250ms ease-in-out, max-width 250ms ease-in-out;
+        cursor: pointer;
+
+        >svg {
+          min-width: calc(54.5px / 2);
+          width: 100%;
+          z-index: 1;
+        }
+
+        >span {
+          z-index: 1;
+          font-family: var(--font-accent);
+        }
+      }
+
+      >.CTA:hover {
+        max-width: 300px;
+      }
+
+      >.info {
+        display: grid;
+        gap: 25px;
+        padding: 50px;
+        z-index: -1;
+        position: absolute;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--themeDark);
+        border-radius: 55px;
+        bottom: 0px;
+        transition: height 250ms ease-in-out, bottom 250ms ease-in-out, border-radius 250ms ease-in-out;
+      }
+
+      >.info::after {
+        content: '';
+        position: absolute;
+        width: 95%;
+        height: 95%;
+        top: 50%;
+        left: 50%;
+        transform: translateX(-50%) translateY(-50%);
+        background-color: var(--themeDark);
+        border-radius: 55px;
+        transition: height 250ms 250ms ease-in-out;
+      }
+
+      >.info.active {
+        border-radius: 50px 50px 0px 0px;
+        bottom: calc(106.5px / 2);
+        height: fit-content !important;
+      }
+
+      >.info.active::after {
+        height: 50px;
+        top: 100%;
+      }
+    }
+
+    .magicPill.active {
+      max-width: 1000px;
+      scale: 1;
+
+      >svg {
+        min-width: unset;
+        width: unset;
+      }
+    }
+
+    .magicPill.entry {
+      max-width: 104.5px;
+      transition: max-width 1500ms ease-in-out, width 1500ms ease-in-out;
+      animation: magicPillEntry 2500ms ease-in-out forwards;
+    }
+
+    .magicPill.out {
+      scale: 1;
+      max-width: 104.5px;
+      transition: max-width 1500ms ease-in-out, width 1500ms ease-in-out;
+      animation: magicPillEntry 2500ms 1500ms ease-in-out reverse forwards;
+
+      >svg {
+        min-width: calc(110px / 2);
+        width: 100%;
+        transition: width 250ms ease-in-out, min-width 250ms ease-in-out;
+      }
+    }
+
+    .magicPill:has(.info.active) {
+      overflow: unset;
+
+      >svg,
+      p {
+        z-index: -1;
+      }
     }
   }
-
-  >.CTA:hover {
-    max-width: 300px;
-  }
-
-  >.info {
-    display: grid;
-    gap: 25px;
-    padding: 50px;
-    z-index: -1;
-    position: absolute;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: var(--themeDark);
-    border-radius: 55px;
-    bottom: 0px;
-    transition: height 250ms ease-in-out, bottom 250ms ease-in-out, border-radius 250ms ease-in-out;
-  }
-
-  >.info::after {
-    content: '';
-    position: absolute;
-    width: 95%;
-    height: 95%;
-    top: 50%;
-    left: 50%;
-    transform: translateX(-50%) translateY(-50%);
-    background-color: var(--themeDark);
-    border-radius: 55px;
-    transition: height 250ms 250ms ease-in-out;
-  }
-
-  >.info.active {
-    border-radius: 50px 50px 0px 0px;
-    bottom: calc(106.5px / 2);
-    height: fit-content !important;
-  }
-
-  >.info.active::after {
-    height: 50px;
-    top: 100%;
-  }
 }
 
-.magicPill.active {
-  max-width: 1000px;
-
-  >svg {
-    min-width: unset;
-    width: unset;
-  }
-}
-
-.magicPill.entry {
-  max-width: 104.5px;
-  transition: max-width 1500ms ease-in-out, width 1500ms ease-in-out;
-  animation: entry 2500ms ease-in-out forwards;
-}
-
-.magicPill.out {
-  scale: 1;
-  max-width: 104.5px;
-  transition: max-width 1500ms ease-in-out, width 1500ms ease-in-out;
-  animation: entry 2500ms 1500ms ease-in-out reverse forwards;
-
-  >svg {
-    min-width: calc(110px / 2);
-    width: 100%;
-    transition: width 250ms ease-in-out, min-width 250ms ease-in-out;
-  }
-}
-
-.magicPill:has(.info.active) {
-  overflow: unset;
-
-  >svg,
-  p {
-    z-index: -1;
-  }
-}
-
-@keyframes entry {
+@keyframes magicPillEntry {
   0% {
     scale: 0;
   }

@@ -1,5 +1,16 @@
 # Changelog
 
+## [6.1.14]
+### Added
+- Added a default props, so that Magic Pill displays a friendly default message if there is an issue with the given props
+
+### Fixed
+- Fixed a display issue when Magic Pill was active
+- Fixed a display issue regarding closing button when you have information added and simplified the logic related to it
+- Fixed the way Magic Pill was rendered on useEffect
+- Fixed some specificity issues in CSS by wrapping Magic Pill inside html and body to raise its style priority
+- Changed the name of the "entry" keyframes to "magicPillEntry" to avoid any issue, considering "entry" is a popular term for keyframes
+
 ## [6.1.13]
 ### Fixed
 - Fixed the definition of CSS vairables which conflicted with the project's global stylesheet, now everything only extends to the scope of the Magic Pill

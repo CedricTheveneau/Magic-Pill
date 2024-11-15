@@ -20,11 +20,10 @@ const MagicPill = ({ pillData }) => {
   const [active, setActive] = useState(false)
   const [exit, setExit] = useState(true)
   const { icon, message, cta, info } = pillData;
-  const { ctaIcon, ctaLabel, ctaLink } = cta || {};
+  const { icon: ctaIcon, label: ctaLabel, link: ctaLink } = cta || {};
   const { title, content, closeLabel } = info || {};
 
   const [collapsed, setCollapsed] = useState(true);
-  const [temporaryCTAIcon, setTemporaryCTAIcon] = useState(ctaIcon)
 
   let IconComponent;
   let CTAIconComponent;
@@ -46,7 +45,8 @@ const MagicPill = ({ pillData }) => {
       IconComponent = null;
   }
 
-  switch (ctaIcon) {
+  const currentCTAIcon = collapsed ? ctaIcon : 'cross';
+  switch (currentCTAIcon) {
     case 'arrow':
       CTAIconComponent = ArrowLabel;
       break;
@@ -85,7 +85,7 @@ const MagicPill = ({ pillData }) => {
   }
 
   useEffect((
-    displayMagicPill
+    displayMagicPill()
   ), [])
 
   return (
@@ -96,11 +96,7 @@ const MagicPill = ({ pillData }) => {
       {ctaLink && info && 
   <button 
     className='CTA' 
-    onClick={() => {
-      setCollapsed(!collapsed);
-      setTemporaryCTAIcon('cross');
-    }}
-  >
+    onClick={() => {setCollapsed(!collapsed)}}>
     {CTAIconComponent && <CTAIconComponent className="label" />}
     <span>{collapsed ? ctaLabel : closeLabel}</span>
   </button>
@@ -108,6 +104,23 @@ const MagicPill = ({ pillData }) => {
       {info && <div className={!collapsed ? 'info active' : 'info'}><p className='title'>{title}</p><div className='content' dangerouslySetInnerHTML={ {__html: content} }></div></div>}
     </div>
   );
+};
+
+MagicPill.defaultProps = {
+  pillData: {
+    icon: 'info',
+    message: 'Hey ! I\'m Magic Pill, your omnipotent toolbox !',
+    cta: {
+      icon: 'arrow',
+      label: 'Discover what I can do',
+      link: null
+    },
+    info: {
+      title: 'I\'m Magic Pill, let me empower you !',
+      content: '<p>I\'ll appear sometimes, depending on context, either to send you notifications regarding your experience on this website or to give you indications and hints at what you cn do !</p><p>See you around !</p>',
+      closeLabel: 'Close'
+    }
+  }
 };
 
 export default MagicPill;
