@@ -1,5 +1,9 @@
 # Changelog
 
+## [6.1.19]
+### Fixed
+- Added the import of useRef, which I forgot in the previous release
+
 ## [6.1.18]
 ### Fixed
 - Reworked the logic regarding animation pausing on hover (still a work in progress)
