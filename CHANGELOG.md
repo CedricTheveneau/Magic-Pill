@@ -1,5 +1,15 @@
 # Changelog
 
+## [6.1.17]
+### Added
+- Added logic to prevent exit animation when the mouse enters Magic Pill. Once the mouse leaves, a five seconds timer starts, if the mouse hasn't entered, it triggers the exit animation, if it enters again, the timer is reset to five seconds.
+- Added a LICENSE file
+- Added a NOTICE file
+- LICENSE and NOTICE files will be added to the package
+
+### Updated
+- README file
+
 ## [6.1.16]
 ### Fixed
 - Fixed various display issues

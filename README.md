@@ -116,9 +116,6 @@ As stated before, Magic Pill is distributed under the MIT License.
 ## What's next ?
 | TODO | DOING |
 |-----------|-----------|
-| Animation fixes  | Better conditioning of displays depending on props  |
-| Implementation with APIs  |   |
-| Proper testing  |   |
-| License file  |   |
-| Changelog file  |   |
+| Implementation with APIs  | Better conditioning of displays depending on props  |
+| Proper testing  | Animation fixes  |
 | Full documentation  |   |
