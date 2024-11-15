@@ -32,6 +32,7 @@ html {
     }
 
     .magicPill {
+      z-index: 1;
       scale: 0;
       position: absolute;
       top: calc(95dvh - 110px);
@@ -61,6 +62,11 @@ html {
         font-style: var(--italic);
         font-size: var(--textSize);
 
+        >* {
+          opacity: 0;
+          transition: opacity 250ms 0ms ease-in-out;
+        }
+
         >.title {
           font-weight: var(--black);
           font-size: var(--titleSize);
@@ -82,7 +88,7 @@ html {
         display: flex;
         justify-content: flex-start;
         align-items: center;
-        gap: 10px;
+        gap: 15px;
         padding: 15px;
         max-width: 54.5px;
         min-width: 54.5px;
@@ -97,10 +103,12 @@ html {
           min-width: calc(54.5px / 2);
           width: 100%;
           z-index: 1;
+          max-width: calc(54.5px / 2);
         }
 
         >span {
           z-index: 1;
+          min-width: max-content;
           font-family: var(--font-accent);
         }
       }
@@ -121,7 +129,7 @@ html {
         background-color: var(--themeDark);
         border-radius: 55px;
         bottom: 0px;
-        transition: height 250ms ease-in-out, bottom 250ms ease-in-out, border-radius 250ms ease-in-out;
+        transition: height 250ms 250ms ease-in-out, bottom 250ms 250ms ease-in-out, border-radius 250ms 250ms ease-in-out;
       }
 
       >.info::after {
@@ -134,13 +142,18 @@ html {
         transform: translateX(-50%) translateY(-50%);
         background-color: var(--themeDark);
         border-radius: 55px;
-        transition: height 250ms 250ms ease-in-out;
+        transition: top 250ms ease-in-out, height 250ms ease-in-out;
       }
 
       >.info.active {
         border-radius: 50px 50px 0px 0px;
         bottom: calc(106.5px / 2);
         height: fit-content !important;
+        transition: height 250ms 0ms ease-in-out, bottom 250ms 0ms ease-in-out, border-radius 250ms 0ms ease-in-out;
+        >* {
+          opacity: 1;
+          transition: opacity 250ms 250ms ease-in-out;
+        }
       }
 
       >.info.active::after {
