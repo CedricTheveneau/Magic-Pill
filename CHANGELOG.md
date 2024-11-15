@@ -1,5 +1,9 @@
 # Changelog
 
+## [6.1.22]
+### Fixed
+- Refined a bit more the logic regarding classes applied to Magic Pill upon animations to prevent buggy visuals (still in progress)
+
 ## [6.1.21]
 ### Fixed
 - Refined a bit more the logic regarding entry and exit animations to prevent buggy visuals (still in progress)
