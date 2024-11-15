@@ -81,7 +81,7 @@ const MagicPill = ({ pillData }) => {
   const displayMagicPill = () => {
     setExit(false)
     setTimeout(() => setActive(true), 2500)
-    setTimeout(() => {setActive(false); setExit(true)}, 5000)
+    setTimeout(() => {setActive(false); setExit(true)}, 7500)
   }
 
   useEffect((

@@ -1,9 +1,8 @@
 # Changelog
 
-## [Unreleased]
+## [6.1.10]
 ### Added
-- Added useStates and useEffects to manage displaying of the component. It should now display properly with dynamic props.
-- Added a CHANGELOG file to keep track of changes
+- Added the changelog file to the package
 
 ### Fixed
-- Problème de rendu dans l'interface utilisateur sur Firefox.
+- Fixed issues with useStates and reworked the timing of the exit of Magic Pill

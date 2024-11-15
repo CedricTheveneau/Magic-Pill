@@ -36,6 +36,7 @@
   },
   "files": [
     "dist",
-    "index.d.ts"
+    "index.d.ts",
+    "CHANGELOG.md"
   ]
 }
