@@ -131,7 +131,7 @@ const MagicPill = ({ pillData }) => {
   }, [active, hovering]);
 
   return (
-    <div className={exit ? 'magicPill out' : active ? 'magicPill active' : hasEntered ? 'magicPill active' : 'magicPill entry'} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} >
+    <div className={exit ? 'magicPill out' : active ? 'magicPill active' : hasEntered ? 'magicPill out' : 'magicPill entry'} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} >
       {IconComponent && <IconComponent className="icon"/>}
       <p className='message'>{message}</p>
       {ctaLink && !info && <a className='CTA' href={ctaLink}>{CTAIconComponent && <CTAIconComponent className="label" />}<span>{ctaLabel}</span></a>}
