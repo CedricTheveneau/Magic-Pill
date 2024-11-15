@@ -1,5 +1,9 @@
 # Changelog
 
+## [6.1.13]
+### Fixed
+- Fixed the definition of CSS vairables which conflicted with the project's global stylesheet, now everything only extends to the scope of the Magic Pill
+
 ## [6.1.12]
 ### Fixed
 - Fixed a wrong import line in the README file

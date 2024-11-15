@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&family=Overlock:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap');
 
 /* CSS variables */
-:root {
+.magicPill {
   --themeDark: #141414;
   --themeLight: #F9F9F9;
   --font-text: "Overlock", sans-serif;
@@ -19,9 +19,9 @@
 }
 
 /* General */
-*,
-*::before,
-*::after {
+.magicPill,
+.magicPill::before,
+.magicPill::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -46,6 +46,7 @@
   overflow: hidden;
   transform-origin: left;
   transition: width 250ms ease-in-out, max-width 250ms ease-in-out;
+
   >svg {
     min-width: calc(110px / 2);
     width: 100%;
@@ -147,6 +148,7 @@
 
 .magicPill.active {
   max-width: 1000px;
+
   >svg {
     min-width: unset;
     width: unset;
@@ -164,6 +166,7 @@
   max-width: 104.5px;
   transition: max-width 1500ms ease-in-out, width 1500ms ease-in-out;
   animation: entry 2500ms 1500ms ease-in-out reverse forwards;
+
   >svg {
     min-width: calc(110px / 2);
     width: 100%;
@@ -173,7 +176,9 @@
 
 .magicPill:has(.info.active) {
   overflow: unset;
-  >svg, p {
+
+  >svg,
+  p {
     z-index: -1;
   }
 }
@@ -182,9 +187,11 @@
   0% {
     scale: 0;
   }
+
   90% {
     scale: 1.2;
   }
+
   100% {
     scale: 1;
   }
