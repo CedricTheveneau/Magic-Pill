@@ -20,7 +20,6 @@ const MagicPill = ({ pillData }) => {
   const [active, setActive] = useState(false);
   const [exit, setExit] = useState(true);
   const [hovering, setHovering] = useState(false);
-  const [hasEntered, setHasEntered] = useState(false);
   const timeoutRef = useRef(null);
   const { icon, message, cta, info } = pillData;
   const { icon: ctaIcon, label: ctaLabel, link: ctaLink } = cta || {};
@@ -83,18 +82,17 @@ const MagicPill = ({ pillData }) => {
 
   const displayMagicPill = () => {
     setExit(false);
-    setTimeout(() => {
-      setActive(true);
-      setTimeout(() => setHasEntered(true), 2500);
-    }, 2500);
+    setTimeout(() => setActive(true), 2500);
   };
 
   const startExitAnimation = () => {
-    clearExitAnimation();
-    timeoutRef.current = setTimeout(() => {
-      setActive(false);
-      setTimeout(() => setExit(true), 500);
-    }, 5000);
+    if (active && !hovering) {
+      clearExitAnimation();
+      timeoutRef.current = setTimeout(() => {
+        setActive(false);
+        setTimeout(() => setExit(true), 500);
+      }, 5000);
+    }
   };
 
   const clearExitAnimation = () => {
@@ -103,6 +101,14 @@ const MagicPill = ({ pillData }) => {
       timeoutRef.current = null;
     }
   };
+
+  useEffect(() => {
+    displayMagicPill();
+  
+    return () => {
+      clearExitAnimation();
+    };
+  }, []);
 
   const handleMouseEnter = () => {
     setHovering(true);
@@ -115,23 +121,13 @@ const MagicPill = ({ pillData }) => {
   };
 
   useEffect(() => {
-    if (!hasEntered) {
-      displayMagicPill();
-    }
-
-    return () => {
-      clearExitAnimation();
-    };
-  }, [hasEntered]);
-
-  useEffect(() => {
-    if (active && !hovering) {
+    if (active) {
       startExitAnimation();
     }
-  }, [active, hovering]);
+  }, [active, hovering]); 
 
   return (
-    <div className={exit ? 'magicPill out' : active ? 'magicPill active' : hasEntered ? 'magicPill out' : 'magicPill entry'} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} >
+    <div className={exit ? 'magicPill out' : active ? 'magicPill active' : 'magicPill entry'} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} >
       {IconComponent && <IconComponent className="icon"/>}
       <p className='message'>{message}</p>
       {ctaLink && !info && <a className='CTA' href={ctaLink}>{CTAIconComponent && <CTAIconComponent className="label" />}<span>{ctaLabel}</span></a>}
