@@ -1,6 +1,6 @@
 # Changelog
 
-## [6.1.22] -> [6.1.23]
+## [6.1.22] -> [6.1.24]
 ### Fixed
 - Refined a bit more the logic regarding classes applied to Magic Pill upon animations to prevent buggy visuals (still in progress)
 
