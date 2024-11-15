@@ -20,6 +20,7 @@ const MagicPill = ({ pillData }) => {
   const [active, setActive] = useState(false);
   const [exit, setExit] = useState(true);
   const [hovering, setHovering] = useState(false);
+  const [hasEntered, setHasEntered] = useState(false);
   const timeoutRef = useRef(null);
   const { icon, message, cta, info } = pillData;
   const { icon: ctaIcon, label: ctaLabel, link: ctaLink } = cta || {};
@@ -82,6 +83,7 @@ const MagicPill = ({ pillData }) => {
 
   const displayMagicPill = () => {
     setExit(false);
+    setHasEntered(true);
     setTimeout(() => setActive(true), 2500);
   };
 
@@ -102,14 +104,6 @@ const MagicPill = ({ pillData }) => {
     }
   };
 
-  useEffect(() => {
-    displayMagicPill();
-  
-    return () => {
-      clearExitAnimation();
-    };
-  }, []);
-
   const handleMouseEnter = () => {
     setHovering(true);
     clearExitAnimation();
@@ -121,10 +115,20 @@ const MagicPill = ({ pillData }) => {
   };
 
   useEffect(() => {
+    if (!hasEntered) {
+      displayMagicPill();
+    }
+
+    return () => {
+      clearExitAnimation();
+    };
+  }, [hasEntered]);
+
+  useEffect(() => {
     if (active) {
       startExitAnimation();
     }
-  }, [active, hovering]); 
+  }, [active, hovering]);
 
   return (
     <div className={exit ? 'magicPill out' : active ? 'magicPill active' : 'magicPill entry'} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} >
