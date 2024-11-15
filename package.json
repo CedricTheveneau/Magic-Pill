@@ -37,6 +37,8 @@
   "files": [
     "dist",
     "index.d.ts",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "LICENSE.md",
+    "NOTICE.md"
   ]
 }

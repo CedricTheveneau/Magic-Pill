@@ -17,13 +17,15 @@ import InfoIcon from './icons/info.js';
 import QuestionmarkIcon from './icons/questionmark.js';
 
 const MagicPill = ({ pillData }) => {
-  const [active, setActive] = useState(false)
-  const [exit, setExit] = useState(true)
+  const [active, setActive] = useState(false);
+  const [exit, setExit] = useState(true);
+  const [hovering, setHovering] = useState(false);
   const { icon, message, cta, info } = pillData;
   const { icon: ctaIcon, label: ctaLabel, link: ctaLink } = cta || {};
   const { title, content, closeLabel } = info || {};
 
   const [collapsed, setCollapsed] = useState(true);
+  let exitTimeout = null;
 
   let IconComponent;
   let CTAIconComponent;
@@ -79,17 +81,36 @@ const MagicPill = ({ pillData }) => {
   }
 
   const displayMagicPill = () => {
-    setExit(false)
-    setTimeout(() => setActive(true), 2500)
-    setTimeout(() => {setActive(false); setExit(true)}, 7500)
-  }
+    setExit(false);
+    setTimeout(() => setActive(true), 2500);
+    setTimeout(() => {
+      setActive(false);
+      setExit(true);
+    }, 7500);
+  };
+
+  const handleMouseEnter = () => {
+    setHovering(true);
+    if (exitTimeout) clearTimeout(exitTimeout);
+  };
+
+  const handleMouseLeave = () => {
+    setHovering(false);
+    exitTimeout = setTimeout(() => {
+      if (!hovering) setExit(true);
+    }, 5000);
+  };
 
   useEffect(() => {
     displayMagicPill();
+
+    return () => {
+      if (exitTimeout) clearTimeout(exitTimeout);
+    };
   }, []);
 
   return (
-    <div className={exit ? 'magicPill out' : active ? 'magicPill active' : 'magicPill entry'}>
+    <div className={exit ? 'magicPill out' : active ? 'magicPill active' : 'magicPill entry'} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} >
       {IconComponent && <IconComponent className="icon"/>}
       <p className='message'>{message}</p>
       {ctaLink && !info && <a className='CTA' href={ctaLink}>{CTAIconComponent && <CTAIconComponent className="label" />}<span>{ctaLabel}</span></a>}
