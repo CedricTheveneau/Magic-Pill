@@ -20,7 +20,7 @@ const MagicPill = ({ pillData }) => {
   const [active, setActive] = useState(false)
   const [exit, setExit] = useState(true)
   const { icon, message, cta, info } = pillData;
-  const { icon: ctaIcon, label: ctaLabel, link: ctaLink } = cta || {};
+  const { ctaIcon, ctaLabel, ctaLink } = cta || {};
   const { title, content, closeLabel } = info || {};
 
   const [collapsed, setCollapsed] = useState(true);
@@ -102,7 +102,7 @@ const MagicPill = ({ pillData }) => {
     }}
   >
     {CTAIconComponent && <CTAIconComponent className="label" />}
-    <span>{!temporaryCTAIcon === ctaIcon ? ctaLabel : closeLabel}</span>
+    <span>{collapsed ? ctaLabel : closeLabel}</span>
   </button>
 }
       {info && <div className={!collapsed ? 'info active' : 'info'}><p className='title'>{title}</p><div className='content' dangerouslySetInnerHTML={ {__html: content} }></div></div>}
