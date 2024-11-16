@@ -1,5 +1,9 @@
 # Changelog
 
+## [7.0.1]
+### Fixed
+- Removed efault.props as it will not longer be supported in future versions of React
+
 ## [7.0.8]
 ### Fixed
 - Fixed version compatibility issues with NextJS / React

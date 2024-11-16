@@ -144,21 +144,4 @@ const MagicPill = ({ pillData }) => {
   );
 };
 
-MagicPill.defaultProps = {
-  pillData: {
-    icon: 'info',
-    message: 'Hey ! I\'m Magic Pill, your omnipotent toolbox !',
-    cta: {
-      icon: 'arrow',
-      label: 'Discover what I can do',
-      link: null
-    },
-    info: {
-      title: 'I\'m Magic Pill, let me empower you !',
-      content: '<p>I\'ll appear sometimes, depending on context, either to send you notifications regarding your experience on this website or to give you indications and hints at what you cn do !</p><p>See you around !</p>',
-      closeLabel: 'Close'
-    }
-  }
-};
-
 export default MagicPill;
