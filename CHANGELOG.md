@@ -1,5 +1,9 @@
 # Changelog
 
+## [6.1.28]
+### Fixed
+- Fixed a wrong display condition for info panel
+
 ## [6.1.27]
 ### Fixed
 - Fixed the issue with stuttering exit animation 

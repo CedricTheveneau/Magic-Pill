@@ -131,7 +131,7 @@ const MagicPill = ({ pillData }) => {
       {IconComponent && <IconComponent className="icon"/>}
       <p className='message'>{message}</p>
       {ctaLink && !info && <a className='CTA' href={ctaLink}>{CTAIconComponent && <CTAIconComponent className="label" />}<span>{ctaLabel}</span></a>}
-      {ctaLink && info && 
+      {info && 
   <button 
     className='CTA' 
     onClick={() => {setCollapsed(!collapsed)}}>
