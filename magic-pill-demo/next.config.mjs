@@ -7,10 +7,10 @@ const nextConfig = {
       config.resolve.alias['magic-pill'] = path.resolve('node_modules', 'magic-pill');
     }
     return config;
-},
-output: 'export',
-basePath: '/magic-pill-demo',
-trailingSlash: true,
+  },
+  output: 'export',
+  basePath: '/demo-app',
+  trailingSlash: true,
 };
 
 export default nextConfig;
