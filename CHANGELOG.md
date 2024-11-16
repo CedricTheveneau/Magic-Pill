@@ -1,5 +1,9 @@
 # Changelog
 
+## [6.1.27]
+### Fixed
+- Fixed the issue with stuttering exit animation 
+
 ## [6.1.26]
 ### Fixed
 - Backtracked to V6.1.20 after various fails. V6.1.20 was the closest to actually being usable 

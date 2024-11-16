@@ -90,7 +90,7 @@ const MagicPill = ({ pillData }) => {
       clearExitAnimation();
       timeoutRef.current = setTimeout(() => {
         setActive(false);
-        setTimeout(() => setExit(true), 500);
+        setExit(true);
       }, 5000);
     }
   };
