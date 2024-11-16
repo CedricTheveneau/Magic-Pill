@@ -1,5 +1,9 @@
 # Changelog
 
+## [7.0.8]
+### Fixed
+- Fixed version compatibility issues with NextJS / React
+
 ## [6.1.28]
 ### Fixed
 - Fixed a wrong display condition for info panel
