@@ -9,7 +9,7 @@ const nextConfig = {
     return config;
   },
   output: 'export',
-  basePath: '/demo-app',
+  basePath: '/Magic-Pill',
   trailingSlash: true,
 };
 

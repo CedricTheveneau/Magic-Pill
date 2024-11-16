@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "deploy": "next build && cp out/index.html out/404.html && touch out/.nojekyll && gh-pages -d out"
+    "deploy": "next build && cp out/index.html out/404.html && touch out/.nojekyll && gh-pages -d out -t true"
   },
   "dependencies": {
     "magic-pill": "^7.0.0",
