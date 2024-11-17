@@ -1,6 +1,6 @@
 # Changelog
 
-## [7.1.1]
+## [7.1.1] -> [7.1.2]
 ### Fixed
 - Fixed the default style of CTA with a link. It no longer is underlined and blue
 

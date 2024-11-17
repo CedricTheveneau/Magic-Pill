@@ -112,6 +112,8 @@ html {
           z-index: 1;
           min-width: max-content;
           font-family: var(--font-accent);
+          color: var(--themeDark);
+          text-decoration: none;
         }
       }
 
