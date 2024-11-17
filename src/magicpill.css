@@ -48,6 +48,7 @@ html {
       justify-content: flex-start;
       max-width: 104.5px;
       overflow: hidden;
+      box-shadow: 0px 8px 8px #14141473;
       transform-origin: left;
       transition: width 250ms ease-in-out, max-width 250ms ease-in-out;
 
@@ -148,6 +149,7 @@ html {
     }
 
     .magicPill.active {
+      height: 104.5px;
       max-width: 1000px;
       scale: 1;
 
@@ -178,6 +180,7 @@ html {
 
     .magicPill:has(.info.active) {
       overflow: unset;
+      min-width: 500px;
 
       >svg,
       p {

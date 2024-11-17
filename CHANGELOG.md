@@ -1,5 +1,16 @@
 # Changelog
 
+## [7.1.3]
+### Updated
+- Updated the "Disclaimer" and "What's next ?" sections of the README file
+
+### Added
+- Added a box-shadow to Magic Pill
+
+### Fixed
+- Fixed a layout shift when going from collapsed info to expanded info
+- Added a min-width to Magic Pill when info is expanded to keep it looking good
+
 ## [7.1.1] -> [7.1.2]
 ### Fixed
 - Fixed the default style of CTA with a link. It no longer is underlined and blue

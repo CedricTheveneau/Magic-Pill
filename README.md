@@ -3,7 +3,7 @@
 Let it empower you.
 ## Disclaimer
 Even though Magic Pill is already available to everyone, please keep in mind that its development is not over yet.
-You can technically use it but there's no real documentation yet, nor any proper license file.
+You can technically use it but there's no real documentation yet.
 I'll update this section once a real usable version is released.
 #### Thank you !!
 Thank you for your patience and to all people who already have shown interest in Magic Pill, it's my very first npm package and I couldn't ask for a better reception of my package after only a few days after its initial release.
@@ -118,4 +118,4 @@ As stated before, Magic Pill is distributed under the MIT License.
 |-----------|-----------|
 | Implementation with APIs  | Better conditioning of displays depending on props  |
 | Proper testing  | Animation fixes  |
-| Full documentation  |   |
+| Full documentation  | Responsive version + Proportions rework  |
