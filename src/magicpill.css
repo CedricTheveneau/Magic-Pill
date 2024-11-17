@@ -94,6 +94,8 @@ html {
         min-width: 54.5px;
         overflow: hidden;
         background-color: var(--themeLight);
+        color: var(--themeDark);
+        text-decoration: none;
         border: transparent;
         border-radius: 100px;
         transition: width 250ms ease-in-out, max-width 250ms ease-in-out, left 250ms ease-in-out, transform 250ms ease-in-out;

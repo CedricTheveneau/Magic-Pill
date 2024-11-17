@@ -1,5 +1,9 @@
 # Changelog
 
+## [7.1.1]
+### Fixed
+- Fixed the default style of CTA with a link. It no longer is underlined and blue
+
 ## [7.1.0]
 ### Fixed
 - Reworked the way condiotionned CTA and Button rendering work
