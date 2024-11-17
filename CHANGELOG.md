@@ -1,5 +1,9 @@
 # Changelog
 
+## [7.1.0]
+### Fixed
+- Reworked the way condiotionned CTA and Button rendering work
+
 ## [7.0.1]
 ### Fixed
 - Removed efault.props as it will not longer be supported in future versions of React
