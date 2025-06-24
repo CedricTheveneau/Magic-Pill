@@ -1,2 +1,17 @@
+# Demo apps
 /magic-pill-demo
 /my-app
+
+# Dependencies
+/node_modules
+
+# Development files
+/.cursor
+/.git
+/.gitignore
+/.babelrc
+/tsconfig.json
+/rollup.config.cjs
+
+# System files
+.DS_Store

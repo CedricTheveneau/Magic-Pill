@@ -1,42 +1,66 @@
 {
   "name": "magic-pill",
-  "version": "7.1.3",
+  "version": "8.0.0",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
-  "types": "index.d.ts",
+  "types": "dist/index.d.ts",
   "description": "A new way to guide your audience and bring them contextual information through your app",
   "repository": {
     "type": "git",
-    "url": "https://github.com/CedricTheveneau/Magic-Pill"
+    "url": "git+https://github.com/CedricTheveneau/Magic-Pill.git"
   },
   "scripts": {
-    "build": "rollup -c && cp src/index.d.ts dist/index.d.ts && cp src/magicpill.css dist/magicpill.css",
-    "prepare": "npm run build"
+    "build": "rollup -c && cp src/magicpill.css dist/magicpill.css",
+    "prepare": "npm run build",
+    "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
     "next": ">=14.0.0",
     "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "react-dom": ">=18.0.0",
+    "typescript": ">=5.0.0"
   },
   "keywords": [
     "notifications",
     "magicpill",
-    "magic pill"
+    "magic pill",
+    "navbar",
+    "dynamic island",
+    "typescript",
+    "react",
+    "nextjs",
+    "ui",
+    "component",
+    "toast",
+    "navigation"
   ],
   "author": "Cédric THEVENEAU",
   "license": "MIT",
+  "homepage": "https://github.com/CedricTheveneau/Magic-Pill#readme",
+  "bugs": {
+    "url": "https://github.com/CedricTheveneau/Magic-Pill/issues"
+  },
+  "cdn": {
+    "url": "https://cdn.jsdelivr.net/npm/magic-pill@latest/dist/index.js",
+    "style": "https://cdn.jsdelivr.net/npm/magic-pill@latest/dist/magicpill.css"
+  },
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
     "@babel/preset-react": "^7.25.9",
+    "@babel/preset-typescript": "^7.26.0",
     "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/react": "^18.2.64",
+    "@types/react-dom": "^18.2.21",
     "rollup": "^2.79.2",
     "rollup-plugin-postcss": "^4.0.2",
-    "rollup-plugin-terser": "^7.0.2"
+    "rollup-plugin-terser": "^7.0.2",
+    "tslib": "^2.6.2",
+    "typescript": "^5.4.2"
   },
   "files": [
     "dist",
-    "index.d.ts",
     "CHANGELOG.md",
     "LICENSE.md",
     "NOTICE.md"

@@ -1,4 +1,13 @@
+# Dependencies
 /node_modules
+
+# Build output
 /dist
+
+# Demo apps
 /magic-pill-demo
 /my-app
+
+# System files
+.DS_Store
+*.log
