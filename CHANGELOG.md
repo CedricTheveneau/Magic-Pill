@@ -1,5 +1,39 @@
 # Changelog
 
+## [8.0.0] - 2025-06-24
+### Added
+- Complete TypeScript rewrite with comprehensive type definitions
+- New Navbar mode for Magic Pill with full TypeScript support
+- Improved component architecture with separate Notification and Navbar components
+- Enhanced type safety with discriminated unions for different modes
+- New strongly-typed icon system
+- Added TypeScript build configuration with proper source maps
+- Added proper TypeScript development tools and dependencies
+- Added comprehensive JSDoc comments for better IDE support
+
+### Changed
+- Migrated entire codebase to TypeScript
+- Updated build system to handle TypeScript files
+- Improved code organization with feature-based directory structure
+- Enhanced type definitions for better developer experience
+- Updated documentation to reflect TypeScript support
+- Improved error messages with type-aware validation
+- Refactored component props for better type inference
+- Updated all examples in documentation to use TypeScript
+
+### Fixed
+- Improved type safety across the entire codebase
+- Better handling of optional properties with proper TypeScript nullability
+- More consistent prop types and interfaces
+- Fixed potential type-related runtime errors
+- Improved type checking for icon variants
+
+### Breaking Changes
+- Removed deprecated JavaScript files
+- Updated minimum TypeScript version requirement to 5.0
+- Changed some prop types to be more strict
+- Removed support for untyped icon strings
+
 ## [7.1.3]
 ### Updated
 - Updated the "Disclaimer" and "What's next ?" sections of the README file
