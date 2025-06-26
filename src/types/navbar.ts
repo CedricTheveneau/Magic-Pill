@@ -1,3 +1,5 @@
+import { CTAIcon } from "./index";
+
 /**
  * Defines the structure of a navigation item in the Magic Pill navbar.
  * Each item has an icon, an optional label, and a link.
@@ -12,7 +14,7 @@
  * @see {@link MagicPillNavbar} for the structure of the navbar that contains these items.
  */
 export interface MagicPillNavbarItem {
- icon: string;
+ icon: CTAIcon;
  label?: string;
  link: string;
 }

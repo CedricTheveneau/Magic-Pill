@@ -1,3 +1,5 @@
+import { NotificationIcon, CTAIcon } from "./index";
+
 /**
  * Defines the structure of a call to action (CTA) in the Magic Pill notification.
  * Each CTA has an icon, an optional label, and an optional link.
@@ -12,7 +14,7 @@
  * @see {@link MagicPillNotification} for the structure of the notification that contains this CTA.
  */
 export interface MagicPillNotificationCTA {
- icon: string;
+ icon: CTAIcon;
  label?: string;
  link?: string;
 }
@@ -51,7 +53,7 @@ export interface MagicPillNotificationInfo {
  * @see {@link MagicPillNotificationWithLink} for the whole notification structure that incorporates this very type..
  */
 interface MagicPillNotificationCTAWithLink {
- icon: string;
+ icon: CTAIcon;
  label?: string;
  link: string;  // mandatory
 }
@@ -68,7 +70,7 @@ interface MagicPillNotificationCTAWithLink {
  * @see {@link MagicPillNotificationWithoutLink} for the whole notification structure that incorporates this very type.
  */
 interface MagicPillNotificationCTAWithoutLink {
- icon: string;
+ icon: CTAIcon;
  label?: string;
  link?: undefined; // willingly undefined
 }
@@ -88,7 +90,7 @@ interface MagicPillNotificationCTAWithoutLink {
  * @see {@link MagicPillNotificationWithoutCTA} for notifications that do not include a CTA.
  */
 interface MagicPillNotificationBase {
- icon?: string;
+ icon?: NotificationIcon;
  message: string;
  cta?: MagicPillNotificationCTA; // optional, can be with or without link
  info?: MagicPillNotificationInfo; // optional, can be with or without link

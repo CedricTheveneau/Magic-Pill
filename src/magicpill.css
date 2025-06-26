@@ -118,7 +118,7 @@ html {
         }
       }
 
-      .CTA:hover, .CTA.active {
+      .CTA:hover {
         max-width: 300px;
       }
 
@@ -156,6 +156,7 @@ html {
           list-style: none;
 
           >li.navbarItem {
+            >a.CTA {
             font-family: var(--font-accent);
             font-size: var(--textSize);
             font-weight: var(--bold);
@@ -187,15 +188,20 @@ html {
               min-width: max-content;
               font-family: var(--font-accent);
               color: var(--themeDark);
-              text-decoration: none;
+                text-decoration: none;
+              }
             }
-          }
-    
-          >li.navbarItem:hover {
-            max-width: 300px;
+            >a.CTA:hover, >a.CTA.active {
+              max-width: 300px;
+            }
           }
         }
       }
+    }
+
+    .magicPill:has(.navbar).out, .magicPill:has(.navbar).entry, .magicPill:has(.navbar).active {
+      max-width: 1000px;
+      transition: none !important;
     }
 
     .magicPill.active {

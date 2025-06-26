@@ -1,5 +1,28 @@
-import type { MagicPillNotification } from "./notification";
-import type { MagicPillNavbar } from "./navbar";
+import type { MagicPillNotification } from "./index";
+import type { MagicPillNavbar } from "./index";
+export type Mode = "navbar" | "notification";
+
+// All available notification icons
+export type NotificationIcon = 
+  | "info" 
+  | "checkmark" 
+  | "questionmark" 
+  | "coupon" 
+  | "";
+
+// All available CTA icons
+export type CTAIcon = 
+  | "arrow" 
+  | "box" 
+  | "checkmark" 
+  | "cross" 
+  | "info" 
+  | "mail" 
+  | "plus" 
+  | "quotation" 
+  | "tel" 
+  | "undo" 
+  | ""; 
 
 /**
  * Defines the structure of the Magic Pill component.

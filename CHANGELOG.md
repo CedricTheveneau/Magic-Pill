@@ -1,5 +1,19 @@
 # Changelog
 
+## [8.0.1] - 2024-03-21
+### Added
+- Added `*.tsbuildinfo` to `.gitignore`
+
+### Changed
+- Minor improvements to typing with better TypeScript interfaces
+- Reduced package size by removing unnecessary files and reworking all the handlers
+- Updated the "How to use" section of the `README.md` file to better reflect real usage of the package with Context API and added comprehensive documentation for icons and handlers
+
+### Fixed
+- Fixed the behavior of the entry and exit animations of Magic Pill
+- Improved navbar mode's semantic HTML structure for better accessibility
+- Enhanced navbar's active state behavior and link transitions
+
 ## [8.0.0] - 2025-06-24
 ### Added
 - Complete TypeScript rewrite with comprehensive type definitions
