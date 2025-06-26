@@ -1,13 +1,12 @@
 import { defaultPillData } from '../defaultPillData';
-import { CTAIcon, MagicPillType, Mode, NotificationIcon } from '../types/index';
+import { CTAIcon, MagicPillNavbarItem, MagicPillType, Mode, NotificationIcon } from '../types';
 import { SetStateAction, Dispatch } from 'react';
 
 type SetPillData = Dispatch<SetStateAction<MagicPillType>>;
 
-export const handleModeChange = (event: React.ChangeEvent<HTMLInputElement>, setPillData: SetPillData) => {
-  const selectedMode = event.target.value as unknown as Mode;
+export const updateMode = (mode: Mode, setPillData: SetPillData) => {
   setPillData((): MagicPillType => {
-    if (selectedMode === "navbar") {
+    if (mode === "navbar") {
       return {
         mode: "navbar",
         navbar: { navItems: [] }
@@ -23,50 +22,33 @@ export const handleModeChange = (event: React.ChangeEvent<HTMLInputElement>, set
   });
 };
 
-export const handleIconChange = (event: React.ChangeEvent<HTMLInputElement>, setPillData: SetPillData) => {
-  const selectedIcon = event.target.value as unknown as NotificationIcon;
+export const updateNotificationIcon = (icon: NotificationIcon, setPillData: SetPillData) => {
   setPillData((prevData: MagicPillType) => {
     if (prevData.mode !== "notification") return prevData;
     return {
       ...prevData,
       notification: {
         ...prevData.notification,
-        icon: selectedIcon,
+        icon,
       },
     };
   });
 };
 
-export const handleMessageChange = (event: React.ChangeEvent<HTMLInputElement>, setPillData: SetPillData) => {
-  const selectedMessage = event.target.value;
+export const updateNotificationMessage = (message: string, setPillData: SetPillData) => {
   setPillData((prevData: MagicPillType) => {
     if (prevData.mode !== "notification") return prevData;
     return {
       ...prevData,
       notification: {
         ...prevData.notification,
-        message: selectedMessage,
+        message,
       },
     };
   });
 };
 
-export const handleTextChange = (event: React.ChangeEvent<HTMLInputElement>, setPillData: SetPillData) => {
-  const customMessage = event.target.value;
-  setPillData((prevData: MagicPillType) => {
-    if (prevData.mode !== "notification") return prevData;
-    return {
-      ...prevData,
-      notification: {
-        ...prevData.notification,
-        message: customMessage,
-      },
-    };
-  });
-};
-
-export const handleCTAIconChange = (event: React.ChangeEvent<HTMLInputElement>, setPillData: SetPillData) => {
-  const selectedIcon = event.target.value as unknown as CTAIcon;
+export const updateCTAIcon = (icon: CTAIcon, setPillData: SetPillData) => {
   setPillData((prevData: MagicPillType) => {
     if (prevData.mode !== "notification") return prevData;
     return {
@@ -75,15 +57,14 @@ export const handleCTAIconChange = (event: React.ChangeEvent<HTMLInputElement>, 
         ...prevData.notification,
         cta: {
           ...prevData.notification?.cta,
-          icon: selectedIcon || defaultPillData.notification?.cta?.icon || "arrow", // Ensure icon is always present
+          icon: icon || defaultPillData.notification?.cta?.icon || "arrow",
         },
       },
     };
   });
 };
 
-export const handleCTAMessageChange = (event: React.ChangeEvent<HTMLInputElement>, setPillData: SetPillData) => {
-  const selectedMessage = event.target.value;
+export const updateCTALabel = (label: string, setPillData: SetPillData) => {
   setPillData((prevData: MagicPillType) => {
     if (prevData.mode !== "notification") return prevData;
     return {
@@ -92,16 +73,15 @@ export const handleCTAMessageChange = (event: React.ChangeEvent<HTMLInputElement
         ...prevData.notification,
         cta: {
           ...prevData.notification?.cta,
-          icon: prevData.notification?.cta?.icon || defaultPillData.notification?.cta?.icon || "arrow", // Ensure icon is always present
-          label: selectedMessage,
+          icon: prevData.notification?.cta?.icon || defaultPillData.notification?.cta?.icon || "arrow",
+          label,
         },
       },
     };
   });
 };
 
-export const handleCTATextChange = (event: React.ChangeEvent<HTMLInputElement>, setPillData: SetPillData) => {
-  const customMessage = event.target.value;
+export const updateCTALink = (link: string, setPillData: SetPillData) => {
   setPillData((prevData: MagicPillType) => {
     if (prevData.mode !== "notification") return prevData;
     return {
@@ -110,26 +90,8 @@ export const handleCTATextChange = (event: React.ChangeEvent<HTMLInputElement>, 
         ...prevData.notification,
         cta: {
           ...prevData.notification?.cta,
-          icon: prevData.notification?.cta?.icon || defaultPillData.notification?.cta?.icon || "arrow", // Ensure icon is always present
-          label: customMessage,
-        },
-      },
-    };
-  });
-};
-
-export const handleCTALinkChange = (event: React.ChangeEvent<HTMLInputElement>, setPillData: SetPillData) => {
-  const selectedLink = event.target.value;
-  setPillData((prevData: MagicPillType) => {
-    if (prevData.mode !== "notification") return prevData;
-    return {
-      ...prevData,
-      notification: {
-        ...prevData.notification,
-        cta: {
-          ...prevData.notification?.cta,
-          icon: prevData.notification?.cta?.icon || defaultPillData.notification?.cta?.icon || "arrow", // Ensure icon is always present
-          link: selectedLink,
+          icon: prevData.notification?.cta?.icon || defaultPillData.notification?.cta?.icon || "arrow",
+          link,
         },
         info: undefined,
       },
@@ -137,8 +99,7 @@ export const handleCTALinkChange = (event: React.ChangeEvent<HTMLInputElement>, 
   });
 };
 
-export const handleCTACustomLinkChange = (event: React.ChangeEvent<HTMLInputElement>, setPillData: SetPillData) => {
-  const customLink = event.target.value;
+export const updateInfoTitle = (title: string, setPillData: SetPillData) => {
   setPillData((prevData: MagicPillType) => {
     if (prevData.mode !== "notification") return prevData;
     return {
@@ -147,31 +108,12 @@ export const handleCTACustomLinkChange = (event: React.ChangeEvent<HTMLInputElem
         ...prevData.notification,
         cta: {
           ...prevData.notification?.cta,
-          icon: prevData.notification?.cta?.icon || defaultPillData.notification?.cta?.icon || "arrow", // Ensure icon is always present
-          link: customLink,
-        },
-        info: undefined,
-      },
-    };
-  });
-};
-
-export const handleInfoTitleChange = (event: React.ChangeEvent<HTMLInputElement>, setPillData: SetPillData) => {
-  const selectedTitle = event.target.value;
-  setPillData((prevData: MagicPillType) => {
-    if (prevData.mode !== "notification") return prevData;
-    return {
-      ...prevData,
-      notification: {
-        ...prevData.notification,
-        cta: {
-          ...prevData.notification?.cta,
-          icon: prevData.notification?.cta?.icon || defaultPillData.notification?.cta?.icon || "arrow", // Ensure icon is always present
+          icon: prevData.notification?.cta?.icon || defaultPillData.notification?.cta?.icon || "arrow",
           link: undefined,
         },
         info: {
           ...prevData.notification?.info,
-          title: selectedTitle,
+          title,
           content: prevData.notification?.info?.content || "",
           closeLabel: prevData.notification?.info?.closeLabel || ""
         },
@@ -180,8 +122,7 @@ export const handleInfoTitleChange = (event: React.ChangeEvent<HTMLInputElement>
   });
 };
 
-export const handleInfoCustomTitleChange = (event: React.ChangeEvent<HTMLInputElement>, setPillData: SetPillData) => {
-  const customTitle = event.target.value;
+export const updateInfoContent = (content: string, setPillData: SetPillData) => {
   setPillData((prevData: MagicPillType) => {
     if (prevData.mode !== "notification") return prevData;
     return {
@@ -190,121 +131,113 @@ export const handleInfoCustomTitleChange = (event: React.ChangeEvent<HTMLInputEl
         ...prevData.notification,
         cta: {
           ...prevData.notification?.cta,
-          icon: prevData.notification?.cta?.icon || defaultPillData.notification?.cta?.icon || "arrow", // Ensure icon is always present
+          icon: prevData.notification?.cta?.icon || defaultPillData.notification?.cta?.icon || "arrow",
           link: undefined,
         },
         info: {
           ...prevData.notification?.info,
-          title: customTitle,
+          title: prevData.notification?.info?.title || "",
+          content,
+          closeLabel: prevData.notification?.info?.closeLabel || ""
+        },
+      },
+    };
+  });
+};
+
+export const updateInfoCloseLabel = (closeLabel: string, setPillData: SetPillData) => {
+  setPillData((prevData: MagicPillType) => {
+    if (prevData.mode !== "notification") return prevData;
+    return {
+      ...prevData,
+      notification: {
+        ...prevData.notification,
+        cta: {
+          ...prevData.notification?.cta,
+          icon: prevData.notification?.cta?.icon || defaultPillData.notification?.cta?.icon || "arrow",
+          link: undefined,
+        },
+        info: {
+          ...prevData.notification?.info,
+          title: prevData.notification?.info?.title || "",
           content: prevData.notification?.info?.content || "",
-          closeLabel: prevData.notification?.info?.closeLabel || ""
+          closeLabel
         },
       },
     };
   });
 };
 
-export const handleInfoCustomContentChange = (event: React.ChangeEvent<HTMLInputElement>, setPillData: SetPillData) => {
-  const customContent = event.target.value;
+export const updateNavItemLabel = (label: string, index: number, setPillData: SetPillData) => {
   setPillData((prevData: MagicPillType) => {
-    if (prevData.mode !== "notification") return prevData;
+    if (prevData.mode !== "navbar") return prevData;
+    const newNavItems = [...prevData.navbar.navItems];
+    newNavItems[index] = { ...newNavItems[index], label };
     return {
       ...prevData,
-      notification: {
-        ...prevData.notification,
-        cta: {
-          ...prevData.notification?.cta,
-          icon: prevData.notification?.cta?.icon || defaultPillData.notification?.cta?.icon || "arrow", // Ensure icon is always present
-          link: undefined,
-        },
-        info: {
-          ...prevData.notification?.info,
-          title: prevData.notification?.info?.title || defaultPillData.notification?.info?.title || "",
-          content: customContent,
-          closeLabel: prevData.notification?.info?.closeLabel || ""
-        },
+      navbar: { ...prevData.navbar, navItems: newNavItems },
+    };
+  });
+};
+
+export const updateNavItemLink = (link: string, index: number, setPillData: SetPillData) => {
+  setPillData((prevData: MagicPillType) => {
+    if (prevData.mode !== "navbar") return prevData;
+    const newNavItems = [...prevData.navbar.navItems];
+    newNavItems[index] = { ...newNavItems[index], link };
+    return {
+      ...prevData,
+      navbar: { ...prevData.navbar, navItems: newNavItems },
+    };
+  });
+};
+
+export const updateNavItemIcon = (icon: CTAIcon, index: number, setPillData: SetPillData) => {
+  setPillData((prevData: MagicPillType) => {
+    if (prevData.mode !== "navbar") return prevData;
+    const newNavItems = [...prevData.navbar.navItems];
+    newNavItems[index] = { ...newNavItems[index], icon };
+    return {
+      ...prevData,
+      navbar: { ...prevData.navbar, navItems: newNavItems },
+    };
+  });
+};
+
+export const handleActiveNavItem = (path: string, navItems: MagicPillNavbarItem[]): string => {
+  if (!navItems) return "";
+  
+  const sortedItems = [...navItems].sort((a, b) => 
+    (b.link?.length || 0) - (a.link?.length || 0)
+  );
+
+  const matchingItem = sortedItems.find(item => 
+    item.link && path.startsWith(item.link)
+  );
+
+  return matchingItem?.label || "";
+};
+export const addNavItem = (navItem: MagicPillNavbarItem, setPillData: SetPillData) => {
+  setPillData((prevData: MagicPillType) => {
+    if (prevData.mode !== "navbar") return prevData;
+    return {
+      ...prevData,
+      navbar: {
+        ...prevData.navbar,
+        navItems: [...prevData.navbar.navItems, navItem],
       },
     };
   });
 };
 
-export const handleNavItemLabelChange = (event: React.ChangeEvent<HTMLInputElement>, index: number, setPillData: SetPillData) => {
+export const deleteNavItem = (index: number, setPillData: SetPillData) => {
   setPillData((prevData: MagicPillType) => {
     if (prevData.mode !== "navbar") return prevData;
     const newNavItems = [...prevData.navbar.navItems];
-    newNavItems[index] = {
-      ...newNavItems[index] || { icon: "arrow", link: "" },
-      label: event.target.value
-    };
+    newNavItems.splice(index, 1);
     return {
       ...prevData,
-      navbar: {
-        ...prevData.navbar,
-        navItems: newNavItems
-      }
-    };
-  });
-};
-
-export const handleNavItemLinkChange = (event: React.ChangeEvent<HTMLInputElement>, index: number, setPillData: SetPillData) => {
-  setPillData((prevData: MagicPillType) => {
-    if (prevData.mode !== "navbar") return prevData;
-    const newNavItems = [...prevData.navbar.navItems];
-    newNavItems[index] = {
-      ...newNavItems[index] || { icon: "arrow", label: "" },
-      link: event.target.value
-    };
-    return {
-      ...prevData,
-      navbar: {
-        ...prevData.navbar,
-        navItems: newNavItems
-      }
-    };
-  });
-};
-
-export const handleNavItemIconChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, index: number, setPillData: SetPillData) => {
-  setPillData((prevData: MagicPillType) => {
-    if (prevData.mode !== "navbar") return prevData;
-    const newNavItems = [...prevData.navbar.navItems];
-    newNavItems[index] = {
-      ...newNavItems[index] || { label: "", link: "" },
-      icon: event.target.value as CTAIcon
-    };
-    return {
-      ...prevData,
-      navbar: {
-        ...prevData.navbar,
-        navItems: newNavItems
-      }
-    };
-  });
-};
-
-export const handleAddNavItem = (setPillData: SetPillData) => {
-  setPillData((prevData: MagicPillType) => {
-    if (prevData.mode !== "navbar") return prevData;
-    return {
-      ...prevData,
-      navbar: {
-        ...prevData.navbar,
-        navItems: [...prevData.navbar.navItems, { label: "", link: "", icon: "arrow" }]
-      }
-    };
-  });
-};
-
-export const handleDeleteNavItem = (index: number, setPillData: SetPillData) => {
-  setPillData((prevData: MagicPillType) => {
-    if (prevData.mode !== "navbar") return prevData;
-    const newNavItems = prevData.navbar.navItems.filter((_, i) => i !== index);
-    return {
-      ...prevData,
-      navbar: {
-        ...prevData.navbar,
-        navItems: newNavItems
-      }
+      navbar: { ...prevData.navbar, navItems: newNavItems },
     };
   });
 }; 

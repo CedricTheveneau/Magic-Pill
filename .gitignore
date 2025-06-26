@@ -3,6 +3,8 @@
 
 # Build output
 /dist
+.rollup.cache
+*.tsbuildinfo
 
 # Demo apps
 /magic-pill-demo

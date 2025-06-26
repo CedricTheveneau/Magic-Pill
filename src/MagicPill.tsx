@@ -5,49 +5,76 @@ import "./magicpill.css";
 import Notification from "./Notification/Notification"
 import Navbar from "./Navbar/Navbar";
 
-import { MagicPillType } from "./types/magicPill";
+import { MagicPillType } from "./types";
 
 interface MagicPillProps {
   pillData: MagicPillType;
 }
 
 const MagicPill = ({ pillData }: MagicPillProps) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [isHovering, setIsHovering] = useState(false);
+  const [active, setActive] = useState<boolean>(false);
+  const [exit, setExit] = useState<boolean>(true);
+  const [hovering, setHovering] = useState<boolean>(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    setIsVisible(true);
-    if (!isHovering) {
-      timeoutRef.current = setTimeout(() => {
-        setIsVisible(false);
-      }, 5000);
-    }
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+  const displayMagicPill = () => {
+    setExit(false);
+    setTimeout(() => {
+      setActive(true);
+      if (pillData.mode === "notification") {
+        startExitAnimation();
       }
-    };
-  }, [pillData, isHovering]);
+    }, 2500);
+  };
 
-  const handleMouseEnter = () => {
-    setIsHovering(true);
+  const startExitAnimation = () => {
+    clearExitAnimation();
+    timeoutRef.current = setTimeout(() => {
+      setActive(false);
+      setExit(true);
+    }, 5000);
+  };
+
+  const clearExitAnimation = () => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    if (pillData.mode === "notification") {
+      displayMagicPill();
+    } else {
+      setActive(true);
+      setExit(false);
+    }
+
+    return () => {
+      clearExitAnimation();
+    };
+  }, [pillData.mode]);
+
+  const handleMouseEnter = () => {
+    if (pillData.mode === "notification") {
+      setHovering(true);
+      clearExitAnimation();
     }
   };
 
   const handleMouseLeave = () => {
-    setIsHovering(false);
-    timeoutRef.current = setTimeout(() => {
-      setIsVisible(false);
-    }, 5000);
+    if (pillData.mode === "notification") {
+      setHovering(false);
+      if (active) {
+        startExitAnimation();
+      }
+    }
   };
 
   return (
     <div
       className={
-        isVisible ? "magicPill out" : isHovering ? "magicPill active" : "magicPill entry"
+        exit ? "magicPill out" : active ? "magicPill active" : "magicPill entry"
       }
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}

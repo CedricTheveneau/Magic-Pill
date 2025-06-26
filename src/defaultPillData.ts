@@ -1,5 +1,4 @@
-import { MagicPillType } from "./types/magicPill";
-import { MagicPillNotification } from "./types/notification";
+import { MagicPillNotification, MagicPillType } from "./types";
 
 const defaultPillDataNotification: MagicPillNotification = {
   icon: "checkmark",
