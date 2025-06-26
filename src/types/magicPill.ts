@@ -1,5 +1,6 @@
-import type { MagicPillNotification } from "./index";
-import type { MagicPillNavbar } from "./index";
+import type { MagicPillNotification } from "./notification";
+import type { MagicPillNavbar } from "./navbar";
+
 export type Mode = "navbar" | "notification";
 
 // All available notification icons
