@@ -212,7 +212,7 @@ export const handleActiveNavItem = (path: string, navItems: MagicPillNavbarItem[
   );
 
   const matchingItem = sortedItems.find(item => 
-    item.link && path.startsWith(item.link)
+    item.link && path.includes(item.link)
   );
 
   return matchingItem?.label || "";
