@@ -62,7 +62,7 @@ import "magic-pill/dist/magicpill.css";
 ### Usage with React/Next.js
 Magic Pill is designed to be used with a Context to manage its state globally. Here's how to set it up:
 
-1. First, create a context for Magic Pill (e.g., in `app/contexts/magicPill.tsx`):
+1. First, create a context for Magic Pill (e.g., in `app/contexts/magicPillContext.tsx`):
 ```typescript
 "use client"
 import React, { createContext, useContext, useState } from "react";
@@ -108,7 +108,7 @@ interface MagicPillContextType {
 }
 
 const MagicPillContext = createContext<MagicPillContextType>({
-  pillData: null,
+  pillData: defaultPillData,
   setPillData: () => {},
   updateMode: () => {},
   updateNotificationIcon: () => {},
@@ -194,8 +194,8 @@ export default function RootLayout({ children }) {
 3. Create an initializer file for Magic Pill (e.g., in `app/contexts/magicPillInitializer.tsx`):
 ```tsx
 "use client"
-import MagicPill from "magic-pill";
-import { useMagicPill } from "./magicPillContext";
+import { MagicPill } from "magic-pill";
+import { useMagicPill } from "./magicPill";
 
 export const MagicPillInitializer = () => {
   const { pillData } = useMagicPill();
@@ -277,19 +277,19 @@ Magic Pill is easily customizable through CSS variables. Simply replace the them
 
 /* CSS variables */
 :root {
-  --themeDark: #141414;
-  --themeLight: #F9F9F9;
-  --font-text: "Overlock", sans-serif;
-  --font-accent: "Lexend", sans-serif;
-  --normal: normal;
-  --italic: italic;
-  --medium: 400;
-  --bold: 700;
-  --black: 900;
-  --success: #3F7253;
-  --danger: #FC5D6A;
-  --textSize: 19.4px;
-  --titleSize: 31.42px;
+  --mp__themeDark: #141414;
+  --mp__themeLight: #F9F9F9;
+  --mp__font-text: "Overlock", sans-serif;
+  --mp__font-accent: "Lexend", sans-serif;
+  --mp__normal: normal;
+  --mp__italic: italic;
+  --mp__medium: 400;
+  --mp__bold: 700;
+  --mp__black: 900;
+  --mp__success: #3F7253;
+  --mp__danger: #FC5D6A;
+  --mp__textSize: 19.4px;
+  --mp__titleSize: 31.42px;
 }
 ```
 

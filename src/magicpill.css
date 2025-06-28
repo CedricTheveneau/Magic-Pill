@@ -1,25 +1,25 @@
 /* Font import */
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&family=Overlock:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap');
 
+/* CSS variables */
+:root {
+  --mp__themeDark: #141414;
+  --mp__themeLight: #F9F9F9;
+  --mp__font-text: "Overlock", sans-serif;
+  --mp__font-accent: "Lexend", sans-serif;
+  --mp__normal: normal;
+  --mp__italic: italic;
+  --mp__medium: 400;
+  --mp__bold: 700;
+  --mp__black: 900;
+  --mp__success: #3F7253;
+  --mp__danger: #FC5D6A;
+  --mp__textSize: 19.4px;
+  --mp__titleSize: 31.42px;
+}
+
 html {
   >body {
-
-    /* CSS variables */
-    .magicPill {
-      --themeDark: #141414;
-      --themeLight: #F9F9F9;
-      --font-text: "Overlock", sans-serif;
-      --font-accent: "Lexend", sans-serif;
-      --normal: normal;
-      --italic: italic;
-      --medium: 400;
-      --bold: 700;
-      --black: 900;
-      --success: #3F7253;
-      --danger: #FC5D6A;
-      --textSize: 19.4px;
-      --titleSize: 31.42px;
-    }
 
     /* General */
     .magicPill,
@@ -28,21 +28,21 @@ html {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: var(--font-text);
+      font-family: var(--mp__font-text);
     }
 
     .magicPill {
       z-index: 1;
       scale: 0;
-      position: absolute;
+      position: fixed;
       top: calc(95dvh - 110px);
       left: 50%;
       transform: translateX(-50%);
       padding: 25px;
       display: flex;
       gap: 25px;
-      background-color: var(--themeDark);
-      color: var(--themeLight);
+      background-color: var(--mp__themeDark);
+      color: var(--mp__themeLight);
       border-radius: 100px;
       align-items: center;
       justify-content: flex-start;
@@ -60,8 +60,8 @@ html {
 
       >.message,
       .info {
-        font-style: var(--italic);
-        font-size: var(--textSize);
+        font-style: var(--mp__italic);
+        font-size: var(--mp__textSize);
 
         >* {
           opacity: 0;
@@ -69,23 +69,23 @@ html {
         }
 
         >.title {
-          font-weight: var(--black);
-          font-size: var(--titleSize);
+          font-weight: var(--mp__black);
+          font-size: var(--mp__titleSize);
         }
       }
 
       >.message {
         padding-left: 25px;
-        border-left: 1px solid var(--themeLight);
-        font-style: var(--italic);
+        border-left: 1px solid var(--mp__themeLight);
+        font-style: var(--mp__italic);
         font-size: 19.4px;
         min-width: max-content;
       }
 
       .CTA {
-        font-family: var(--font-accent);
-        font-size: var(--textSize);
-        font-weight: var(--bold);
+        font-family: var(--mp__font-accent);
+        font-size: var(--mp__textSize);
+        font-weight: var(--mp__bold);
         display: flex;
         justify-content: flex-start;
         align-items: center;
@@ -94,8 +94,8 @@ html {
         max-width: 54.5px;
         min-width: 54.5px;
         overflow: hidden;
-        background-color: var(--themeLight);
-        color: var(--themeDark);
+        background-color: var(--mp__themeLight);
+        color: var(--mp__themeDark);
         text-decoration: none;
         border: transparent;
         border-radius: 100px;
@@ -112,8 +112,8 @@ html {
         >span {
           z-index: 1;
           min-width: max-content;
-          font-family: var(--font-accent);
-          color: var(--themeDark);
+          font-family: var(--mp__font-accent);
+          color: var(--mp__themeDark);
           text-decoration: none;
         }
       }
@@ -131,7 +131,7 @@ html {
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: var(--themeDark);
+        background-color: var(--mp__themeDark);
         border-radius: 40px;
         bottom: 0px;
         transition: height 250ms 250ms ease-in-out, bottom 250ms 250ms ease-in-out, border-radius 250ms 250ms ease-in-out;
@@ -157,9 +157,9 @@ html {
 
           >li.navbarItem {
             >a.CTA {
-            font-family: var(--font-accent);
-            font-size: var(--textSize);
-            font-weight: var(--bold);
+            font-family: var(--mp__font-accent);
+            font-size: var(--mp__textSize);
+            font-weight: var(--mp__bold);
             display: flex;
             justify-content: flex-start;
             align-items: center;
@@ -168,8 +168,8 @@ html {
             max-width: 54.5px;
             min-width: 54.5px;
             overflow: hidden;
-            background-color: var(--themeLight);
-            color: var(--themeDark);
+            background-color: var(--mp__themeLight);
+            color: var(--mp__themeDark);
             text-decoration: none;
             border: transparent;
             border-radius: 100px;
@@ -186,8 +186,8 @@ html {
             >span {
               z-index: 1;
               min-width: max-content;
-              font-family: var(--font-accent);
-              color: var(--themeDark);
+              font-family: var(--mp__font-accent);
+              color: var(--mp__themeDark);
                 text-decoration: none;
               }
             }
