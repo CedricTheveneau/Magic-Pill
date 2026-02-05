@@ -1,5 +1,9 @@
 # Changelog
 
+## [8.0.5] - 2026-02-05
+### Added
+- Added a proper CI/CD pipeline to automatically publish the npm package upon release, using the fine grained token
+
 ## [8.0.4] - 2026-02-05
 ### Added
 - Added missing changelog data in `CHANGELOG.md` from versions `8.0.2` to `8.0.3` (included).
