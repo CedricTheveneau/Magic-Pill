@@ -33,6 +33,5 @@ export const CTAIcons = {
 };
 
 export function getIconComponent(iconName: string, iconsMap: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>>) {
-  if (!iconName) return null;
   return iconsMap[iconName] || null;
 }
