@@ -1,9 +1,0 @@
----
-description: Refactoring Guidelines
-globs: 
-alwaysApply: true
----
-# Refactoring Guidelines
-- Split large functions (>20 lines) into smaller, focused units.
-- Extract magic strings/numbers into constants (e.g., const MP_BASE_ICON = "info").
-- Replace inline logic with named functions for clarity.
