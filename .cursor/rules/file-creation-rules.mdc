@@ -6,7 +6,7 @@ alwaysApply: true
 # File Creation Rules
 - Generate complete, standalone files when creating new code.
 - Include imports, interfaces, and implementation in the same file unless modularized elsewhere.
-- Don't forget JSDoc (in english) with proper typings, return values and examples when it could be handy
+- Don't forget JSDoc (in english) with proper typing, return values and examples when it could be handy
 - Example structure for a new sub-component file for "Magic Pill" component:
 ```jsx
 "use client"

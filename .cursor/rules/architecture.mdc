@@ -4,7 +4,7 @@ globs:
 alwaysApply: true
 ---
 # npm package Generation Cursor Rules
-# Language: NextJS with TYpeScript
+# Language: NextJS with TypeScript
 # Project Type: npm package (component)
 # Target Directory: src/
 # Guiding Principles: Clean Code, SOLID, DRY, Readability-first, Strong Typing
@@ -19,7 +19,7 @@ We write the code dedicated to the npm package at the root and in the `src/` dir
 
 - We create and maintain a `README.md` file before doing any release
 - We create and update the `package.json` file's version before each release, following the [semver](mdc:https:/semver.org/lang/fr) model
-- We create update the `CHANGELOG.md` file before each release, following the [keep a changelog](mdc:https:/keepachangelog.com/en/1.1.0) model
+- We create and update the `CHANGELOG.md` file before each release, following the [keep a changelog](mdc:https:/keepachangelog.com/en/1.1.0) model
 - We create and maintain a `.gitignore` file with at least `/dist` and `/node_modules` in it
 - We create and maintain a `.npmignore` file with each directory containing a NextJS app and `/node_modules` in it
 - We create and maintain a `.babelrc` file if it doesn't exist
@@ -191,7 +191,7 @@ We write the code dedicated to the npm package at the root and in the `src/` dir
 - **README.md**
   - Purpose: Gives detailed information regarding the project, how to set it up and use it
   - Rules:
-    - When significatn changes have been done to the project, check if the `README.md` file needs an update. If it does, update it.
+    - When significant changes have been done to the project, check if the `README.md` file needs an update. If it does, update it.
     - It's important to keep it structured and clear, as it's the primary document user will go through regarding the project.
 - **CHANGELOG.md**
   - Purpose: Keeps track of all changes in the project. Helps with versioning and communicating on updates

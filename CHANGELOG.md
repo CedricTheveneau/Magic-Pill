@@ -1,6 +1,26 @@
 # Changelog
 
-## [8.0.1] - 2024-03-21
+## [8.0.4] - 2026-02-05
+### Added
+- Added missing changelog data in `CHANGELOG.md` from versions `8.0.2` to `8.0.3` (included).
+
+### Fixes
+- Fixed some typos in the various documentation files
+- Removed unnecessary check logic in `getIconComponent`
+
+## [8.0.3] - 2024-06-28
+### Changed
+- Added prefix to Magic Pill's CSS variables to prevent conflicts with generic variable names
+- Updated `README.md` with fixes to file setup instructions
+
+### Fixed
+- Changed `handleActiveNavItem` handler behavior to be less restrictive - anchors now count as active navbar items
+
+## [8.0.2] - 2024-06-26
+### Fixed
+- Fixed type export issue
+
+## [8.0.1] - 2024-06-21
 ### Added
 - Added `*.tsbuildinfo` to `.gitignore`
 

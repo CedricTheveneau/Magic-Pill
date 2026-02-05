@@ -333,4 +333,3 @@ Magic Pill is distributed under the [MIT License](https://www.tldrlegal.com/lice
 | Transition between two modes | Responsive version + Proportions rework |
 | Implementation of function triggers on CTAs | Full documentation |
 | Transition between two modes | Proper testing |
-| Add new modes | |
