@@ -26,10 +26,10 @@ Magic Pill is a powerful React component that lets you show contextual informati
  - [X] Written in TypeScript with comprehensive type definitions
  - [X] Highly customizable React component with strongly typed props
  - [X] Fully customized styling based on CSS variables for easy theme adaptation
- - [X] Built with NextJS in mind, also works with vanilla React
- - [X] No external library dependency (apart from bundling)
+ - [X] Works in any React 18+ app: Next.js (Server Components included), Vite, Remix…
+ - [X] Zero runtime dependencies: React is the only peer dependency
+ - [X] Accessible: announced by screen readers, pauses on hover and keyboard focus, respects reduced motion
  - [X] Lightweight and efficient
- - [X] Full TypeScript support with proper type checking
 
 ## Installation
 ### npm
@@ -38,18 +38,29 @@ Magic Pill is available on npm, simply use the following command and you're read
 npm install magic-pill
 ```
 
+### Requirements
+- **React and React DOM 18 or later** (peer dependencies).
+- **Next.js is optional**: Magic Pill works in any React app.
+- **TypeScript is optional**: the type definitions ship with the package.
+
 > **No CDN build:** Magic Pill is published for bundlers (Next.js, Vite, webpack…) as ES modules and CommonJS. It has no UMD build, so it can't be loaded with a plain `<script>` tag.
 
 ## How to use it?
 ### Import styles
-For it to work properly, you need to import styles in your app (we recommend importing it into your app.tsx file).
+For it to work properly, you need to import styles in your app (we recommend importing it into your root layout or `App` file).
 ```typescript
 // Import in your Next.js or React project
 import "magic-pill/dist/magicpill.css";
+// or, equivalently
+import "magic-pill/magicpill.css";
 ```
+
+> **Fonts:** the stylesheet loads its fonts (Lexend and Overlock) from Google Fonts with a CSS `@import`. Next.js 16's default bundler, Turbopack, drops that `@import`. If the pill shows a generic font, load the fonts yourself (for example with `next/font`) or point `--mp__font-text` and `--mp__font-accent` to your own fonts (see [Customization](#customization)).
 
 ### Usage with React/Next.js
 Magic Pill is designed to be used with a Context to manage its state globally. Here's how to set it up:
+
+> `MagicPill` is a Client Component, so you can also render it directly from a Server Component. The Context below is what lets any part of your app change its content.
 
 1. First, create a context for Magic Pill (e.g., in `app/contexts/magicPillContext.tsx`):
 ```typescript
@@ -209,6 +220,8 @@ export default function MPTest() {
 ```
 > **It really is as simple as that, to use Magic Pill, once the setup is done**
 
+A notification appears as a small pill, expands after 2.5 s, and hides itself 5 s later (it stays open while hovered or focused). Setting a notification with different content shows the pill again.
+
 ### Update Magic Pill's content granularly
 Magic Pill, right from the start, has been thought out to be as highly customizable as possible.
 To help you use it in the best way possible, a collection of handlers is part of the package.
@@ -260,6 +273,12 @@ A future major version will replace this HTML string with regular React content.
 - `"tel"` - Phone/telephone icon
 - `"undo"` - Undo/back icon
 - `""` - No icon
+
+### Accessibility
+- Notifications are announced by screen readers (the pill is a polite live region).
+- The auto-hide pauses while the pill is hovered or holds keyboard focus.
+- With `prefers-reduced-motion: reduce`, the animations become short fades.
+- The info toggle exposes `aria-expanded` and `aria-controls`.
 
 ### Customization
 Magic Pill is easily customizable through CSS variables. Simply replace the theme colors or fonts by changing the values in the variables set in ":root".
