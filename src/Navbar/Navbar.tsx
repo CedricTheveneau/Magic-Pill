@@ -1,6 +1,5 @@
 "use client"
-import React, { useState, useEffect } from "react";
-import "../magicpill.css";
+import { useState, useEffect } from "react";
 
 import { MagicPillNavbar, MagicPillNavbarItem } from "../types";
 import { getIconComponent, CTAIcons } from "../utils/icons";

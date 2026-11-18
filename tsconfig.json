@@ -1,22 +1,21 @@
 {
+  // Type checking only (`npm run typecheck`): tsdown compiles the code and
+  // writes the declaration files, so there are no emit options here.
   "compilerOptions": {
-    "target": "es6",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "esModuleInterop": true,
+    "target": "es2020",
+    "lib": ["dom", "dom.iterable", "es2020"],
     "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "strict": true,
     "isolatedModules": true,
-    "jsx": "react",
-    "declaration": true,
-    "declarationDir": "./dist",
-    "outDir": "./dist",
-    "rootDir": "./src"
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "noEmit": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx"]
-} 
+}

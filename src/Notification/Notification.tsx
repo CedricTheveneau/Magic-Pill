@@ -1,6 +1,5 @@
 "use client"
-import React, { useState } from "react";
-import "../magicpill.css";
+import { useState } from "react";
 
 import { MagicPillNotification } from "../types";
 

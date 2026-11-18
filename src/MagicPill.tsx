@@ -1,6 +1,5 @@
 "use client"
-import React, { useEffect, useState, useRef } from "react";
-import "./magicpill.css";
+import { useEffect, useState, useRef } from "react";
 
 import Notification from "./Notification/Notification"
 import Navbar from "./Navbar/Navbar";
@@ -15,7 +14,7 @@ const MagicPill = ({ pillData }: MagicPillProps) => {
   const [active, setActive] = useState<boolean>(false);
   const [exit, setExit] = useState<boolean>(true);
   const [hovering, setHovering] = useState<boolean>(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const displayMagicPill = () => {
     setExit(false);

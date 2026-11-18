@@ -6,19 +6,29 @@
 - Added a manual trigger to the publish workflow that runs `npm publish --dry-run`
 - Added an `.nvmrc` pinning Node 26 (active LTS) for contributors
 - Added Dependabot version updates (`.github/dependabot.yml`), weekly and grouped, for the library, the demo and the GitHub Actions
+- Added an `exports` map: `magic-pill` (separate ESM and CommonJS builds, each with its own typings), the stylesheet at `magic-pill/magicpill.css` and at the existing `magic-pill/dist/magicpill.css`, and `magic-pill/package.json`
+- Added `"sideEffects": ["*.css"]`, so bundlers can tree-shake the JavaScript while keeping the stylesheet
 
 ### Changed
 - Switched npm publication to Trusted Publishing (OIDC) with automatic provenance, replacing the expiring access token
 - The publish workflow now builds the package once instead of three times, and typechecks it before publishing
 - CI now runs on Node 22, 24 and 26, and the publish workflow runs on Node 26
 - GitHub Actions in both workflows are pinned to full commit SHAs (`actions/checkout` v7.0.1, `actions/setup-node` v7.1.0), and the checkout no longer persists its token
+- `react` and `react-dom` (>= 18) are now the only peer dependencies: `next` and `typescript` were never needed by the package
+- Replaced the Rollup 2 + Babel build with tsdown, and moved to TypeScript 6.0 with the automatic JSX runtime
+- The ESM build is now `dist/index.mjs` (was `dist/index.esm.js`), so Node.js never mistakes it for CommonJS. `main`, `module` and `types` point to the new files, and the CommonJS build stays at `dist/index.js`
 
 ### Fixed
+- `MagicPill` can now be rendered directly from a React Server Component: each component module keeps its `"use client"` directive, which the old build stripped
+- The shipped `dist/magicpill.css` is now always the real stylesheet, copied as-is from the source
 - Fixed the publish workflow name typo
 - Stopped ignoring the demo app (`magic-pill-demo/`) in the root `.gitignore`, which silently ignored every new demo file
 
 ### Removed
 - Removed the unused `DEMO_APP_AUTO_DEPLOY` and expired `NPM_TOKEN` repository secrets
+
+### Security
+- Removed every advisory from the development dependency tree (`npm audit`: 16 advisories, 1 critical, down to 0), mostly by dropping the `next` peer dependency and the unmaintained Rollup plugins
 
 ## [8.0.5] - 2026-02-05
 ### Added
