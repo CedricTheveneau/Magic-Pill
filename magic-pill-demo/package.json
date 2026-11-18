@@ -3,22 +3,23 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
     "start": "next start",
-    "lint": "next lint",
-    "deploy": "next build && cp out/index.html out/404.html && touch out/.nojekyll && gh-pages -d out -t true"
+    "lint": "eslint .",
+    "deploy": "next build --webpack && cp out/index.html out/404.html && touch out/.nojekyll && gh-pages -d out -t true"
   },
   "dependencies": {
     "magic-pill": "^7.1.3",
-    "next": "^14.2.30",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "next": "^16.4.6",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
-    "@types/react": "19.1.8",
-    "eslint": "^8",
-    "eslint-config-next": "^14.2.0",
-    "gh-pages": "^6.2.0"
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.4.6",
+    "gh-pages": "^6.3.0"
   }
 }
