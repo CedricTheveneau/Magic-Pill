@@ -1,6 +1,7 @@
 {
-  // Type checking only (`npm run typecheck`): tsdown compiles the code and
-  // writes the declaration files, so there are no emit options here.
+  // Type checking only (`npm run typecheck`, tests included): tsdown compiles
+  // the code and writes the declaration files, so there are no emit options here.
+  // tsdown only bundles what src/index.ts imports, so tests never reach dist/.
   "compilerOptions": {
     "target": "es2020",
     "lib": ["dom", "dom.iterable", "es2020"],
@@ -16,6 +17,6 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx"]
+  "include": ["src/**/*", "vitest.setup.ts"],
+  "exclude": ["node_modules", "dist"]
 }
