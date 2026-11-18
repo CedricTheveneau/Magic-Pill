@@ -210,3 +210,114 @@ describe("MagicPill animation sequence", () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 });
+
+describe("MagicPill accessibility", () => {
+  it("announces notifications politely through a status live region (Y1)", () => {
+    const { pill } = renderPill(notification("Saved"));
+
+    expect(pill().getAttribute("role")).toBe("status");
+    expect(pill().getAttribute("aria-live")).toBe("polite");
+    // Only the changed parts are read, not the whole notification again
+    expect(pill().getAttribute("aria-atomic")).toBe("false");
+  });
+
+  it("keeps the live region registered in navbar mode, so the next notification is announced, without the status role (Y1)", () => {
+    const { pill } = renderPill(navbar);
+
+    expect(pill().getAttribute("aria-live")).toBe("polite");
+    expect(pill().hasAttribute("role")).toBe(false);
+  });
+});
+
+describe("MagicPill keyboard focus (Y3)", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  const withLinkAndInfo = (): MagicPillType => ({
+    mode: "notification",
+    notification: {
+      icon: "info",
+      message: "Hello",
+      cta: { icon: "arrow", label: "Open", link: "/orders" },
+    },
+  });
+
+  const ctaLink = (pill: HTMLElement) => pill.querySelector("a") as HTMLAnchorElement;
+
+  it("stays active while focus is inside, then exits 5 s after focus leaves", () => {
+    const { pill } = renderPill(withLinkAndInfo());
+    advance(ENTRY_DELAY);
+
+    act(() => ctaLink(pill()).focus());
+    advance(DISPLAY_DURATION * 3);
+    expect(pill().className).toBe("magicPill active");
+
+    act(() => ctaLink(pill()).blur());
+    advance(DISPLAY_DURATION - 1);
+    expect(pill().className).toBe("magicPill active");
+    advance(1);
+    expect(pill().className).toBe("magicPill out");
+  });
+
+  it("doesn't start the exit timer when focus arrived during the entry animation", () => {
+    const { pill } = renderPill(withLinkAndInfo());
+
+    act(() => ctaLink(pill()).focus());
+    advance(ENTRY_DELAY + DISPLAY_DURATION * 3);
+
+    expect(pill().className).toBe("magicPill active");
+  });
+
+  it("keeps waiting for focus to leave when the pointer leaves first", () => {
+    const { pill } = renderPill(withLinkAndInfo());
+    advance(ENTRY_DELAY);
+    fireEvent.mouseEnter(pill());
+    act(() => ctaLink(pill()).focus());
+
+    fireEvent.mouseLeave(pill());
+    advance(DISPLAY_DURATION * 3);
+    expect(pill().className).toBe("magicPill active");
+
+    act(() => ctaLink(pill()).blur());
+    advance(DISPLAY_DURATION);
+    expect(pill().className).toBe("magicPill out");
+  });
+
+  it("keeps waiting for the pointer to leave when focus leaves first", () => {
+    const { pill } = renderPill(withLinkAndInfo());
+    advance(ENTRY_DELAY);
+    fireEvent.mouseEnter(pill());
+    act(() => ctaLink(pill()).focus());
+
+    act(() => ctaLink(pill()).blur());
+    advance(DISPLAY_DURATION * 3);
+    expect(pill().className).toBe("magicPill active");
+
+    fireEvent.mouseLeave(pill());
+    advance(DISPLAY_DURATION);
+    expect(pill().className).toBe("magicPill out");
+  });
+
+  it("stays paused when focus moves between elements inside the pill", () => {
+    const pillData: MagicPillType = {
+      mode: "notification",
+      notification: {
+        icon: "info",
+        message: "Hello",
+        cta: { icon: "plus", label: "More" },
+        info: { title: "Info", content: '<a href="/docs">Docs</a>', closeLabel: "Close" },
+      },
+    };
+    const { pill } = renderPill(pillData);
+    advance(ENTRY_DELAY);
+    const button = pill().querySelector("button") as HTMLButtonElement;
+    const innerLink = pill().querySelector(".info a") as HTMLAnchorElement;
+
+    act(() => button.focus());
+    act(() => innerLink.focus());
+    advance(DISPLAY_DURATION * 3);
+
+    expect(pill().className).toBe("magicPill active");
+  });
+});

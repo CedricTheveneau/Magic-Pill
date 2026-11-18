@@ -265,3 +265,51 @@ html {
     scale: 1;
   }
 }
+
+/* Reduced motion (Y2): no overshoot and no size or position animations,
+   only short fades. The timings in MagicPill.tsx don't change. */
+@media (prefers-reduced-motion: reduce) {
+  html > body .magicPill,
+  html > body .magicPill * {
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  html > body .magicPill.entry {
+    animation: magicPillFadeIn 200ms ease-out forwards;
+  }
+
+  html > body .magicPill.out {
+    animation: magicPillFadeOut 200ms ease-in forwards;
+  }
+}
+
+@keyframes magicPillFadeIn {
+  0% {
+    scale: 1;
+    opacity: 0;
+  }
+
+  100% {
+    scale: 1;
+    opacity: 1;
+  }
+}
+
+/* Ends at scale 0, like the default exit, so the hidden pill doesn't block clicks */
+@keyframes magicPillFadeOut {
+  0% {
+    scale: 1;
+    opacity: 1;
+  }
+
+  99% {
+    scale: 1;
+    opacity: 0;
+  }
+
+  100% {
+    scale: 0;
+    opacity: 0;
+  }
+}
