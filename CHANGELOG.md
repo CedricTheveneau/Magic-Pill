@@ -10,6 +10,10 @@
 - Added `"sideEffects": ["*.css"]`, so bundlers can tree-shake the JavaScript while keeping the stylesheet
 - Added a test suite (Vitest, jsdom and Testing Library) that describes the current behaviour of the handlers, icons, navbar and animation sequence. It runs in CI and before every publish
 - CI now fails when the library's dependencies have a high or critical `npm audit` advisory
+- Accessibility: screen readers now announce notifications (the pill is a polite live region with `role="status"` in notification mode)
+- Accessibility: with `prefers-reduced-motion: reduce`, the entry and exit animations become short fades without the overshoot, and the size transitions are instant
+- Accessibility: the auto-hide also pauses while the pill has keyboard focus, not only on hover
+- Accessibility: the info toggle exposes `aria-expanded` and `aria-controls`
 
 ### Changed
 - Switched npm publication to Trusted Publishing (OIDC) with automatic provenance, replacing the expiring access token
