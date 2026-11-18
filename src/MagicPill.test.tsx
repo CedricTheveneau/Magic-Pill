@@ -210,3 +210,21 @@ describe("MagicPill animation sequence", () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 });
+
+describe("MagicPill accessibility", () => {
+  it("announces notifications politely through a status live region (Y1)", () => {
+    const { pill } = renderPill(notification("Saved"));
+
+    expect(pill().getAttribute("role")).toBe("status");
+    expect(pill().getAttribute("aria-live")).toBe("polite");
+    // Only the changed parts are read, not the whole notification again
+    expect(pill().getAttribute("aria-atomic")).toBe("false");
+  });
+
+  it("keeps the live region registered in navbar mode, so the next notification is announced, without the status role (Y1)", () => {
+    const { pill } = renderPill(navbar);
+
+    expect(pill().getAttribute("aria-live")).toBe("polite");
+    expect(pill().hasAttribute("role")).toBe(false);
+  });
+});

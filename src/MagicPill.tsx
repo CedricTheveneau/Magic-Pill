@@ -103,6 +103,12 @@ const MagicPill = ({ pillData }: MagicPillProps) => {
       className={
         exit ? "magicPill out" : active ? "magicPill active" : "magicPill entry"
       }
+      // Live region (Y1): always registered, so screen readers pick up a
+      // notification that replaces the navbar; non-atomic, so only what
+      // changed is read out
+      aria-live="polite"
+      aria-atomic="false"
+      role={pillData.mode === "notification" ? "status" : undefined}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
