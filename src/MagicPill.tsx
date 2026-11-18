@@ -13,32 +13,42 @@ interface MagicPillProps {
 const MagicPill = ({ pillData }: MagicPillProps) => {
   const [active, setActive] = useState<boolean>(false);
   const [exit, setExit] = useState<boolean>(true);
-  const [hovering, setHovering] = useState<boolean>(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const entryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const exitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const displayMagicPill = () => {
-    setExit(false);
-    setTimeout(() => {
-      setActive(true);
-      if (pillData.mode === "notification") {
-        startExitAnimation();
-      }
-    }, 2500);
+  const clearEntryAnimation = () => {
+    if (entryTimeoutRef.current) {
+      clearTimeout(entryTimeoutRef.current);
+      entryTimeoutRef.current = null;
+    }
+  };
+
+  const clearExitAnimation = () => {
+    if (exitTimeoutRef.current) {
+      clearTimeout(exitTimeoutRef.current);
+      exitTimeoutRef.current = null;
+    }
   };
 
   const startExitAnimation = () => {
     clearExitAnimation();
-    timeoutRef.current = setTimeout(() => {
+    exitTimeoutRef.current = setTimeout(() => {
       setActive(false);
       setExit(true);
     }, 5000);
   };
 
-  const clearExitAnimation = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
+  // Only called in notification mode. The effect cleanup clears this timer
+  // whenever the mode changes or the pill unmounts, so the callback can't
+  // act on a mode that is no longer current (L5).
+  const displayMagicPill = () => {
+    setExit(false);
+    clearEntryAnimation();
+    entryTimeoutRef.current = setTimeout(() => {
+      entryTimeoutRef.current = null;
+      setActive(true);
+      startExitAnimation();
+    }, 2500);
   };
 
   useEffect(() => {
@@ -50,23 +60,20 @@ const MagicPill = ({ pillData }: MagicPillProps) => {
     }
 
     return () => {
+      clearEntryAnimation();
       clearExitAnimation();
     };
   }, [pillData.mode]);
 
   const handleMouseEnter = () => {
     if (pillData.mode === "notification") {
-      setHovering(true);
       clearExitAnimation();
     }
   };
 
   const handleMouseLeave = () => {
-    if (pillData.mode === "notification") {
-      setHovering(false);
-      if (active) {
-        startExitAnimation();
-      }
+    if (pillData.mode === "notification" && active) {
+      startExitAnimation();
     }
   };
 

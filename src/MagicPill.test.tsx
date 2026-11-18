@@ -122,24 +122,26 @@ describe("MagicPill animation sequence", () => {
       expect(pill().className).toBe("magicPill out");
     });
 
-    it("lets a pending notification timer hide the navbar it was replaced by (L5)", () => {
+    it("keeps a navbar visible when it replaces a notification that was still entering (L5)", () => {
       const { pill, rerender } = renderPill(notification());
       advance(1000);
 
       rerender(<MagicPill pillData={navbar} />);
-      expect(pill().className).toBe("magicPill active");
+      advance(60_000);
 
-      // The 2.5 s entry timer was never cleared and still sees mode "notification"
-      advance(ENTRY_DELAY - 1000 + DISPLAY_DURATION);
-      expect(pill().className).toBe("magicPill out");
+      expect(pill().className).toBe("magicPill active");
     });
   });
 
-  it("leaves the 2.5 s entry timer running after unmount (L5)", () => {
+  it.each([
+    ["during the entry animation", 1000],
+    ["while active", ENTRY_DELAY + 1000],
+  ])("clears its timers when unmounted %s (L5)", (_when, elapsed) => {
     const { unmount } = renderPill(notification());
+    advance(elapsed);
 
     unmount();
 
-    expect(vi.getTimerCount()).toBe(1);
+    expect(vi.getTimerCount()).toBe(0);
   });
 });
