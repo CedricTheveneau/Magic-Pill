@@ -2,9 +2,8 @@
 Let it empower you.
 
 ## Disclaimer
-Even though Magic Pill is already available to everyone, please keep in mind that its development is not over yet.
-You can technically use it but the documentation is still being improved.
-I'll update this section once a real usable version is released.
+Magic Pill 8.x is usable and maintained: it gets bug fixes and security updates.
+Please keep in mind that its API isn't final yet, though. The next major version will rework it (with breaking changes), and the documentation is still being improved.
 
 #### Thank you !!
 Thank you for your patience and to all people who already have shown interest in Magic Pill, it's my very first npm package and I couldn't ask for a better reception of my package after only a few days after its initial release.
@@ -240,7 +239,7 @@ To help you use it in the best way possible, a collection of handlers is part of
 - `updateNavItemIcon` - Change a navbar item's icon
 - `handleActiveNavItem` - Automatically working handler directly used by the navbar to update the active link
 - `addNavItem` - Add an item to the navbar
-- `deleteNavItem` - Delete an item to the navbar
+- `deleteNavItem` - Delete an item from the navbar
 
 ### ⚠️ Security: `info.content` is raw HTML
 The notification's expanded info content (`notification.info.content`, or `updateInfoContent`) is rendered as **raw HTML**, without any sanitising, so that you can format it.
@@ -344,4 +343,4 @@ Magic Pill is distributed under the [MIT License](https://www.tldrlegal.com/lice
 | Support of custom svg icons | Animation fixes |
 | Transition between two modes | Responsive version + Proportions rework |
 | Implementation of function triggers on CTAs | Full documentation |
-| Transition between two modes | Proper testing |
+| | Proper testing |
