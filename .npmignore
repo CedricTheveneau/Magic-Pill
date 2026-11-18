@@ -11,6 +11,8 @@
 /.gitignore
 /tsconfig.json
 /tsdown.config.mts
+/vitest.config.mts
+/vitest.setup.ts
 
 # System files
 .DS_Store
