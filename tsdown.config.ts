@@ -6,10 +6,9 @@ export default defineConfig({
   // Runs in browsers and in React Server Components' SSR, so no Node-only shims
   platform: "neutral",
   target: "es2020",
-  // Keep the historical CJS name (dist/index.js + index.d.ts, used by "main"
-  // and "types"). ESM uses .mjs so Node never mistakes it for CommonJS.
-  outExtensions: ({ format }) =>
-    format === "cjs" ? { js: ".js", dts: ".d.ts" } : { js: ".mjs", dts: ".d.mts" },
+  // File names follow tsdown's defaults for a package without "type":
+  // CJS keeps the historical dist/index.js + index.d.ts ("main", "types"),
+  // ESM uses .mjs + .d.mts so Node never mistakes it for CommonJS.
   dts: true,
   sourcemap: true,
   minify: true,

@@ -1,3 +1,5 @@
+import type { ComponentType, SVGProps } from "react";
+
 import ArrowLabel from "../icons/arrow_label";
 import BoxLabel from "../icons/box_label";
 import CheckmarkLabel from "../icons/checkmark_label";
@@ -32,6 +34,6 @@ export const CTAIcons = {
   undo: UndoLabel,
 };
 
-export function getIconComponent(iconName: string, iconsMap: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>>) {
+export function getIconComponent(iconName: string, iconsMap: Record<string, ComponentType<SVGProps<SVGSVGElement>>>) {
   return iconsMap[iconName] || null;
 }

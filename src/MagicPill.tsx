@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import Notification from "./Notification/Notification"
 import Navbar from "./Navbar/Navbar";
