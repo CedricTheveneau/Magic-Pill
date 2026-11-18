@@ -7,7 +7,6 @@
 *.tsbuildinfo
 
 # Demo apps
-/magic-pill-demo
 /my-app
 
 # System files
