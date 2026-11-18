@@ -36,6 +36,9 @@ export const CTAIcons = {
   undo: UndoLabel,
 };
 
-export function getIconComponent(iconName: string, iconsMap: Record<string, ComponentType<SVGProps<SVGSVGElement>>>) {
+export function getIconComponent(
+  iconName: string,
+  iconsMap: Record<string, ComponentType<SVGProps<SVGSVGElement>>>,
+): ComponentType<SVGProps<SVGSVGElement>> | null {
   return iconsMap[iconName] || null;
 }

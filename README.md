@@ -2,9 +2,8 @@
 Let it empower you.
 
 ## Disclaimer
-Even though Magic Pill is already available to everyone, please keep in mind that its development is not over yet.
-You can technically use it but the documentation is still being improved.
-I'll update this section once a real usable version is released.
+Magic Pill 8.x is usable and maintained: it gets bug fixes and security updates.
+Please keep in mind that its API isn't final yet, though. The next major version will rework it (with breaking changes), and the documentation is still being improved.
 
 #### Thank you !!
 Thank you for your patience and to all people who already have shown interest in Magic Pill, it's my very first npm package and I couldn't ask for a better reception of my package after only a few days after its initial release.
@@ -26,41 +25,41 @@ Magic Pill is a powerful React component that lets you show contextual informati
  - [X] Written in TypeScript with comprehensive type definitions
  - [X] Highly customizable React component with strongly typed props
  - [X] Fully customized styling based on CSS variables for easy theme adaptation
- - [X] Built with NextJS in mind, also works with vanilla React
- - [X] No external library dependency (apart from bundling)
+ - [X] Works in any React 18+ app: Next.js (Server Components included), Vite, React Router…
+ - [X] Zero runtime dependencies: React is the only peer dependency
+ - [X] Accessible: announced by screen readers, pauses on hover and keyboard focus, respects reduced motion
  - [X] Lightweight and efficient
- - [X] Full TypeScript support with proper type checking
 
 ## Installation
-### CDN
-Want to quickly give it a try? Add Magic Pill to any React/NextJS project within 10 seconds with our CDN links!
-#### jsDelivr
-```html
-<script src="https://cdn.jsdelivr.net/npm/magic-pill/dist/index.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/magic-pill@latest/dist/magicpill.css" rel="stylesheet" />
-```
-#### unpkg
-```html
-<script src="https://unpkg.com/magic-pill@latest/dist/index.js"></script>
-<link href="https://unpkg.com/magic-pill@latest/dist/magicpill.css" rel="stylesheet" />
-```
-
 ### npm
 Magic Pill is available on npm, simply use the following command and you're ready to go!
 ```bash
 npm install magic-pill
 ```
 
+### Requirements
+- **React and React DOM 18 or later** (peer dependencies).
+- **Next.js is optional**: Magic Pill works in any React app.
+- **TypeScript is optional**: the type definitions ship with the package.
+
+> **No CDN build:** Magic Pill is published for bundlers (Next.js, Vite, webpack…) as ES modules and CommonJS. It has no UMD build, so it can't be loaded with a plain `<script>` tag.
+
 ## How to use it?
 ### Import styles
-For it to work properly, you need to import styles in your app (we recommend importing it into your app.tsx file).
+For it to work properly, you need to import styles in your app (we recommend importing it into your root layout or `App` file).
 ```typescript
 // Import in your Next.js or React project
 import "magic-pill/dist/magicpill.css";
+// or, equivalently
+import "magic-pill/magicpill.css";
 ```
+
+> **Fonts:** the stylesheet loads its fonts (Lexend and Overlock) from Google Fonts with a CSS `@import`. Next.js 16's default bundler, Turbopack, drops that `@import`. If the pill shows a generic font, load the fonts yourself (for example with `next/font`) or point `--mp__font-text` and `--mp__font-accent` to your own fonts (see [Customization](#customization)).
 
 ### Usage with React/Next.js
 Magic Pill is designed to be used with a Context to manage its state globally. Here's how to set it up:
+
+> `MagicPill` is a Client Component, so you can also render it directly from a Server Component. The Context below is what lets any part of your app change its content.
 
 1. First, create a context for Magic Pill (e.g., in `app/contexts/magicPillContext.tsx`):
 ```typescript
@@ -126,13 +125,7 @@ const MagicPillContext = createContext<MagicPillContextType>({
   deleteNavItem: () => {},
 });
 
-export const useMagicPill = () => {
-  const context = useContext(MagicPillContext);
-  if (!context) {
-    throw new Error("useMagicPill must be used within a MagicPillProvider");
-  }
-  return context;
-};
+export const useMagicPill = () => useContext(MagicPillContext);
 
 export const MagicPillProvider = ({ 
   children 
@@ -164,7 +157,6 @@ export const MagicPillProvider = ({
   return (
     <MagicPillContext.Provider value={contextValue}>
       {children}
-      {pillData && <div id="magic-pill-root" />}
     </MagicPillContext.Provider>
   );
 };
@@ -179,7 +171,7 @@ import { MagicPillInitializer } from "./contexts/magicPillInitializer";
 export default function RootLayout({ children }) {
 
   return (
-    <html lang="fr">
+    <html lang="en">
       <body>
         <MagicPillProvider>
           {children}
@@ -195,7 +187,7 @@ export default function RootLayout({ children }) {
 ```tsx
 "use client"
 import { MagicPill } from "magic-pill";
-import { useMagicPill } from "./magicPill";
+import { useMagicPill } from "./magicPillContext";
 
 export const MagicPillInitializer = () => {
   const { pillData } = useMagicPill();
@@ -227,6 +219,8 @@ export default function MPTest() {
 ```
 > **It really is as simple as that, to use Magic Pill, once the setup is done**
 
+A notification appears as a small pill, expands after 2.5 s, and hides itself 5 s later (it stays open while hovered or focused). Setting a notification with different content shows the pill again.
+
 ### Update Magic Pill's content granularly
 Magic Pill, right from the start, has been thought out to be as highly customizable as possible.
 To help you use it in the best way possible, a collection of handlers is part of the package.
@@ -245,7 +239,18 @@ To help you use it in the best way possible, a collection of handlers is part of
 - `updateNavItemIcon` - Change a navbar item's icon
 - `handleActiveNavItem` - Automatically working handler directly used by the navbar to update the active link
 - `addNavItem` - Add an item to the navbar
-- `deleteNavItem` - Delete an item to the navbar
+- `deleteNavItem` - Delete an item from the navbar
+
+### ⚠️ Security: `info.content` is raw HTML
+The notification's expanded info content (`notification.info.content`, or `updateInfoContent`) is rendered as **raw HTML**, without any sanitising, so that you can format it.
+
+**Never put user input or any other untrusted text in it** (form values, URL parameters, data from an API or a database that users can write to…). Doing so lets anyone inject scripts into your page (XSS).
+- Only pass HTML that you wrote yourself.
+- If you really need to display external text there, sanitise it first with a dedicated library such as [DOMPurify](https://github.com/cure53/DOMPurify).
+
+The message, the info title and the labels are rendered as plain text, so they're safe. Links (`cta.link`, navbar `link`) go into an `href`: if they can come from users, only allow `http(s)` or relative URLs, because React 18 doesn't block `javascript:` URLs (React 19 does).
+
+A future major version will replace this HTML string with regular React content.
 
 ### Available Icons
 #### Notification Icons
@@ -267,6 +272,12 @@ To help you use it in the best way possible, a collection of handlers is part of
 - `"tel"` - Phone/telephone icon
 - `"undo"` - Undo/back icon
 - `""` - No icon
+
+### Accessibility
+- Notifications are announced by screen readers (the pill is a polite live region).
+- The auto-hide pauses while the pill is hovered or holds keyboard focus.
+- With `prefers-reduced-motion: reduce`, the animations become short fades.
+- The info toggle exposes `aria-expanded` and `aria-controls`.
 
 ### Customization
 Magic Pill is easily customizable through CSS variables. Simply replace the theme colors or fonts by changing the values in the variables set in ":root".
@@ -302,12 +313,20 @@ Here's how to proceed:
 git clone https://github.com/CedricTheveneau/Magic-Pill.git
 ```
 
-2. Install all dependencies:
+2. Use the Node.js version from `.nvmrc` (Node 26) and install all dependencies:
 ```bash
+nvm use
 npm install
 ```
 
-3. You're good to go! For easier development, we recommend creating a Next.js app and creating a symbolic link between the app and the package. Now, when you're making changes to the code in src/, the changes should be reflected in your Next.js app.
+3. Check that everything works:
+```bash
+npm run typecheck   # TypeScript
+npm test            # Vitest test suite
+npm run build       # Builds dist/ with tsdown
+```
+
+4. You're good to go! For easier development, we recommend creating a Next.js app and creating a symbolic link between the app and the package. Now, when you're making changes to the code in src/, the changes should be reflected in your Next.js app.
 ```bash
 # Create a new Next.js app
 npx create-next-app@latest my-app --typescript
@@ -321,7 +340,7 @@ npm link magic-pill
 
 ## Troubleshooting / Contact
 Magic Pill is still under development, you'll certainly encounter issues with it.
-You can send me emails anytime at [theveneacedricpro@gmail.com](mailto:theveneacedricpro@gmail.com), I'll try my best to help you out.
+You can send me emails anytime at [theveneaucedricpro@gmail.com](mailto:theveneaucedricpro@gmail.com), I'll try my best to help you out.
 
 ## License
 Magic Pill is distributed under the [MIT License](https://www.tldrlegal.com/license/mit-license).
@@ -332,4 +351,4 @@ Magic Pill is distributed under the [MIT License](https://www.tldrlegal.com/lice
 | Support of custom svg icons | Animation fixes |
 | Transition between two modes | Responsive version + Proportions rework |
 | Implementation of function triggers on CTAs | Full documentation |
-| Transition between two modes | Proper testing |
+| | Proper testing |
