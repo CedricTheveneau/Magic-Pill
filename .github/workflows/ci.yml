@@ -43,6 +43,11 @@ jobs:
 
       - name: Check build output
         run: |
-          for f in dist/index.js dist/index.esm.js dist/index.d.ts dist/magicpill.css; do
+          for f in dist/index.js dist/index.mjs dist/index.d.ts dist/index.d.mts dist/magicpill.css; do
             test -f "$f" || { echo "::error::Missing build output: $f"; exit 1; }
           done
+          # Components must keep their "use client" directive (Server Component support)
+          for f in dist/MagicPill.js dist/MagicPill.mjs; do
+            test "$(head -c 13 "$f")" = '"use client";' || { echo "::error::$f doesn't start with \"use client\""; exit 1; }
+          done
+          cmp -s src/magicpill.css dist/magicpill.css || { echo "::error::dist/magicpill.css differs from src/magicpill.css"; exit 1; }

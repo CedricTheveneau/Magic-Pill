@@ -9,9 +9,8 @@
 /.cursor
 /.git
 /.gitignore
-/.babelrc
 /tsconfig.json
-/rollup.config.cjs
+/tsdown.config.ts
 
 # System files
 .DS_Store

@@ -1,17 +1,17 @@
-import ArrowLabel from "../icons/arrow_label.js";
-import BoxLabel from "../icons/box_label.js";
-import CheckmarkLabel from "../icons/checkmark_label.js";
-import CrossLabel from "../icons/cross_label.js";
-import MailLabel from "../icons/mail_label.js";
-import PlusLabel from "../icons/plus_label.js";
-import QuotationLabel from "../icons/quotation_label.js";
-import TelLabel from "../icons/tel_label.js";
-import UndoLabel from "../icons/undo_label.js";
+import ArrowLabel from "../icons/arrow_label";
+import BoxLabel from "../icons/box_label";
+import CheckmarkLabel from "../icons/checkmark_label";
+import CrossLabel from "../icons/cross_label";
+import MailLabel from "../icons/mail_label";
+import PlusLabel from "../icons/plus_label";
+import QuotationLabel from "../icons/quotation_label";
+import TelLabel from "../icons/tel_label";
+import UndoLabel from "../icons/undo_label";
 
-import CheckmarkIcon from "../icons/checkmark.js";
-import CouponIcon from "../icons/coupon.js";
-import InfoIcon from "../icons/info.js";
-import QuestionmarkIcon from "../icons/questionmark.js";
+import CheckmarkIcon from "../icons/checkmark";
+import CouponIcon from "../icons/coupon";
+import InfoIcon from "../icons/info";
+import QuestionmarkIcon from "../icons/questionmark";
 
 export const Icons = {
   checkmark: CheckmarkIcon,
