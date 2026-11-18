@@ -54,3 +54,21 @@ jobs:
             test "$(head -c 13 "$f")" = '"use client";' || { echo "::error::$f doesn't start with \"use client\""; exit 1; }
           done
           cmp -s src/magicpill.css dist/magicpill.css || { echo "::error::dist/magicpill.css differs from src/magicpill.css"; exit 1; }
+
+  audit:
+    # Library only: the demo is rebuilt in Phase 2
+    name: Audit dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+
+      # Reads package-lock.json, no install needed
+      - name: Fail on high or critical advisories
+        run: npm audit --audit-level=high
