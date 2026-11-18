@@ -1,5 +1,6 @@
 import { render } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import type { ComponentType, SVGProps } from "react";
+import { describe, expect, expectTypeOf, it } from "vitest";
 
 import { CTAIcons, getIconComponent, Icons } from "./icons";
 
@@ -42,6 +43,10 @@ describe("getIconComponent", () => {
   it("returns the component registered under the name", () => {
     expect(getIconComponent("arrow", CTAIcons)).toBe(CTAIcons.arrow);
     expect(getIconComponent("coupon", Icons)).toBe(Icons.coupon);
+  });
+
+  it("is typed as possibly returning null", () => {
+    expectTypeOf(getIconComponent).returns.toEqualTypeOf<ComponentType<SVGProps<SVGSVGElement>> | null>();
   });
 
   it("returns null for an empty name", () => {
