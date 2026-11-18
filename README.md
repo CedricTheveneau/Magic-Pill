@@ -126,13 +126,7 @@ const MagicPillContext = createContext<MagicPillContextType>({
   deleteNavItem: () => {},
 });
 
-export const useMagicPill = () => {
-  const context = useContext(MagicPillContext);
-  if (!context) {
-    throw new Error("useMagicPill must be used within a MagicPillProvider");
-  }
-  return context;
-};
+export const useMagicPill = () => useContext(MagicPillContext);
 
 export const MagicPillProvider = ({ 
   children 
@@ -164,7 +158,6 @@ export const MagicPillProvider = ({
   return (
     <MagicPillContext.Provider value={contextValue}>
       {children}
-      {pillData && <div id="magic-pill-root" />}
     </MagicPillContext.Provider>
   );
 };
@@ -179,7 +172,7 @@ import { MagicPillInitializer } from "./contexts/magicPillInitializer";
 export default function RootLayout({ children }) {
 
   return (
-    <html lang="fr">
+    <html lang="en">
       <body>
         <MagicPillProvider>
           {children}
@@ -195,7 +188,7 @@ export default function RootLayout({ children }) {
 ```tsx
 "use client"
 import { MagicPill } from "magic-pill";
-import { useMagicPill } from "./magicPill";
+import { useMagicPill } from "./magicPillContext";
 
 export const MagicPillInitializer = () => {
   const { pillData } = useMagicPill();
