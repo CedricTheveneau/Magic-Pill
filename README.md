@@ -25,7 +25,7 @@ Magic Pill is a powerful React component that lets you show contextual informati
  - [X] Written in TypeScript with comprehensive type definitions
  - [X] Highly customizable React component with strongly typed props
  - [X] Fully customized styling based on CSS variables for easy theme adaptation
- - [X] Works in any React 18+ app: Next.js (Server Components included), Vite, Remix…
+ - [X] Works in any React 18+ app: Next.js (Server Components included), Vite, React Router…
  - [X] Zero runtime dependencies: React is the only peer dependency
  - [X] Accessible: announced by screen readers, pauses on hover and keyboard focus, respects reduced motion
  - [X] Lightweight and efficient
