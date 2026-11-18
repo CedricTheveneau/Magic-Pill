@@ -10,7 +10,7 @@
 /.git
 /.gitignore
 /tsconfig.json
-/tsdown.config.ts
+/tsdown.config.mts
 
 # System files
 .DS_Store
