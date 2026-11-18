@@ -247,6 +247,17 @@ To help you use it in the best way possible, a collection of handlers is part of
 - `addNavItem` - Add an item to the navbar
 - `deleteNavItem` - Delete an item to the navbar
 
+### ⚠️ Security: `info.content` is raw HTML
+The notification's expanded info content (`notification.info.content`, or `updateInfoContent`) is rendered as **raw HTML**, without any sanitising, so that you can format it.
+
+**Never put user input or any other untrusted text in it** (form values, URL parameters, data from an API or a database that users can write to…). Doing so lets anyone inject scripts into your page (XSS).
+- Only pass HTML that you wrote yourself.
+- If you really need to display external text there, sanitise it first with a dedicated library such as [DOMPurify](https://github.com/cure53/DOMPurify).
+
+The message, the info title and the labels are rendered as plain text, so they're safe. Links (`cta.link`, navbar `link`) go into an `href`: if they can come from users, only allow `http(s)` or relative URLs, because React 18 doesn't block `javascript:` URLs (React 19 does).
+
+A future major version will replace this HTML string with regular React content.
+
 ### Available Icons
 #### Notification Icons
 - `"info"` - Information icon
