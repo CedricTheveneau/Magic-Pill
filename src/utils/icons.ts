@@ -4,6 +4,7 @@ import ArrowLabel from "../icons/arrow_label";
 import BoxLabel from "../icons/box_label";
 import CheckmarkLabel from "../icons/checkmark_label";
 import CrossLabel from "../icons/cross_label";
+import InfoLabel from "../icons/info_label";
 import MailLabel from "../icons/mail_label";
 import PlusLabel from "../icons/plus_label";
 import QuotationLabel from "../icons/quotation_label";
@@ -27,6 +28,7 @@ export const CTAIcons = {
   box: BoxLabel,
   checkmark: CheckmarkLabel,
   cross: CrossLabel,
+  info: InfoLabel,
   mail: MailLabel,
   plus: PlusLabel,
   quotation: QuotationLabel,
