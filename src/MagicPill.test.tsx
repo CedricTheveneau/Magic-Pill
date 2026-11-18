@@ -70,21 +70,76 @@ describe("MagicPill animation sequence", () => {
       expect(pill().className).toBe("magicPill out");
     });
 
-    it("still starts the exit timer when the pointer entered during the entry animation (quirk)", () => {
+    it("stays active when hovered since the entry animation, then exits 5 s after the pointer leaves (L15)", () => {
       const { pill } = renderPill(notification());
 
       fireEvent.mouseEnter(pill());
-      advance(ENTRY_DELAY + DISPLAY_DURATION);
+      advance(ENTRY_DELAY + DISPLAY_DURATION * 3);
+      expect(pill().className).toBe("magicPill active");
+
+      fireEvent.mouseLeave(pill());
+      advance(DISPLAY_DURATION - 1);
+      expect(pill().className).toBe("magicPill active");
+      advance(1);
+      expect(pill().className).toBe("magicPill out");
+    });
+
+    it("starts the exit timer as usual when the pointer left before the pill became active", () => {
+      const { pill } = renderPill(notification());
+
+      fireEvent.mouseEnter(pill());
+      advance(1000);
+      fireEvent.mouseLeave(pill());
+      advance(ENTRY_DELAY - 1000 + DISPLAY_DURATION);
 
       expect(pill().className).toBe("magicPill out");
     });
 
-    it("doesn't replay the animation when only the content changes (L1)", () => {
+    it("replays the animation when a hidden pill gets new content (L1)", () => {
       const { pill, rerender } = renderPill(notification("First"));
       advance(ENTRY_DELAY + DISPLAY_DURATION);
       expect(pill().className).toBe("magicPill out");
 
       rerender(<MagicPill pillData={notification("Second")} />);
+      expect(pill().className).toBe("magicPill entry");
+
+      advance(ENTRY_DELAY);
+      expect(pill().className).toBe("magicPill active");
+      advance(DISPLAY_DURATION);
+      expect(pill().className).toBe("magicPill out");
+    });
+
+    it("restarts the display time when a visible pill gets new content (L1)", () => {
+      const { pill, rerender } = renderPill(notification("First"));
+      advance(ENTRY_DELAY + DISPLAY_DURATION - 1000);
+
+      rerender(<MagicPill pillData={notification("Second")} />);
+      advance(ENTRY_DELAY + DISPLAY_DURATION - 1);
+      expect(pill().className).toBe("magicPill active");
+
+      advance(1);
+      expect(pill().className).toBe("magicPill out");
+    });
+
+    it.each<[string, MagicPillType]>([
+      ["icon", { mode: "notification", notification: { icon: "coupon", message: "Hello" } }],
+      ["CTA label", { mode: "notification", notification: { icon: "info", message: "Hello", cta: { icon: "arrow", label: "Go" } } }],
+      ["CTA link", { mode: "notification", notification: { icon: "info", message: "Hello", cta: { icon: "arrow", link: "/go" } } }],
+      ["info title", { mode: "notification", notification: { icon: "info", message: "Hello", info: { title: "Hi", content: "", closeLabel: "" } } }],
+    ])("replays the animation when the %s changes (L1)", (_field, next) => {
+      const { pill, rerender } = renderPill(notification("Hello"));
+      advance(ENTRY_DELAY + DISPLAY_DURATION);
+
+      rerender(<MagicPill pillData={next} />);
+
+      expect(pill().className).toBe("magicPill entry");
+    });
+
+    it("doesn't replay the animation when re-rendered with the same content in a new object", () => {
+      const { pill, rerender } = renderPill(notification("Same"));
+      advance(ENTRY_DELAY + DISPLAY_DURATION);
+
+      rerender(<MagicPill pillData={notification("Same")} />);
       advance(ENTRY_DELAY);
 
       expect(pill().className).toBe("magicPill out");
@@ -122,24 +177,36 @@ describe("MagicPill animation sequence", () => {
       expect(pill().className).toBe("magicPill out");
     });
 
-    it("lets a pending notification timer hide the navbar it was replaced by (L5)", () => {
+    it("keeps a navbar visible when it replaces a notification that was still entering (L5)", () => {
       const { pill, rerender } = renderPill(notification());
       advance(1000);
 
       rerender(<MagicPill pillData={navbar} />);
-      expect(pill().className).toBe("magicPill active");
+      advance(60_000);
 
-      // The 2.5 s entry timer was never cleared and still sees mode "notification"
-      advance(ENTRY_DELAY - 1000 + DISPLAY_DURATION);
-      expect(pill().className).toBe("magicPill out");
+      expect(pill().className).toBe("magicPill active");
+    });
+
+    it("doesn't auto-hide a notification that arrives while the pointer is already on the navbar (L15)", () => {
+      const { pill, rerender } = renderPill(navbar);
+      fireEvent.mouseEnter(pill());
+
+      rerender(<MagicPill pillData={notification()} />);
+      advance(ENTRY_DELAY + DISPLAY_DURATION * 3);
+
+      expect(pill().className).toBe("magicPill active");
     });
   });
 
-  it("leaves the 2.5 s entry timer running after unmount (L5)", () => {
+  it.each([
+    ["during the entry animation", 1000],
+    ["while active", ENTRY_DELAY + 1000],
+  ])("clears its timers when unmounted %s (L5)", (_when, elapsed) => {
     const { unmount } = renderPill(notification());
+    advance(elapsed);
 
     unmount();
 
-    expect(vi.getTimerCount()).toBe(1);
+    expect(vi.getTimerCount()).toBe(0);
   });
 });

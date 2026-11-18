@@ -13,33 +13,52 @@ interface MagicPillProps {
 const MagicPill = ({ pillData }: MagicPillProps) => {
   const [active, setActive] = useState<boolean>(false);
   const [exit, setExit] = useState<boolean>(true);
-  const [hovering, setHovering] = useState<boolean>(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const entryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const exitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Tracked in every mode: the pointer may already be on the pill when a notification arrives
+  const hoveringRef = useRef<boolean>(false);
 
-  const displayMagicPill = () => {
-    setExit(false);
-    setTimeout(() => {
-      setActive(true);
-      if (pillData.mode === "notification") {
-        startExitAnimation();
-      }
-    }, 2500);
+  const clearEntryAnimation = () => {
+    if (entryTimeoutRef.current) {
+      clearTimeout(entryTimeoutRef.current);
+      entryTimeoutRef.current = null;
+    }
+  };
+
+  const clearExitAnimation = () => {
+    if (exitTimeoutRef.current) {
+      clearTimeout(exitTimeoutRef.current);
+      exitTimeoutRef.current = null;
+    }
   };
 
   const startExitAnimation = () => {
     clearExitAnimation();
-    timeoutRef.current = setTimeout(() => {
+    exitTimeoutRef.current = setTimeout(() => {
       setActive(false);
       setExit(true);
     }, 5000);
   };
 
-  const clearExitAnimation = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
+  // Only called in notification mode. The effect cleanup clears this timer
+  // whenever the mode changes or the pill unmounts, so the callback can't
+  // act on a mode that is no longer current (L5).
+  const displayMagicPill = () => {
+    setExit(false);
+    clearEntryAnimation();
+    entryTimeoutRef.current = setTimeout(() => {
+      entryTimeoutRef.current = null;
+      setActive(true);
+      // While hovered, the exit timer starts when the pointer leaves (L15)
+      if (!hoveringRef.current) {
+        startExitAnimation();
+      }
+    }, 2500);
   };
+
+  // Every visible field of the notification, as primitives: new content
+  // replays the pill, while the same content in a new object doesn't (L1)
+  const notification = pillData.mode === "notification" ? pillData.notification : undefined;
 
   useEffect(() => {
     if (pillData.mode === "notification") {
@@ -50,23 +69,32 @@ const MagicPill = ({ pillData }: MagicPillProps) => {
     }
 
     return () => {
+      clearEntryAnimation();
       clearExitAnimation();
     };
-  }, [pillData.mode]);
+  }, [
+    pillData.mode,
+    notification?.icon,
+    notification?.message,
+    notification?.cta?.icon,
+    notification?.cta?.label,
+    notification?.cta?.link,
+    notification?.info?.title,
+    notification?.info?.content,
+    notification?.info?.closeLabel,
+  ]);
 
   const handleMouseEnter = () => {
+    hoveringRef.current = true;
     if (pillData.mode === "notification") {
-      setHovering(true);
       clearExitAnimation();
     }
   };
 
   const handleMouseLeave = () => {
-    if (pillData.mode === "notification") {
-      setHovering(false);
-      if (active) {
-        startExitAnimation();
-      }
+    hoveringRef.current = false;
+    if (pillData.mode === "notification" && active) {
+      startExitAnimation();
     }
   };
 

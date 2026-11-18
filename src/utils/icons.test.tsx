@@ -1,5 +1,4 @@
 import { render } from "@testing-library/react";
-import type { ComponentType } from "react";
 import { describe, expect, it } from "vitest";
 
 import { CTAIcons, getIconComponent, Icons } from "./icons";
@@ -13,12 +12,13 @@ describe("Icons (notification icons)", () => {
 });
 
 describe("CTAIcons", () => {
-  it("maps nine CTA icon names", () => {
+  it("maps every CTA icon name", () => {
     expect(Object.keys(CTAIcons).sort()).toEqual([
       "arrow",
       "box",
       "checkmark",
       "cross",
+      "info",
       "mail",
       "plus",
       "quotation",
@@ -27,8 +27,14 @@ describe("CTAIcons", () => {
     ]);
   });
 
-  it("has no 'info' entry, although the CTAIcon type allows it (L6)", () => {
-    expect(getIconComponent("info", CTAIcons)).toBeNull();
+  it("has an 'info' icon drawn in the CTA's dark colour, unlike the light notification one (L6)", () => {
+    const InfoLabel = getIconComponent("info", CTAIcons);
+    expect(InfoLabel).not.toBeNull();
+    expect(InfoLabel).not.toBe(Icons.info);
+
+    const { container } = render(InfoLabel ? <InfoLabel /> : null);
+
+    expect(container.querySelector("path")?.getAttribute("fill")).toBe("#141414");
   });
 });
 
@@ -58,20 +64,24 @@ describe("getIconComponent", () => {
 });
 
 describe("icon components", () => {
-  it.each(Object.entries({ ...Icons, ...CTAIcons }))("%s renders a single <svg>", (_name, Icon) => {
+  const allIcons = [
+    ...Object.entries(Icons).map(([name, Icon]) => [`Icons.${name}`, Icon] as const),
+    ...Object.entries(CTAIcons).map(([name, Icon]) => [`CTAIcons.${name}`, Icon] as const),
+  ];
+
+  it.each(allIcons)("%s renders a single <svg>", (_name, Icon) => {
     const { container } = render(<Icon />);
 
     expect(container.childElementCount).toBe(1);
     expect(container.firstElementChild?.tagName.toLowerCase()).toBe("svg");
   });
 
-  it("ignores the props it's given, including className (L7)", () => {
-    // getIconComponent types every icon as ComponentType<SVGProps>, so Navbar and
-    // Notification pass className, but the components themselves drop it
-    const Arrow = CTAIcons.arrow as ComponentType<{ className?: string }>;
+  it.each(allIcons)("%s passes its props to the <svg> (L7)", (_name, Icon) => {
+    const { container } = render(<Icon className="label" aria-hidden="true" width={12} />);
 
-    const { container } = render(<Arrow className="label" />);
-
-    expect(container.querySelector("svg")?.getAttribute("class")).toBeNull();
+    const svg = container.querySelector("svg");
+    expect(svg?.getAttribute("class")).toBe("label");
+    expect(svg?.getAttribute("aria-hidden")).toBe("true");
+    expect(svg?.getAttribute("width")).toBe("12");
   });
 });

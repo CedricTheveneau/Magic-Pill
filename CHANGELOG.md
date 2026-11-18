@@ -22,6 +22,11 @@
 - Upgraded the demo app's tooling to Next.js 16, React 19 and ESLint 9 (flat config). It still showcases v7, and its `npm audit` is clean
 
 ### Fixed
+- A notification now shows up again when its content changes (message, icon, CTA or info panel). Before, only a change of `mode` replayed it, so every notification after the first stayed hidden
+- The pill no longer hides itself while hovered when the pointer arrived during the entry animation, or was already on the navbar when a notification replaced it
+- Switching from a notification to the navbar during the entry animation no longer makes the navbar hide itself 7.5 s later, and no timer keeps running after `MagicPill` unmounts
+- Added the missing `info` CTA icon: it was a valid `CTAIcon` value but rendered nothing
+- Icon components (`Icons`, `CTAIcons`) now accept SVG props (`className`, `aria-*`, `width`…) and pass them to the `<svg>`
 - `MagicPill` can now be rendered directly from a React Server Component: each component module keeps its `"use client"` directive, which the old build stripped
 - The shipped `dist/magicpill.css` is now always the real stylesheet, copied as-is from the source
 - Fixed the publish workflow name typo
