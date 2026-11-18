@@ -313,12 +313,20 @@ Here's how to proceed:
 git clone https://github.com/CedricTheveneau/Magic-Pill.git
 ```
 
-2. Install all dependencies:
+2. Use the Node.js version from `.nvmrc` (Node 26) and install all dependencies:
 ```bash
+nvm use
 npm install
 ```
 
-3. You're good to go! For easier development, we recommend creating a Next.js app and creating a symbolic link between the app and the package. Now, when you're making changes to the code in src/, the changes should be reflected in your Next.js app.
+3. Check that everything works:
+```bash
+npm run typecheck   # TypeScript
+npm test            # Vitest test suite
+npm run build       # Builds dist/ with tsdown
+```
+
+4. You're good to go! For easier development, we recommend creating a Next.js app and creating a symbolic link between the app and the package. Now, when you're making changes to the code in src/, the changes should be reflected in your Next.js app.
 ```bash
 # Create a new Next.js app
 npx create-next-app@latest my-app --typescript
