@@ -45,7 +45,7 @@
     "style": "https://cdn.jsdelivr.net/npm/magic-pill@latest/dist/magicpill.css"
   },
   "devDependencies": {
-    "@babel/core": "^7.26.0",
+    "@babel/core": "^8.1.2",
     "@babel/preset-env": "^7.26.0",
     "@babel/preset-react": "^7.25.9",
     "@babel/preset-typescript": "^7.26.0",
