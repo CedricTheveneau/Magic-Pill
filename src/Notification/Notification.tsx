@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import { MagicPillNotification } from "../types";
 
@@ -12,6 +12,7 @@ interface NotificationProps {
 
 const Notification = ({ notification }: NotificationProps) => {
   const [isInfoExpanded, setIsInfoExpanded] = useState(false);
+  const infoId = useId();
   
   const { icon, message, cta, info } = notification || {};
   const { icon: ctaIcon, label: ctaLabel, link: ctaLink } = cta || {};
@@ -35,13 +36,18 @@ const Notification = ({ notification }: NotificationProps) => {
       )}
 
       {info && !ctaLink && (
-        <button className="CTA" onClick={() => setIsInfoExpanded(!isInfoExpanded)}>
+        <button
+          className="CTA"
+          aria-expanded={isInfoExpanded}
+          aria-controls={infoId}
+          onClick={() => setIsInfoExpanded(!isInfoExpanded)}
+        >
           {CTAIconComponent && <CTAIconComponent className="label" />}
           <span>{!isInfoExpanded ? ctaLabel : closeLabel}</span>
         </button>
       )}
       {info && (
-        <div className={isInfoExpanded ? "info active" : "info"}>
+        <div id={infoId} className={isInfoExpanded ? "info active" : "info"}>
           <p className="title">{title}</p>
           <div
             className="content"
