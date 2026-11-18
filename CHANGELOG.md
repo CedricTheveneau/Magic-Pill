@@ -4,10 +4,14 @@
 ### Added
 - Added a CI workflow (`.github/workflows/ci.yml`) that typechecks and builds the package on Node 22 and 24 for every pull request and push to `main`
 - Added a manual trigger to the publish workflow that runs `npm publish --dry-run`
+- Added an `.nvmrc` pinning Node 26 (active LTS) for contributors
+- Added Dependabot version updates (`.github/dependabot.yml`), weekly and grouped, for the library, the demo and the GitHub Actions
 
 ### Changed
 - Switched npm publication to Trusted Publishing (OIDC) with automatic provenance, replacing the expiring access token
 - The publish workflow now builds the package once instead of three times, and typechecks it before publishing
+- CI now runs on Node 22, 24 and 26, and the publish workflow runs on Node 26
+- GitHub Actions in both workflows are pinned to full commit SHAs (`actions/checkout` v7.0.1, `actions/setup-node` v7.1.0), and the checkout no longer persists its token
 
 ### Fixed
 - Fixed the publish workflow name typo

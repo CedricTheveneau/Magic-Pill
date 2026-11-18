@@ -1,0 +1,49 @@
+# Dependabot version updates. Security updates are turned on in the repo settings
+# and run on their own, whatever this file says.
+version: 2
+
+updates:
+  # Library (dev tooling only: the published package has no runtime dependencies)
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # Wait a few days before proposing a brand-new release, to give the registry
+    # time to catch compromised versions (supply-chain hardening).
+    # Does not delay security updates.
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: build(magic-pill)
+    groups:
+      library-minor-and-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+
+  # Demo app (static export on gh-pages)
+  - package-ecosystem: npm
+    directory: /magic-pill-demo
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: chore(magic-pill-demo)
+    groups:
+      demo-minor-and-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+
+  # GitHub Actions used by the workflows (keeps the SHA pins up to date)
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: ci(magic-pill)
+    groups:
+      actions-minor-and-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
