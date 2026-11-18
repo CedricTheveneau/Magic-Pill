@@ -8,6 +8,8 @@
 - Added Dependabot version updates (`.github/dependabot.yml`), weekly and grouped, for the library, the demo and the GitHub Actions
 - Added an `exports` map: `magic-pill` (separate ESM and CommonJS builds, each with its own typings), the stylesheet at `magic-pill/magicpill.css` and at the existing `magic-pill/dist/magicpill.css`, and `magic-pill/package.json`
 - Added `"sideEffects": ["*.css"]`, so bundlers can tree-shake the JavaScript while keeping the stylesheet
+- Added a test suite (Vitest, jsdom and Testing Library) that describes the current behaviour of the handlers, icons, navbar and animation sequence. It runs in CI and before every publish
+- CI now fails when the library's dependencies have a high or critical `npm audit` advisory
 
 ### Changed
 - Switched npm publication to Trusted Publishing (OIDC) with automatic provenance, replacing the expiring access token
