@@ -15,6 +15,8 @@ const MagicPill = ({ pillData }: MagicPillProps) => {
   const [exit, setExit] = useState<boolean>(true);
   const entryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const exitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Tracked in every mode: the pointer may already be on the pill when a notification arrives
+  const hoveringRef = useRef<boolean>(false);
 
   const clearEntryAnimation = () => {
     if (entryTimeoutRef.current) {
@@ -47,7 +49,10 @@ const MagicPill = ({ pillData }: MagicPillProps) => {
     entryTimeoutRef.current = setTimeout(() => {
       entryTimeoutRef.current = null;
       setActive(true);
-      startExitAnimation();
+      // While hovered, the exit timer starts when the pointer leaves (L15)
+      if (!hoveringRef.current) {
+        startExitAnimation();
+      }
     }, 2500);
   };
 
@@ -66,12 +71,14 @@ const MagicPill = ({ pillData }: MagicPillProps) => {
   }, [pillData.mode]);
 
   const handleMouseEnter = () => {
+    hoveringRef.current = true;
     if (pillData.mode === "notification") {
       clearExitAnimation();
     }
   };
 
   const handleMouseLeave = () => {
+    hoveringRef.current = false;
     if (pillData.mode === "notification" && active) {
       startExitAnimation();
     }

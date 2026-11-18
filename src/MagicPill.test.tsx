@@ -70,11 +70,27 @@ describe("MagicPill animation sequence", () => {
       expect(pill().className).toBe("magicPill out");
     });
 
-    it("still starts the exit timer when the pointer entered during the entry animation (quirk)", () => {
+    it("stays active when hovered since the entry animation, then exits 5 s after the pointer leaves (L15)", () => {
       const { pill } = renderPill(notification());
 
       fireEvent.mouseEnter(pill());
-      advance(ENTRY_DELAY + DISPLAY_DURATION);
+      advance(ENTRY_DELAY + DISPLAY_DURATION * 3);
+      expect(pill().className).toBe("magicPill active");
+
+      fireEvent.mouseLeave(pill());
+      advance(DISPLAY_DURATION - 1);
+      expect(pill().className).toBe("magicPill active");
+      advance(1);
+      expect(pill().className).toBe("magicPill out");
+    });
+
+    it("starts the exit timer as usual when the pointer left before the pill became active", () => {
+      const { pill } = renderPill(notification());
+
+      fireEvent.mouseEnter(pill());
+      advance(1000);
+      fireEvent.mouseLeave(pill());
+      advance(ENTRY_DELAY - 1000 + DISPLAY_DURATION);
 
       expect(pill().className).toBe("magicPill out");
     });
@@ -128,6 +144,16 @@ describe("MagicPill animation sequence", () => {
 
       rerender(<MagicPill pillData={navbar} />);
       advance(60_000);
+
+      expect(pill().className).toBe("magicPill active");
+    });
+
+    it("doesn't auto-hide a notification that arrives while the pointer is already on the navbar (L15)", () => {
+      const { pill, rerender } = renderPill(navbar);
+      fireEvent.mouseEnter(pill());
+
+      rerender(<MagicPill pillData={notification()} />);
+      advance(ENTRY_DELAY + DISPLAY_DURATION * 3);
 
       expect(pill().className).toBe("magicPill active");
     });
