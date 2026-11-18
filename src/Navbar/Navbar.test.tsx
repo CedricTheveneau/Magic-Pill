@@ -30,6 +30,13 @@ describe("Navbar", () => {
     expect(links.map((link) => link.textContent)).toEqual(["Home", "Blog", "Contact"]);
   });
 
+  it("renders each item's icon with the 'label' class", () => {
+    renderNavbar(items);
+
+    const icons = screen.getAllByRole("link").map((link) => link.querySelector("svg"));
+    expect(icons.map((svg) => svg?.getAttribute("class"))).toEqual(["label", "label", "label"]);
+  });
+
   it("marks the item matching the current path as active", () => {
     window.history.pushState({}, "", "/blog/my-post");
 

@@ -1,5 +1,4 @@
 import { render } from "@testing-library/react";
-import type { ComponentType } from "react";
 import { describe, expect, it } from "vitest";
 
 import { CTAIcons, getIconComponent, Icons } from "./icons";
@@ -77,13 +76,12 @@ describe("icon components", () => {
     expect(container.firstElementChild?.tagName.toLowerCase()).toBe("svg");
   });
 
-  it("ignores the props it's given, including className (L7)", () => {
-    // getIconComponent types every icon as ComponentType<SVGProps>, so Navbar and
-    // Notification pass className, but the components themselves drop it
-    const Arrow = CTAIcons.arrow as ComponentType<{ className?: string }>;
+  it.each(allIcons)("%s passes its props to the <svg> (L7)", (_name, Icon) => {
+    const { container } = render(<Icon className="label" aria-hidden="true" width={12} />);
 
-    const { container } = render(<Arrow className="label" />);
-
-    expect(container.querySelector("svg")?.getAttribute("class")).toBeNull();
+    const svg = container.querySelector("svg");
+    expect(svg?.getAttribute("class")).toBe("label");
+    expect(svg?.getAttribute("aria-hidden")).toBe("true");
+    expect(svg?.getAttribute("width")).toBe("12");
   });
 });
