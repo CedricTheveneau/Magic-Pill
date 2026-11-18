@@ -32,24 +32,13 @@ Magic Pill is a powerful React component that lets you show contextual informati
  - [X] Full TypeScript support with proper type checking
 
 ## Installation
-### CDN
-Want to quickly give it a try? Add Magic Pill to any React/NextJS project within 10 seconds with our CDN links!
-#### jsDelivr
-```html
-<script src="https://cdn.jsdelivr.net/npm/magic-pill/dist/index.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/magic-pill@latest/dist/magicpill.css" rel="stylesheet" />
-```
-#### unpkg
-```html
-<script src="https://unpkg.com/magic-pill@latest/dist/index.js"></script>
-<link href="https://unpkg.com/magic-pill@latest/dist/magicpill.css" rel="stylesheet" />
-```
-
 ### npm
 Magic Pill is available on npm, simply use the following command and you're ready to go!
 ```bash
 npm install magic-pill
 ```
+
+> **No CDN build:** Magic Pill is published for bundlers (Next.js, Vite, webpack…) as ES modules and CommonJS. It has no UMD build, so it can't be loaded with a plain `<script>` tag.
 
 ## How to use it?
 ### Import styles
