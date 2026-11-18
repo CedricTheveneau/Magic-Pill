@@ -332,7 +332,7 @@ npm link magic-pill
 
 ## Troubleshooting / Contact
 Magic Pill is still under development, you'll certainly encounter issues with it.
-You can send me emails anytime at [theveneacedricpro@gmail.com](mailto:theveneacedricpro@gmail.com), I'll try my best to help you out.
+You can send me emails anytime at [theveneaucedricpro@gmail.com](mailto:theveneaucedricpro@gmail.com), I'll try my best to help you out.
 
 ## License
 Magic Pill is distributed under the [MIT License](https://www.tldrlegal.com/license/mit-license).
