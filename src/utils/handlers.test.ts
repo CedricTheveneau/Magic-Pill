@@ -5,6 +5,7 @@ import type { MagicPillType } from "../types";
 import {
   addNavItem,
   deleteNavItem,
+  handleActiveNavItem,
   updateCTAIcon,
   updateCTALabel,
   updateCTALink,
@@ -269,5 +270,49 @@ describe("navbar setters", () => {
     const next = applyHandler(prev, handler);
 
     expect(next).toBe(prev);
+  });
+});
+
+describe("handleActiveNavItem (active nav item, L8 as it is today)", () => {
+  const home = { icon: "arrow", label: "Home", link: "/" } as const;
+  const blog = { icon: "box", label: "Blog", link: "/blog" } as const;
+
+  it("returns the label of the item whose link is the path", () => {
+    expect(handleActiveNavItem("/blog", [home, blog])).toBe("Blog");
+  });
+
+  it("prefers the longest matching link", () => {
+    expect(handleActiveNavItem("/blog/my-post", [home, blog])).toBe("Blog");
+  });
+
+  it("matches '/' on every route, so Home is active on unrelated pages", () => {
+    expect(handleActiveNavItem("/about", [home, blog])).toBe("Home");
+  });
+
+  it("matches a link anywhere inside the path, not by whole segments", () => {
+    const cat = { icon: "box", label: "Cat", link: "/cat" } as const;
+
+    expect(handleActiveNavItem("/catalog", [cat])).toBe("Cat");
+    expect(handleActiveNavItem("/archive/blog", [blog])).toBe("Blog");
+  });
+
+  it("returns an empty string when nothing matches", () => {
+    expect(handleActiveNavItem("/about", [blog])).toBe("");
+  });
+
+  it("returns an empty string when the matching item has no label", () => {
+    expect(handleActiveNavItem("/blog", [{ icon: "box", link: "/blog" }])).toBe("");
+  });
+
+  it("returns an empty string when navItems is missing", () => {
+    expect(handleActiveNavItem("/", undefined as unknown as [])).toBe("");
+  });
+
+  it("doesn't reorder the items it's given", () => {
+    const items = [home, blog];
+
+    handleActiveNavItem("/blog", items);
+
+    expect(items).toEqual([home, blog]);
   });
 });
