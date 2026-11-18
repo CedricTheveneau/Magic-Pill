@@ -17,6 +17,7 @@
 - `react` and `react-dom` (>= 18) are now the only peer dependencies: `next` and `typescript` were never needed by the package
 - Replaced the Rollup 2 + Babel build with tsdown, and moved to TypeScript 6.0 with the automatic JSX runtime
 - The ESM build is now `dist/index.mjs` (was `dist/index.esm.js`), so Node.js never mistakes it for CommonJS. `main`, `module` and `types` point to the new files, and the CommonJS build stays at `dist/index.js`
+- Upgraded the demo app's tooling to Next.js 16, React 19 and ESLint 9 (flat config). It still showcases v7, and its `npm audit` is clean
 
 ### Fixed
 - `MagicPill` can now be rendered directly from a React Server Component: each component module keeps its `"use client"` directive, which the old build stripped
