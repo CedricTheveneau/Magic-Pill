@@ -58,10 +58,6 @@
   "bugs": {
     "url": "https://github.com/CedricTheveneau/Magic-Pill/issues"
   },
-  "cdn": {
-    "url": "https://cdn.jsdelivr.net/npm/magic-pill@latest/dist/index.js",
-    "style": "https://cdn.jsdelivr.net/npm/magic-pill@latest/dist/magicpill.css"
-  },
   "devDependencies": {
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",
