@@ -95,12 +95,51 @@ describe("MagicPill animation sequence", () => {
       expect(pill().className).toBe("magicPill out");
     });
 
-    it("doesn't replay the animation when only the content changes (L1)", () => {
+    it("replays the animation when a hidden pill gets new content (L1)", () => {
       const { pill, rerender } = renderPill(notification("First"));
       advance(ENTRY_DELAY + DISPLAY_DURATION);
       expect(pill().className).toBe("magicPill out");
 
       rerender(<MagicPill pillData={notification("Second")} />);
+      expect(pill().className).toBe("magicPill entry");
+
+      advance(ENTRY_DELAY);
+      expect(pill().className).toBe("magicPill active");
+      advance(DISPLAY_DURATION);
+      expect(pill().className).toBe("magicPill out");
+    });
+
+    it("restarts the display time when a visible pill gets new content (L1)", () => {
+      const { pill, rerender } = renderPill(notification("First"));
+      advance(ENTRY_DELAY + DISPLAY_DURATION - 1000);
+
+      rerender(<MagicPill pillData={notification("Second")} />);
+      advance(ENTRY_DELAY + DISPLAY_DURATION - 1);
+      expect(pill().className).toBe("magicPill active");
+
+      advance(1);
+      expect(pill().className).toBe("magicPill out");
+    });
+
+    it.each<[string, MagicPillType]>([
+      ["icon", { mode: "notification", notification: { icon: "coupon", message: "Hello" } }],
+      ["CTA label", { mode: "notification", notification: { icon: "info", message: "Hello", cta: { icon: "arrow", label: "Go" } } }],
+      ["CTA link", { mode: "notification", notification: { icon: "info", message: "Hello", cta: { icon: "arrow", link: "/go" } } }],
+      ["info title", { mode: "notification", notification: { icon: "info", message: "Hello", info: { title: "Hi", content: "", closeLabel: "" } } }],
+    ])("replays the animation when the %s changes (L1)", (_field, next) => {
+      const { pill, rerender } = renderPill(notification("Hello"));
+      advance(ENTRY_DELAY + DISPLAY_DURATION);
+
+      rerender(<MagicPill pillData={next} />);
+
+      expect(pill().className).toBe("magicPill entry");
+    });
+
+    it("doesn't replay the animation when re-rendered with the same content in a new object", () => {
+      const { pill, rerender } = renderPill(notification("Same"));
+      advance(ENTRY_DELAY + DISPLAY_DURATION);
+
+      rerender(<MagicPill pillData={notification("Same")} />);
       advance(ENTRY_DELAY);
 
       expect(pill().className).toBe("magicPill out");

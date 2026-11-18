@@ -56,6 +56,10 @@ const MagicPill = ({ pillData }: MagicPillProps) => {
     }, 2500);
   };
 
+  // Every visible field of the notification, as primitives: new content
+  // replays the pill, while the same content in a new object doesn't (L1)
+  const notification = pillData.mode === "notification" ? pillData.notification : undefined;
+
   useEffect(() => {
     if (pillData.mode === "notification") {
       displayMagicPill();
@@ -68,7 +72,17 @@ const MagicPill = ({ pillData }: MagicPillProps) => {
       clearEntryAnimation();
       clearExitAnimation();
     };
-  }, [pillData.mode]);
+  }, [
+    pillData.mode,
+    notification?.icon,
+    notification?.message,
+    notification?.cta?.icon,
+    notification?.cta?.label,
+    notification?.cta?.link,
+    notification?.info?.title,
+    notification?.info?.content,
+    notification?.info?.closeLabel,
+  ]);
 
   const handleMouseEnter = () => {
     hoveringRef.current = true;
