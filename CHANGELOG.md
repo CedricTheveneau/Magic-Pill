@@ -1,5 +1,21 @@
 # Changelog
 
+## [Unreleased]
+### Added
+- Added a CI workflow (`.github/workflows/ci.yml`) that typechecks and builds the package on Node 22 and 24 for every pull request and push to `main`
+- Added a manual trigger to the publish workflow that runs `npm publish --dry-run`
+
+### Changed
+- Switched npm publication to Trusted Publishing (OIDC) with automatic provenance, replacing the expiring access token
+- The publish workflow now builds the package once instead of three times, and typechecks it before publishing
+
+### Fixed
+- Fixed the publish workflow name typo
+- Stopped ignoring the demo app (`magic-pill-demo/`) in the root `.gitignore`, which silently ignored every new demo file
+
+### Removed
+- Removed the unused `DEMO_APP_AUTO_DEPLOY` and expired `NPM_TOKEN` repository secrets
+
 ## [8.0.5] - 2026-02-05
 ### Added
 - Added a proper CI/CD pipeline to automatically publish the npm package upon release, using the fine grained token
