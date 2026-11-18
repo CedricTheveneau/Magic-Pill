@@ -1,58 +1,44 @@
 # Changelog
 
-## [Unreleased]
+## [8.1.0] - Unreleased
+A maintenance release: bug fixes, accessibility, a modern build and an up-to-date toolchain. Imports, props and the documented stylesheet path are unchanged.
+
 ### Added
-- Added a CI workflow (`.github/workflows/ci.yml`) that typechecks and builds the package on Node 22 and 24 for every pull request and push to `main`
-- Added a manual trigger to the publish workflow that runs `npm publish --dry-run`
-- Added an `.nvmrc` pinning Node 26 (active LTS) for contributors
-- Added Dependabot version updates (`.github/dependabot.yml`), weekly and grouped, for the library, the demo and the GitHub Actions
-- Added an `exports` map: `magic-pill` (separate ESM and CommonJS builds, each with its own typings), the stylesheet at `magic-pill/magicpill.css` and at the existing `magic-pill/dist/magicpill.css`, and `magic-pill/package.json`
-- Added `"sideEffects": ["*.css"]`, so bundlers can tree-shake the JavaScript while keeping the stylesheet
-- Added a test suite (Vitest, jsdom and Testing Library) that describes the current behaviour of the handlers, icons, navbar and animation sequence. It runs in CI and before every publish
-- CI now fails when the library's dependencies have a high or critical `npm audit` advisory
-- Accessibility: screen readers now announce notifications (the pill is a polite live region with `role="status"` in notification mode)
-- Accessibility: with `prefers-reduced-motion: reduce`, the entry and exit animations become short fades without the overshoot, and the size transitions are instant
-- Accessibility: the auto-hide also pauses while the pill has keyboard focus, not only on hover
+- Accessibility: screen readers announce notifications (the pill is a polite live region, with `role="status"` in notification mode)
+- Accessibility: the auto-hide also pauses while the pill holds keyboard focus, not only on hover
+- Accessibility: with `prefers-reduced-motion: reduce`, the entry and exit animations become short fades without the overshoot, and size transitions are instant
 - Accessibility: the info toggle exposes `aria-expanded` and `aria-controls`
+- An `exports` map: `magic-pill`, the stylesheet at the existing `magic-pill/dist/magicpill.css` and at `magic-pill/magicpill.css`, and `magic-pill/package.json`
+- `"sideEffects": ["*.css"]`, so bundlers can tree-shake the JavaScript while keeping the stylesheet
+- README: requirements, an accessibility section, and a note on the Google Fonts `@import`, which Next.js 16's default bundler (Turbopack) drops
 
 ### Changed
-- Switched npm publication to Trusted Publishing (OIDC) with automatic provenance, replacing the expiring access token
-- The publish workflow now builds the package once instead of three times, and typechecks it before publishing
-- CI now runs on Node 22, 24 and 26, and the publish workflow runs on Node 26
-- GitHub Actions in both workflows are pinned to full commit SHAs (`actions/checkout` v7.0.1, `actions/setup-node` v7.1.0), and the checkout no longer persists its token
-- `react` and `react-dom` (>= 18) are now the only peer dependencies: `next` and `typescript` were never needed by the package
-- Replaced the Rollup 2 + Babel build with tsdown, and moved to TypeScript 6.0 with the automatic JSX runtime
-- The ESM build is now `dist/index.mjs` (was `dist/index.esm.js`), so Node.js never mistakes it for CommonJS. `main`, `module` and `types` point to the new files, and the CommonJS build stays at `dist/index.js`
-- Upgraded the demo app's tooling to Next.js 16, React 19 and ESLint 9 (flat config). It still showcases v7, and its `npm audit` is clean
+- `react` and `react-dom` (>= 18) are now the only peer dependencies. `next` and `typescript` were never needed at runtime, and listing them caused peer warnings in plain React apps
+- The ESM build is now `dist/index.mjs`, with its own typings (`dist/index.d.mts`), instead of `dist/index.esm.js`, so Node.js never mistakes it for CommonJS. `module` points to it, and the CommonJS build stays at `dist/index.js`
+- Because of the `exports` map, files inside the package can no longer be imported directly (e.g. `magic-pill/dist/index.js`), apart from the stylesheet
 
 ### Fixed
-- A notification now shows up again when its content changes (message, icon, CTA or info panel). Before, only a change of `mode` replayed it, so every notification after the first stayed hidden
+- A notification shows up again when its content changes (message, icon, CTA or info panel). Before, only a change of `mode` replayed it, so every notification after the first one stayed hidden
 - The pill no longer hides itself while hovered when the pointer arrived during the entry animation, or was already on the navbar when a notification replaced it
 - Switching from a notification to the navbar during the entry animation no longer makes the navbar hide itself 7.5 s later, and no timer keeps running after `MagicPill` unmounts
-- Added the missing `info` CTA icon: it was a valid `CTAIcon` value but rendered nothing
+- `MagicPill` can be rendered directly from a React Server Component (Next.js App Router): each component keeps its `"use client"` directive, which the old build stripped
+- The missing `info` CTA icon: it was a valid `CTAIcon` value but rendered nothing
 - Icon components (`Icons`, `CTAIcons`) now accept SVG props (`className`, `aria-*`, `width`…) and pass them to the `<svg>`
-- `MagicPill` can now be rendered directly from a React Server Component: each component module keeps its `"use client"` directive, which the old build stripped
-- The shipped `dist/magicpill.css` is now always the real stylesheet, copied as-is from the source
-- Fixed the publish workflow name typo
-- Stopped ignoring the demo app (`magic-pill-demo/`) in the root `.gitignore`, which silently ignored every new demo file
-
-### Removed
-- Removed the unused `DEMO_APP_AUTO_DEPLOY` and expired `NPM_TOKEN` repository secrets
+- The shipped `dist/magicpill.css` is always the real stylesheet, copied as-is from the source
+- README: the setup guide's code samples (wrong import path, a check that could never fire, an unused element), the CDN snippets that couldn't work (there's no UMD build), the contact address and several typos
 
 ### Security
-- Removed every advisory from the development dependency tree (`npm audit`: 16 advisories, 1 critical, down to 0), mostly by dropping the `next` peer dependency and the unmaintained Rollup plugins
+- Releases are published from GitHub Actions with npm Trusted Publishing, with a provenance attestation, instead of a long-lived access token
+- The development dependency tree has no known advisories any more (`npm audit`: 16 advisories, including 1 critical, down to 0), and CI fails on new high or critical ones
+- README: a warning that `info.content` is rendered as raw HTML and must never contain user input, and that links from users should be restricted to `http(s)` or relative URLs
 
-## [8.0.5] - 2026-02-05
-### Added
-- Added a proper CI/CD pipeline to automatically publish the npm package upon release, using the fine grained token
-
-## [8.0.4] - 2026-02-05
-### Added
-- Added missing changelog data in `CHANGELOG.md` from versions `8.0.2` to `8.0.3` (included).
-
-### Fixes
-- Fixed some typos in the various documentation files
-- Removed unnecessary check logic in `getIconComponent`
+### Maintenance
+- Build: tsdown replaces Rollup 2 and Babel, with TypeScript 6.0 and the automatic JSX runtime
+- Tests: a Vitest test suite, run in CI and before every publish
+- CI: typecheck, test and build on Node 22, 24 and 26 for every pull request. The publish workflow runs on Node 26, builds once, typechecks and tests first, and has a dry-run trigger. GitHub Actions are pinned to commit SHAs
+- Dependabot version updates for the library, the demo and the GitHub Actions, and an `.nvmrc` (Node 26) for contributors
+- Demo app tooling upgraded to Next.js 16, React 19 and ESLint 9. It still showcases v7
+- Housekeeping: changelog dates fixed and entries backfilled, the demo app no longer ignored by the root `.gitignore`, a typo in the publish workflow's name, unused repository secrets removed, and the unused `cdn` field removed from `package.json`
 
 ## [8.0.3] - 2025-06-28
 ### Changed
