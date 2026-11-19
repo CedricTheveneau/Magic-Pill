@@ -1,5 +1,21 @@
 # Changelog
 
+## [Unreleased]
+Work towards 9.0.0, the first release with a stable API. The 8.x API still works until 9.0.0 removes it.
+
+### Added
+- The pill primitive: `Pill` with its parts `PillIcon`, `PillDivider`, `PillMessage`, `PillActions`, `PillAction`, `PillPanel` and `PillPanelTrigger`, plus the `usePill()` hook to write your own templates
+  - Presence levels (`hidden`, `rest`, `compact`, `expanded`, `panel`), controlled or not
+  - Placements: `inline`, fixed at an edge or corner, or `overlay` (a native modal `<dialog>`)
+  - Horizontal or vertical orientation, and `neutral`, `success`, `danger` or custom variants
+  - Stateless parts and `PillAction` can be rendered by React Server Components without becoming client code
+- Link actions take a `linkComponent` (e.g. Next's `Link`) and only render relative, `http(s):`, `mailto:` and `tel:` URLs. Any other scheme, such as `javascript:`, renders no link
+- Twelve icons as components (`ArrowIcon`, `BoxIcon`, `CheckIcon`, `CloseIcon`, `CouponIcon`, `DocumentIcon`, `HelpIcon`, `InfoIcon`, `MailIcon`, `PhoneIcon`, `PlusIcon`, `UndoIcon`): drawn in `currentColor`, decorative by default
+- A new stylesheet, `magic-pill/styles.css`:
+  - every rule sits in a `magic-pill` cascade layer and targets `data-mp` attributes, so your own CSS overrides it without `!important` and no class names collide;
+  - it loads no fonts (it uses your page's fonts unless you set `--mp-font-text`/`--mp-font-accent`);
+  - it's sized in `rem`, fits phone screens and safe areas, and supports reduced motion and forced colours
+
 ## [8.1.0] - 2026-11-19
 A maintenance release: bug fixes, accessibility, a modern build and an up-to-date toolchain. Imports, props and the documented stylesheet path are unchanged.
 
