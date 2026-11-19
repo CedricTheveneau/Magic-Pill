@@ -85,7 +85,7 @@ export interface PillProps extends Omit<ComponentPropsWithoutRef<"div">, "childr
   defaultPresence?: PillPresence;
   /** Called when the pill asks to change level (panel trigger, close button, Escape). */
   onPresenceChange?: (presence: PillPresence) => void;
-  /** Default `bottom`. */
+  /** Default `inline` on <Pill>, `bottom` on <MagicPill>. */
   placement?: PillPlacement;
   orientation?: PillOrientation;
   /** Default `neutral`. */

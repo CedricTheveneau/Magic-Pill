@@ -1,6 +1,6 @@
 # Magic Pill v9: API proposal
 
-> **Status: draft, waiting for the maintainer's approval.** Nothing here is implemented yet.
+> **Status: approved by the maintainer on 2026-11-19** (decisions in §11). Being implemented in Phase 2.
 > Written 2026-11-19 for Phase 2 (`PROJECT_STATUS_REPORT.md` §12). It follows `VISION.md` §6 (three layers: primitive, templates, named controllers).
 >
 > **The typed half of this proposal** is [`api.ts`](./api.ts) (every public export, with doc comments) and [`examples.tsx`](./examples.tsx) (every mockup template, several pills, a modal, Tailwind, React Router). Both typecheck: `npx tsc -p docs/v9`. The examples use the demo's real `next/link`, so `linkComponent={Link}` is checked against Next 16.
@@ -64,7 +64,7 @@ pill("main").notify({…})       Layer 3: imperative controller, callable outsid
 | Prop | Values | Default | Notes |
 |---|---|---|---|
 | `presence` / `defaultPresence` / `onPresenceChange` | `hidden` · `rest` · `compact` · `expanded` · `panel` | `compact` | Controlled or uncontrolled (Radix pattern). Replaces v8's `out`/`entry`/`active` classes. The pill animates between levels. |
-| `placement` | `top`, `bottom`, `left`, `right`, `top-start`/`-end`, `bottom-start`/`-end`, `inline`, `overlay` | `bottom` | Edges are `position: fixed`, `start`/`end` follow the text direction, `inline` stays in the flow, `overlay` is a native `<dialog>` opened with `showModal()` (focus trap, Escape and inert background, no dependency). |
+| `placement` | `top`, `bottom`, `left`, `right`, `top-start`/`-end`, `bottom-start`/`-end`, `inline`, `overlay` | `inline` (`bottom` on `<MagicPill>`) | Edges are `position: fixed`, `start`/`end` follow the text direction, `inline` stays in the flow, `overlay` is a native `<dialog>` opened with `showModal()` (focus trap, Escape and inert background, no dependency). |
 | `orientation` | `horizontal` · `vertical` | `vertical` on `left`/`right`, else `horizontal` | Sidebar pills. |
 | `variant` | `neutral` · `success` · `danger` · any string | `neutral` | Custom strings become `data-variant="…"` for your own tokens. `success` is the mockups' green (`#3F7253`). |
 | `unstyled` | boolean | `false` | Keeps behaviour and data attributes, drops the visual styles. |
@@ -271,9 +271,9 @@ Tests are written with each block (Vitest, Arrange-Act-Assert), against the new 
 
 ---
 
-## 11. Decisions requested from the maintainer
+## 11. Decisions (maintainer, 2026-11-19)
 
-1. **Approve this API**, or comment on the PR.
-2. **Pre-releases:** publish `9.0.0-next.N` under the npm `next` tag while Phase 2 is in progress? *Recommended:* yes, developed on `main`. An 8.1.x fix, if ever needed, would go on a `v8` branch cut from the `v8.1.0` tag.
-3. **Changesets:** *recommended:* no. It's one package with one maintainer, a hand-written Keep a Changelog file works, and Changesets adds a dependency and a bot workflow.
-4. **Default placement of a bare `<Pill>`:** `bottom` (proposed: the same default everywhere, matching the identity) or `inline` (more natural for a component written in JSX).
+1. **API approved** as the basis for v9.
+2. **Pre-releases: yes.** `9.0.0-next.N` under the npm `next` tag, developed on `main`. An 8.1.x fix, if ever needed, goes on a `v8` branch cut from the `v8.1.0` tag.
+3. **Changesets: no.** The CHANGELOG stays hand-written (Keep a Changelog).
+4. **Default placement** (left to Claude): a bare `<Pill>` is **`inline`**, because a primitive should sit where it's written, and with several pills on a page each one names its placement anyway. **`<MagicPill>` defaults to `bottom`**, the floating assistant from the mockups.
