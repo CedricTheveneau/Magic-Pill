@@ -24,6 +24,17 @@ export type {
   LinkComponent,
 } from './Pill/types';
 
+// v9 templates: arrangements of the parts above
+export { PillNotification } from './PillNotification/PillNotification';
+export type {
+  PillNotificationProps,
+  PillNotificationClassNames,
+  NotificationAction,
+  NotificationPanel,
+} from './PillNotification/PillNotification';
+export { PillNavbar } from './PillNavbar/PillNavbar';
+export type { PillNavbarProps, NavItem } from './PillNavbar/PillNavbar';
+
 // v9 icons: currentColor, decorative by default, no "use client"
 export { default as ArrowIcon } from './icons/ArrowIcon';
 export { default as BoxIcon } from './icons/BoxIcon';
