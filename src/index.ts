@@ -1,10 +1,9 @@
-export { default as MagicPill } from './MagicPill';
-export * from './types';
-export * from './utils/handlers';
-export * from './utils/icons';
-export * from './defaultPillData';
+// Magic Pill v9. Three layers (VISION.md §6):
+//   1. the primitive: <Pill> and its parts
+//   2. templates: <PillNotification>, <PillNavbar>
+//   3. controllers: <MagicPill> + pill(name) + usePillQueue(name)
 
-// v9: the pill primitive (the 8.x API above goes away in 9.0.0)
+// 1. The pill primitive
 export { default as Pill } from './Pill/Pill';
 export { PillIcon, PillDivider, PillMessage, PillActions } from './Pill/parts';
 export { default as PillAction } from './Pill/PillAction';
@@ -24,7 +23,7 @@ export type {
   LinkComponent,
 } from './Pill/types';
 
-// v9 templates: arrangements of the parts above
+// 2. Templates: arrangements of the parts above
 export { PillNotification } from './PillNotification/PillNotification';
 export type {
   PillNotificationProps,
@@ -35,7 +34,22 @@ export type {
 export { PillNavbar } from './PillNavbar/PillNavbar';
 export type { PillNavbarProps, NavItem } from './PillNavbar/PillNavbar';
 
-// v9 icons: currentColor, decorative by default, no "use client"
+// 3. Controllers: a host per named pill, driven from anywhere
+export { default as MagicPill } from './MagicPill/MagicPill';
+export type { MagicPillProps } from './MagicPill/MagicPill';
+export { pill } from './store/store';
+export type {
+  PillController,
+  NotifyInput,
+  NotifyOptions,
+  NotifyRenderOptions,
+  QueuedNotification,
+  PillQueueState,
+  DismissReason,
+} from './store/store';
+export { usePillQueue } from './store/usePillQueue';
+
+// Icons: currentColor, decorative by default, no "use client"
 export { default as ArrowIcon } from './icons/ArrowIcon';
 export { default as BoxIcon } from './icons/BoxIcon';
 export { default as CheckIcon } from './icons/CheckIcon';
