@@ -1,0 +1,135 @@
+// No "use client": the template holds no state. A Server Component can render
+// it (with `href` actions); the panel parts it uses are client components.
+import type { MouseEvent, ReactNode } from "react";
+
+import { PillActions, PillDivider, PillIcon, PillMessage } from "../Pill/parts";
+import PillAction from "../Pill/PillAction";
+import { PillPanel, PillPanelTrigger } from "../Pill/PillPanel";
+import type { LinkComponent } from "../Pill/types";
+import PlusIcon from "../icons/PlusIcon";
+
+/** Same rules as the matching <PillAction> props. */
+export type NotificationAction =
+  | {
+      icon?: ReactNode;
+      label: string;
+      /**
+       * Inside a <MagicPill>, clicking an action dismisses the notification.
+       * Call `event.preventDefault()` to keep it open.
+       */
+      onClick: (event: MouseEvent<HTMLButtonElement>) => void;
+      href?: undefined;
+    }
+  | { icon?: ReactNode; label: string; href: string; onClick?: undefined };
+
+export interface NotificationPanel {
+  title?: ReactNode;
+  content: ReactNode;
+  /** The action that opens the panel. Default `{ icon: <PlusIcon />, label: "Learn more" }`. */
+  trigger?: { icon?: ReactNode; label: string };
+  /** Default "Close". */
+  closeLabel?: string;
+}
+
+export interface PillNotificationClassNames {
+  icon?: string;
+  divider?: string;
+  message?: string;
+  actions?: string;
+  action?: string;
+  panel?: string;
+}
+
+export interface PillNotificationProps {
+  icon?: ReactNode;
+  /** Any content: strings, emphasis, live data. Never parsed as HTML (L3). */
+  message: ReactNode;
+  action?: NotificationAction;
+  panel?: NotificationPanel;
+  linkComponent?: LinkComponent;
+  classNames?: PillNotificationClassNames;
+}
+
+interface NotificationContentProps extends PillNotificationProps {
+  /**
+   * Internal: <MagicPill> uses it to dismiss the notification after an action
+   * click (link or button), unless the action's handler prevented the default.
+   */
+  onAction?: (event: MouseEvent<HTMLElement>) => void;
+}
+
+/** The implementation, with the host-only `onAction` hook. */
+export function NotificationContent({
+  icon,
+  message,
+  action,
+  panel,
+  linkComponent,
+  classNames = {},
+  onAction,
+}: NotificationContentProps) {
+  const hasIcon = icon !== undefined && icon !== null;
+
+  const renderAction = (notificationAction: NotificationAction) => {
+    const { icon: actionIcon, label } = notificationAction;
+    if (notificationAction.href !== undefined) {
+      return (
+        <PillAction
+          icon={actionIcon}
+          label={label}
+          href={notificationAction.href}
+          linkComponent={linkComponent}
+          className={classNames.action}
+          onClick={onAction}
+        />
+      );
+    }
+    const { onClick } = notificationAction;
+    return (
+      <PillAction
+        icon={actionIcon}
+        label={label}
+        className={classNames.action}
+        onClick={(event) => {
+          onClick(event);
+          onAction?.(event);
+        }}
+      />
+    );
+  };
+
+  return (
+    <>
+      {hasIcon && (
+        <>
+          <PillIcon className={classNames.icon}>{icon}</PillIcon>
+          <PillDivider className={classNames.divider} />
+        </>
+      )}
+      <PillMessage className={classNames.message}>{message}</PillMessage>
+      {(action || panel) && (
+        <PillActions className={classNames.actions}>
+          {action && renderAction(action)}
+          {panel && (
+            <PillPanelTrigger
+              icon={panel.trigger ? panel.trigger.icon : <PlusIcon />}
+              label={panel.trigger?.label ?? "Learn more"}
+              className={classNames.action}
+            />
+          )}
+        </PillActions>
+      )}
+      {panel && (
+        <PillPanel title={panel.title} closeLabel={panel.closeLabel} className={classNames.panel}>
+          {panel.content}
+        </PillPanel>
+      )}
+    </>
+  );
+}
+
+/**
+ * Icon · divider · message · action, with an optional expandable panel.
+ * Render it inside a <Pill>, or let <MagicPill> render it for pill().notify().
+ */
+export const PillNotification = NotificationContent as (props: PillNotificationProps) => ReactNode;
