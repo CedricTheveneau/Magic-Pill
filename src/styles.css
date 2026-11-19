@@ -15,379 +15,388 @@
  */
 
 @layer magic-pill {
-  /* ─── Behaviour: kept by `unstyled` pills ──────────────────────────────── */
+  /* Behaviour comes last, so it beats the look whatever the specificity:
+     a closed panel or a hidden pill stays hidden even if a visual rule
+     sets a display. Your own unlayered CSS still beats both. */
+  @layer look, behaviour;
 
-  /* Hidden: invisible once the exit transition is over. React also makes it inert. */
-  [data-mp="pill"][data-presence="hidden"] {
-    visibility: hidden;
+  @layer behaviour {
+    /* ─── Behaviour: kept by `unstyled` pills ──────────────────────────────── */
+
+    /* Hidden: invisible once the exit transition is over. React also makes it inert. */
+    [data-mp="pill"][data-presence="hidden"] {
+      visibility: hidden;
+    }
+
+    /* A closed <dialog> stays closed, whatever display the pill uses */
+    dialog[data-mp="pill"]:not([open]) {
+      display: none;
+    }
+
+    /* Resting circle: only the leading icon remains, for everyone */
+    [data-mp="pill"][data-presence="rest"] > :not([data-mp="icon"]) {
+      visibility: hidden;
+    }
+
+    /* The panel replaces the pill's content while it's open */
+    [data-mp="panel"]:not([data-open]),
+    [data-mp="pill"][data-presence="panel"] > :not([data-mp="panel"]) {
+      display: none;
+    }
   }
 
-  /* A closed <dialog> stays closed, whatever display the pill uses */
-  dialog[data-mp="pill"]:not([open]) {
-    display: none;
-  }
+  @layer look {
+    /* ─── Look ─────────────────────────────────────────────────────────────── */
 
-  /* Resting circle: only the leading icon remains, for everyone */
-  [data-mp="pill"][data-presence="rest"] > :not([data-mp="icon"]) {
-    visibility: hidden;
-  }
+    [data-mp="pill"]:not([data-unstyled]) {
+      --_mp-surface: var(--mp-surface, #141414);
+      --_mp-on-surface: var(--mp-on-surface, #f9f9f9);
+      --_mp-action: var(--mp-action, #f9f9f9);
+      --_mp-on-action: var(--mp-on-action, #141414);
+      --_mp-offset: var(--mp-offset, 1.5rem);
+      --_mp-padding: var(--mp-padding, 0.875rem);
+      --_mp-gap: var(--mp-gap, 1rem);
+      --_mp-action-size: var(--mp-action-size, 2.75rem);
+      --_mp-rest-size: calc(var(--_mp-action-size) + 2 * var(--_mp-padding));
+      --_mp-max-size: min(var(--mp-max-width, 48rem), 100%);
+      --_mp-enter: var(--mp-duration-enter, 500ms);
+      --_mp-exit: var(--mp-duration-exit, 300ms);
+      --_mp-change: var(--mp-duration-change, 250ms);
+      /* The entry overshoot from the mockups' "pop" */
+      --_mp-ease-enter: cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  /* The panel replaces the pill's content while it's open */
-  [data-mp="panel"]:not([data-open]),
-  [data-mp="pill"][data-presence="panel"] > :not([data-mp="panel"]) {
-    display: none;
-  }
-
-  /* ─── Look ─────────────────────────────────────────────────────────────── */
-
-  [data-mp="pill"]:not([data-unstyled]) {
-    --_mp-surface: var(--mp-surface, #141414);
-    --_mp-on-surface: var(--mp-on-surface, #f9f9f9);
-    --_mp-action: var(--mp-action, #f9f9f9);
-    --_mp-on-action: var(--mp-on-action, #141414);
-    --_mp-offset: var(--mp-offset, 1.5rem);
-    --_mp-padding: var(--mp-padding, 0.875rem);
-    --_mp-gap: var(--mp-gap, 1rem);
-    --_mp-action-size: var(--mp-action-size, 2.75rem);
-    --_mp-rest-size: calc(var(--_mp-action-size) + 2 * var(--_mp-padding));
-    --_mp-max-size: min(var(--mp-max-width, 48rem), 100%);
-    --_mp-enter: var(--mp-duration-enter, 500ms);
-    --_mp-exit: var(--mp-duration-exit, 300ms);
-    --_mp-change: var(--mp-duration-change, 250ms);
-    /* The entry overshoot from the mockups' "pop" */
-    --_mp-ease-enter: cubic-bezier(0.34, 1.56, 0.64, 1);
-
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    gap: var(--_mp-gap);
-    inline-size: fit-content;
-    min-block-size: var(--_mp-rest-size);
-    max-inline-size: var(--_mp-max-size);
-    margin: 0;
-    padding: var(--_mp-padding);
-    overflow: hidden;
-    border: 0;
-    border-radius: 9999px;
-    background: var(--_mp-surface);
-    color: var(--_mp-on-surface);
-    box-shadow: var(--mp-shadow, 0 0.5rem 0.5rem rgb(20 20 20 / 0.45));
-    font-family: var(--mp-font-text, inherit);
-    font-size: var(--mp-text-size, clamp(0.9375rem, 0.875rem + 0.25vw, 1.0625rem));
-    line-height: 1.3;
-    scale: 1;
-    transition:
-      scale var(--_mp-enter) var(--_mp-ease-enter),
-      max-inline-size var(--_mp-change) ease-in-out,
-      max-block-size var(--_mp-change) ease-in-out,
-      border-radius var(--_mp-change) ease-in-out,
-      padding var(--_mp-change) ease-in-out,
-      background-color var(--_mp-change) ease-in-out,
-      visibility 0s;
-
-    & *,
-    & *::before,
-    & *::after {
       box-sizing: border-box;
-    }
-
-    /* Variants */
-    &[data-variant="success"] {
-      --_mp-surface: var(--mp-success, #3f7253);
-    }
-
-    /* Darker than 8.x's #fc5d6a, which had a 2.9:1 contrast with the light text */
-    &[data-variant="danger"] {
-      --_mp-surface: var(--mp-danger, #c2303e);
-    }
-
-    /* Presence levels */
-    &[data-presence="hidden"] {
-      scale: 0;
-      max-inline-size: var(--_mp-rest-size);
-      max-block-size: var(--_mp-rest-size);
-      /* Shrink to a circle, then scale out, then stop being visible */
+      display: flex;
+      align-items: center;
+      gap: var(--_mp-gap);
+      inline-size: fit-content;
+      min-block-size: var(--_mp-rest-size);
+      max-inline-size: var(--_mp-max-size);
+      margin: 0;
+      padding: var(--_mp-padding);
+      overflow: hidden;
+      border: 0;
+      border-radius: 9999px;
+      background: var(--_mp-surface);
+      color: var(--_mp-on-surface);
+      box-shadow: var(--mp-shadow, 0 0.5rem 0.5rem rgb(20 20 20 / 0.45));
+      font-family: var(--mp-font-text, inherit);
+      font-size: var(--mp-text-size, clamp(0.9375rem, 0.875rem + 0.25vw, 1.0625rem));
+      line-height: 1.3;
+      scale: 1;
       transition:
-        scale var(--_mp-exit) ease-in var(--_mp-change),
+        scale var(--_mp-enter) var(--_mp-ease-enter),
         max-inline-size var(--_mp-change) ease-in-out,
         max-block-size var(--_mp-change) ease-in-out,
         border-radius var(--_mp-change) ease-in-out,
         padding var(--_mp-change) ease-in-out,
         background-color var(--_mp-change) ease-in-out,
-        visibility 0s linear calc(var(--_mp-change) + var(--_mp-exit));
-    }
-
-    /* A circle: both axes clamped, whatever the hidden content would need */
-    &[data-presence="rest"] {
-      max-inline-size: var(--_mp-rest-size);
-      max-block-size: var(--_mp-rest-size);
-    }
-
-    &[data-presence="panel"] {
-      --_mp-max-size: min(var(--mp-panel-width, 32rem), 100%);
-      display: block;
-      max-block-size: calc(100dvh - 2 * var(--_mp-offset));
-      padding: calc(var(--_mp-padding) * 2.5);
-      overflow-y: auto;
-      border-radius: var(--mp-radius-panel, 2.5rem);
-    }
-
-    /* Placements: fixed ones stay inside the viewport and its safe areas */
-    &:not([data-placement="inline"]) {
-      --_mp-max-size: min(var(--mp-max-width, 48rem), 100vw - 2 * var(--_mp-offset));
-      position: fixed;
-      z-index: var(--mp-z-index, 50);
-    }
-
-    &[data-presence="panel"]:not([data-placement="inline"]) {
-      --_mp-max-size: min(var(--mp-panel-width, 32rem), 100vw - 2 * var(--_mp-offset));
-    }
-
-    &[data-placement^="top"] {
-      inset-block-start: calc(var(--_mp-offset) + env(safe-area-inset-top, 0px));
-      transform-origin: top;
-    }
-
-    &[data-placement^="bottom"] {
-      inset-block-end: calc(var(--_mp-offset) + env(safe-area-inset-bottom, 0px));
-      transform-origin: bottom;
-    }
-
-    /* Centred with auto margins, not left: 50% + translate, which would
-       leave the pill only half the viewport to size itself in */
-    &[data-placement="top"],
-    &[data-placement="bottom"] {
-      inset-inline: 0;
-      margin-inline: auto;
-    }
-
-    &[data-placement$="-start"] {
-      inset-inline-start: var(--_mp-offset);
-    }
-
-    &[data-placement$="-end"] {
-      inset-inline-end: var(--_mp-offset);
-    }
-
-    &[data-placement="left"],
-    &[data-placement="right"] {
-      inset-block: 0;
-      margin-block: auto;
-      block-size: fit-content;
-    }
-
-    &[data-placement="left"] {
-      left: calc(var(--_mp-offset) + env(safe-area-inset-left, 0px));
-      transform-origin: left;
-    }
-
-    &[data-placement="right"] {
-      right: calc(var(--_mp-offset) + env(safe-area-inset-right, 0px));
-      transform-origin: right;
-    }
-
-    &[data-placement="overlay"] {
-      inset: 0;
-      margin: auto;
-      block-size: fit-content;
-      max-block-size: calc(100dvh - 2 * var(--_mp-offset));
-
-      &::backdrop {
-        background: var(--mp-backdrop, rgb(20 20 20 / 0.4));
-      }
-    }
-
-    /* Vertical pills (sidebars) */
-    &[data-orientation="vertical"] {
-      flex-direction: column;
-      inline-size: auto;
-      block-size: fit-content;
-      max-inline-size: none;
-    }
-
-    &[data-orientation="vertical"]:not([data-presence="rest"], [data-presence="hidden"]) {
-      max-block-size: calc(100dvh - 2 * var(--_mp-offset));
-    }
-
-    /* Parts */
-    & [data-mp="icon"] {
-      flex: none;
-      display: grid;
-      place-items: center;
-      inline-size: var(--_mp-action-size);
-      block-size: var(--_mp-action-size);
-      font-size: calc(var(--_mp-action-size) * 0.6);
-    }
-
-    & [data-mp="divider"] {
-      flex: none;
-      align-self: center;
-      inline-size: 1px;
-      block-size: var(--_mp-action-size);
-      background: currentColor;
-    }
-
-    &[data-orientation="vertical"] [data-mp="divider"] {
-      inline-size: var(--_mp-action-size);
-      block-size: 1px;
-    }
-
-    & [data-mp="message"] {
-      flex: 1 1 auto;
-      min-inline-size: 0;
-      font-style: italic;
-      text-wrap: balance;
-    }
-
-    & [data-mp="actions"] {
-      flex: none;
-      display: flex;
-      align-items: center;
-      gap: calc(var(--_mp-gap) * 0.75);
-    }
-
-    &[data-orientation="vertical"] [data-mp="actions"] {
-      flex-direction: column;
-    }
-
-    & [data-mp="action"] {
-      appearance: none;
-      flex: none;
-      display: inline-flex;
-      align-items: center;
-      block-size: var(--_mp-action-size);
-      min-inline-size: var(--_mp-action-size);
-      margin: 0;
-      padding-inline: calc((var(--_mp-action-size) - 1.25rem) / 2);
-      overflow: hidden;
-      border: 0;
-      border-radius: 9999px;
-      background: var(--_mp-action);
-      color: var(--_mp-on-action);
-      font: inherit;
-      font-family: var(--mp-font-accent, inherit);
-      font-style: normal;
-      font-weight: 700;
-      white-space: nowrap;
-      text-decoration: none;
-      cursor: pointer;
-      transition: padding var(--_mp-change) ease-in-out;
-    }
-
-    & [data-mp="action"]:focus-visible {
-      outline: 2px solid var(--_mp-on-surface);
-      outline-offset: 2px;
-    }
-
-    & [data-mp="action"][aria-disabled="true"] {
-      cursor: not-allowed;
-      opacity: 0.6;
-    }
-
-    & [data-mp="action-icon"] {
-      flex: none;
-      display: grid;
-      place-items: center;
-      inline-size: 1.25rem;
-      block-size: 1.25rem;
-      font-size: 1.25rem;
-    }
-
-    & [data-mp="icon"] > svg,
-    & [data-mp="action-icon"] > svg {
-      inline-size: 1em;
-      block-size: 1em;
-    }
-
-    /* Labels: folded away (but still the accessible name) until expanded */
-    & [data-mp="label"] {
-      max-inline-size: 0;
-      opacity: 0;
-      transition:
-        max-inline-size var(--_mp-change) ease-in-out,
-        opacity var(--_mp-change) ease-in-out,
-        margin var(--_mp-change) ease-in-out;
-    }
-
-    & [data-mp="action"]:is(:hover, :focus-visible, [data-expanded], [aria-current="page"], [aria-current="true"]),
-    &:is([data-presence="expanded"], [data-presence="panel"]) [data-mp="action"] {
-      padding-inline-end: calc(var(--_mp-action-size) / 2.5);
-
-      & [data-mp="label"] {
-        max-inline-size: 20rem;
-        opacity: 1;
-      }
-
-      & [data-mp="action-icon"] + [data-mp="label"] {
-        margin-inline-start: 0.5rem;
-      }
-    }
-
-    /* Panel */
-    & [data-mp="panel"] {
-      display: grid;
-      gap: var(--_mp-gap);
-      outline: none;
-      opacity: 1;
-      transition: opacity var(--_mp-change) ease-out var(--_mp-change);
-
-      @starting-style {
-        opacity: 0;
-      }
-    }
-
-    & [data-mp="panel-title"] {
-      font-size: var(--mp-title-size, clamp(1.5rem, 1.25rem + 1vw, 2rem));
-      font-style: italic;
-      font-weight: 900;
-      line-height: 1.15;
-    }
-
-    & [data-mp="panel-body"] {
-      font-style: italic;
-    }
-
-    /* Stays in reach when a long panel scrolls */
-    & [data-mp="panel-footer"] {
-      position: sticky;
-      inset-block-end: 0;
-      display: flex;
-      justify-content: center;
-      padding-block-start: var(--_mp-gap);
-      background: linear-gradient(transparent, var(--_mp-surface) 50%);
-    }
-  }
-
-  /* ─── Preferences ──────────────────────────────────────────────────────── */
-
-  /* Reduced motion: short fades instead of scaling and resizing */
-  @media (prefers-reduced-motion: reduce) {
-    [data-mp="pill"]:not([data-unstyled]) {
-      transition:
-        opacity 150ms linear,
         visibility 0s;
 
+      & *,
+      & *::before,
+      & *::after {
+        box-sizing: border-box;
+      }
+
+      /* Variants */
+      &[data-variant="success"] {
+        --_mp-surface: var(--mp-success, #3f7253);
+      }
+
+      /* Darker than 8.x's #fc5d6a, which had a 2.9:1 contrast with the light text */
+      &[data-variant="danger"] {
+        --_mp-surface: var(--mp-danger, #c2303e);
+      }
+
+      /* Presence levels */
       &[data-presence="hidden"] {
-        scale: 1;
+        scale: 0;
+        max-inline-size: var(--_mp-rest-size);
+        max-block-size: var(--_mp-rest-size);
+        /* Shrink to a circle, then scale out, then stop being visible */
+        transition:
+          scale var(--_mp-exit) ease-in var(--_mp-change),
+          max-inline-size var(--_mp-change) ease-in-out,
+          max-block-size var(--_mp-change) ease-in-out,
+          border-radius var(--_mp-change) ease-in-out,
+          padding var(--_mp-change) ease-in-out,
+          background-color var(--_mp-change) ease-in-out,
+          visibility 0s linear calc(var(--_mp-change) + var(--_mp-exit));
+      }
+
+      /* A circle: both axes clamped, whatever the hidden content would need */
+      &[data-presence="rest"] {
+        max-inline-size: var(--_mp-rest-size);
+        max-block-size: var(--_mp-rest-size);
+      }
+
+      &[data-presence="panel"] {
+        --_mp-max-size: min(var(--mp-panel-width, 32rem), 100%);
+        display: block;
+        max-block-size: calc(100dvh - 2 * var(--_mp-offset));
+        padding: calc(var(--_mp-padding) * 2.5);
+        overflow-y: auto;
+        border-radius: var(--mp-radius-panel, 2.5rem);
+      }
+
+      /* Placements: fixed ones stay inside the viewport and its safe areas */
+      &:not([data-placement="inline"]) {
+        --_mp-max-size: min(var(--mp-max-width, 48rem), 100vw - 2 * var(--_mp-offset));
+        position: fixed;
+        z-index: var(--mp-z-index, 50);
+      }
+
+      &[data-presence="panel"]:not([data-placement="inline"]) {
+        --_mp-max-size: min(var(--mp-panel-width, 32rem), 100vw - 2 * var(--_mp-offset));
+      }
+
+      &[data-placement^="top"] {
+        inset-block-start: calc(var(--_mp-offset) + env(safe-area-inset-top, 0px));
+        transform-origin: top;
+      }
+
+      &[data-placement^="bottom"] {
+        inset-block-end: calc(var(--_mp-offset) + env(safe-area-inset-bottom, 0px));
+        transform-origin: bottom;
+      }
+
+      /* Centred with auto margins, not left: 50% + translate, which would
+         leave the pill only half the viewport to size itself in */
+      &[data-placement="top"],
+      &[data-placement="bottom"] {
+        inset-inline: 0;
+        margin-inline: auto;
+      }
+
+      &[data-placement$="-start"] {
+        inset-inline-start: var(--_mp-offset);
+      }
+
+      &[data-placement$="-end"] {
+        inset-inline-end: var(--_mp-offset);
+      }
+
+      &[data-placement="left"],
+      &[data-placement="right"] {
+        inset-block: 0;
+        margin-block: auto;
+        block-size: fit-content;
+      }
+
+      &[data-placement="left"] {
+        left: calc(var(--_mp-offset) + env(safe-area-inset-left, 0px));
+        transform-origin: left;
+      }
+
+      &[data-placement="right"] {
+        right: calc(var(--_mp-offset) + env(safe-area-inset-right, 0px));
+        transform-origin: right;
+      }
+
+      &[data-placement="overlay"] {
+        inset: 0;
+        margin: auto;
+        block-size: fit-content;
+        max-block-size: calc(100dvh - 2 * var(--_mp-offset));
+
+        &::backdrop {
+          background: var(--mp-backdrop, rgb(20 20 20 / 0.4));
+        }
+      }
+
+      /* Vertical pills (sidebars) */
+      &[data-orientation="vertical"] {
+        flex-direction: column;
+        inline-size: auto;
+        block-size: fit-content;
+        max-inline-size: none;
+      }
+
+      &[data-orientation="vertical"]:not([data-presence="rest"], [data-presence="hidden"]) {
+        max-block-size: calc(100dvh - 2 * var(--_mp-offset));
+      }
+
+      /* Parts */
+      & [data-mp="icon"] {
+        flex: none;
+        display: grid;
+        place-items: center;
+        inline-size: var(--_mp-action-size);
+        block-size: var(--_mp-action-size);
+        font-size: calc(var(--_mp-action-size) * 0.6);
+      }
+
+      & [data-mp="divider"] {
+        flex: none;
+        align-self: center;
+        inline-size: 1px;
+        block-size: var(--_mp-action-size);
+        background: currentColor;
+      }
+
+      &[data-orientation="vertical"] [data-mp="divider"] {
+        inline-size: var(--_mp-action-size);
+        block-size: 1px;
+      }
+
+      & [data-mp="message"] {
+        flex: 1 1 auto;
+        min-inline-size: 0;
+        font-style: italic;
+        text-wrap: balance;
+      }
+
+      & [data-mp="actions"] {
+        flex: none;
+        display: flex;
+        align-items: center;
+        gap: calc(var(--_mp-gap) * 0.75);
+      }
+
+      &[data-orientation="vertical"] [data-mp="actions"] {
+        flex-direction: column;
+      }
+
+      & [data-mp="action"] {
+        appearance: none;
+        flex: none;
+        display: inline-flex;
+        align-items: center;
+        block-size: var(--_mp-action-size);
+        min-inline-size: var(--_mp-action-size);
+        margin: 0;
+        padding-inline: calc((var(--_mp-action-size) - 1.25rem) / 2);
+        overflow: hidden;
+        border: 0;
+        border-radius: 9999px;
+        background: var(--_mp-action);
+        color: var(--_mp-on-action);
+        font: inherit;
+        font-family: var(--mp-font-accent, inherit);
+        font-style: normal;
+        font-weight: 700;
+        white-space: nowrap;
+        text-decoration: none;
+        cursor: pointer;
+        transition: padding var(--_mp-change) ease-in-out;
+      }
+
+      & [data-mp="action"]:focus-visible {
+        outline: 2px solid var(--_mp-on-surface);
+        outline-offset: 2px;
+      }
+
+      & [data-mp="action"][aria-disabled="true"] {
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      & [data-mp="action-icon"] {
+        flex: none;
+        display: grid;
+        place-items: center;
+        inline-size: 1.25rem;
+        block-size: 1.25rem;
+        font-size: 1.25rem;
+      }
+
+      & [data-mp="icon"] > svg,
+      & [data-mp="action-icon"] > svg {
+        inline-size: 1em;
+        block-size: 1em;
+      }
+
+      /* Labels: folded away (but still the accessible name) until expanded */
+      & [data-mp="label"] {
+        max-inline-size: 0;
         opacity: 0;
         transition:
-          opacity 150ms linear,
-          visibility 0s linear 150ms;
+          max-inline-size var(--_mp-change) ease-in-out,
+          opacity var(--_mp-change) ease-in-out,
+          margin var(--_mp-change) ease-in-out;
       }
 
-      & [data-mp="label"],
-      & [data-mp="action"],
+      & [data-mp="action"]:is(:hover, :focus-visible, [data-expanded], [aria-current="page"], [aria-current="true"]),
+      &:is([data-presence="expanded"], [data-presence="panel"]) [data-mp="action"] {
+        padding-inline-end: calc(var(--_mp-action-size) / 2.5);
+
+        & [data-mp="label"] {
+          max-inline-size: 20rem;
+          opacity: 1;
+        }
+
+        & [data-mp="action-icon"] + [data-mp="label"] {
+          margin-inline-start: 0.5rem;
+        }
+      }
+
+      /* Panel */
       & [data-mp="panel"] {
-        transition: none;
+        display: grid;
+        gap: var(--_mp-gap);
+        outline: none;
+        opacity: 1;
+        transition: opacity var(--_mp-change) ease-out var(--_mp-change);
+
+        @starting-style {
+          opacity: 0;
+        }
+      }
+
+      & [data-mp="panel-title"] {
+        font-size: var(--mp-title-size, clamp(1.5rem, 1.25rem + 1vw, 2rem));
+        font-style: italic;
+        font-weight: 900;
+        line-height: 1.15;
+      }
+
+      & [data-mp="panel-body"] {
+        font-style: italic;
+      }
+
+      /* Stays in reach when a long panel scrolls */
+      & [data-mp="panel-footer"] {
+        position: sticky;
+        inset-block-end: 0;
+        display: flex;
+        justify-content: center;
+        padding-block-start: var(--_mp-gap);
+        background: linear-gradient(transparent, var(--_mp-surface) 50%);
       }
     }
-  }
 
-  /* Forced colours (e.g. Windows High Contrast): keep the shapes visible */
-  @media (forced-colors: active) {
-    [data-mp="pill"]:not([data-unstyled]),
-    [data-mp="pill"]:not([data-unstyled]) [data-mp="action"] {
-      border: 1px solid CanvasText;
+    /* ─── Preferences ──────────────────────────────────────────────────────── */
+
+    /* Reduced motion: short fades instead of scaling and resizing */
+    @media (prefers-reduced-motion: reduce) {
+      [data-mp="pill"]:not([data-unstyled]) {
+        transition:
+          opacity 150ms linear,
+          visibility 0s;
+
+        &[data-presence="hidden"] {
+          scale: 1;
+          opacity: 0;
+          transition:
+            opacity 150ms linear,
+            visibility 0s linear 150ms;
+        }
+
+        & [data-mp="label"],
+        & [data-mp="action"],
+        & [data-mp="panel"] {
+          transition: none;
+        }
+      }
+    }
+
+    /* Forced colours (e.g. Windows High Contrast): keep the shapes visible */
+    @media (forced-colors: active) {
+      [data-mp="pill"]:not([data-unstyled]),
+      [data-mp="pill"]:not([data-unstyled]) [data-mp="action"] {
+        border: 1px solid CanvasText;
+      }
     }
   }
 }
