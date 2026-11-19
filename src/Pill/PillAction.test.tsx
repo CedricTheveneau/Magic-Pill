@@ -24,6 +24,18 @@ describe("PillAction", () => {
     expect(onClick).toHaveBeenCalledOnce();
   });
 
+  it("puts its look on an inner body, out of reach of global a/button resets", () => {
+    // Act
+    render(<PillAction icon={<CheckIcon />} label="Yes" href="/yes" />);
+    const link = screen.getByRole("link", { name: "Yes" });
+    const body = link.firstElementChild as HTMLElement;
+
+    // Assert
+    expect(link.children).toHaveLength(1);
+    expect(body.dataset.mp).toBe("action-body");
+    expect([...body.children].map((child) => (child as HTMLElement).dataset.mp)).toEqual(["action-icon", "label"]);
+  });
+
   it("shows its label when expanded, or when it has no icon", () => {
     // Act
     render(
