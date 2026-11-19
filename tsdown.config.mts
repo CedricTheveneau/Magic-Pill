@@ -10,8 +10,12 @@ export default defineConfig({
   // CJS keeps the historical dist/index.js + index.d.ts ("main", "types"),
   // ESM uses .mjs + .d.mts so Node never mistakes it for CommonJS.
   dts: true,
-  sourcemap: true,
-  minify: true,
+  // Readable output, no source maps: apps minify the code themselves (the
+  // size they ship is the same either way, see scripts/size.mjs), and plain
+  // code in node_modules is easier to debug and learn from than minified
+  // code plus maps, which were more than half of the package.
+  sourcemap: false,
+  minify: false,
   // One output file per source module, so each component keeps its own
   // "use client" directive (L2). A Server Component can then render
   // the client components directly, while stateless modules (parts, icons,
