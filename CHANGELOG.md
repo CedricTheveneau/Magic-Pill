@@ -1,6 +1,6 @@
 # Changelog
 
-## [8.1.0] - Unreleased
+## [8.1.0] - 2026-11-19
 A maintenance release: bug fixes, accessibility, a modern build and an up-to-date toolchain. Imports, props and the documented stylesheet path are unchanged.
 
 ### Added
