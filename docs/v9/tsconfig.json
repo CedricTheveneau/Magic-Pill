@@ -1,0 +1,25 @@
+{
+  // Typechecks the v9 API proposal: `npx tsc -p docs/v9`.
+  // "magic-pill" resolves to the proposed declarations; React types come from
+  // the root devDependencies, Next's from the demo (run `npm ci` in both first).
+  "compilerOptions": {
+    "target": "es2020",
+    "lib": ["dom", "dom.iterable", "es2020"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "typeRoots": ["../../node_modules/@types"],
+    "paths": {
+      "magic-pill": ["./api.ts"],
+      "react": ["../../node_modules/@types/react"],
+      "react/*": ["../../node_modules/@types/react/*"],
+      "next/link": ["../../magic-pill-demo/node_modules/next/link"],
+      "next/navigation": ["../../magic-pill-demo/node_modules/next/navigation"]
+    }
+  },
+  "include": ["api.ts", "examples.tsx"]
+}
