@@ -28,7 +28,7 @@ A maintenance release: bug fixes, accessibility, a modern build and an up-to-dat
 - README: the setup guide's code samples (wrong import path, a check that could never fire, an unused element), the CDN snippets that couldn't work (there's no UMD build), the contact address and several typos
 
 ### Security
-- Releases are published from GitHub Actions with npm Trusted Publishing, with a provenance attestation, instead of a long-lived access token
+- Releases are built and uploaded by GitHub Actions with npm Trusted Publishing, with a provenance attestation, instead of a long-lived access token. They're staged on npm and only go live once a maintainer approves them with 2FA (staged publishing)
 - The development dependency tree has no known advisories any more (`npm audit`: 16 advisories, including 1 critical, down to 0), and CI fails on new high or critical ones
 - README: a warning that `info.content` is rendered as raw HTML and must never contain user input, and that links from users should be restricted to `http(s)` or relative URLs
 
