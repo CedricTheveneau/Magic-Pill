@@ -63,6 +63,10 @@ jobs:
           done
           cmp -s src/styles.css dist/styles.css || { echo "::error::dist/styles.css differs from src/styles.css"; exit 1; }
 
+      # What an app ships when it uses Magic Pill, gzipped (scripts/size.mjs holds the budgets)
+      - name: Check size budget
+        run: npm run size
+
   audit:
     # Library only: the demo is rebuilt in Phase 2
     name: Audit dependencies
