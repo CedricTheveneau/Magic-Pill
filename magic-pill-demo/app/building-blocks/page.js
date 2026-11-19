@@ -86,8 +86,8 @@ export default function BuildingBlocksPage() {
 
         <Example
           title="Several pills"
-          note="A second named host rests as a circle in the corner of this page until it has something to say."
-          code={`<MagicPill name="assistant" placement="bottom-end"
+          note="A second named host rests as a circle in the top corner of this page until it has something to say."
+          code={`<MagicPill name="assistant" placement="top-end"
   idle="rest" idleIcon={<HelpIcon />} />
 
 pill("assistant").notify({ message: "Need a hand?" });`}

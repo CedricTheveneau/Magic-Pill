@@ -83,7 +83,7 @@ export function CallExample() {
 export function AssistantExample() {
   return (
     <>
-      <MagicPill name="assistant" placement="bottom-end" idle="rest" idleIcon={<HelpIcon />} aria-label="Assistant" />
+      <MagicPill name="assistant" placement="top-end" idle="rest" idleIcon={<HelpIcon />} aria-label="Assistant" />
       <button
         className="button button-dark"
         onClick={() =>

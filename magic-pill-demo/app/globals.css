@@ -47,6 +47,13 @@ a {
   padding: 1rem 1rem 9rem;
 }
 
+/* Grid items may shrink below their content (long code lines scroll instead) */
+.page > *,
+.playground > *,
+.gallery > * {
+  min-inline-size: 0;
+}
+
 .card {
   padding: clamp(1.25rem, 3vw, 2rem);
   border-radius: var(--radius);
@@ -291,6 +298,11 @@ code {
   overflow: auto;
   border-radius: 1rem;
   background: #ececf1;
+}
+
+/* Template cards: wide enough for one-line messages, like the design board */
+.gallery-templates {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
 }
 
 .template .button {

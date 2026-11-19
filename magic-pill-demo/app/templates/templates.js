@@ -84,14 +84,13 @@ const TEMPLATES = [
           </p>
         ),
       },
-      duration: Infinity,
     },
   },
 ];
 
 export function TemplateGallery() {
   return (
-    <div className="gallery">
+    <div className="gallery gallery-templates">
       {TEMPLATES.map(({ title, description, options }) => {
         const { variant, duration, ...content } = options;
         return (
