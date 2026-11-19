@@ -1,17 +1,19 @@
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: true
 ---
 # npm package Generation Cursor Rules
-# Language: NextJS with TypeScript
-# Project Type: npm package (component)
+# Language: React with TypeScript (works with Next.js, not tied to it)
+# Project Type: npm package (component library)
 # Target Directory: src/
 # Guiding Principles: Clean Code, SOLID, DRY, Readability-first, Strong Typing
 
-## Foreword  
+## Foreword
 The logic behind this project is to create a highly customizable, easy to use and to maintain component for React/NextJS based projects. It must also be compatible with non-TypeScript (JavaScript) projects, to be available to a broader audience.
 We write the code dedicated to the npm package at the root and in the `src/` directory and always follow the same pattern.
+
+**What Magic Pill is:** a design primitive (the pill) with templates on top and named controllers, not a notification library. Several pills can live on one page. `VISION.md` is the reference when a choice is unclear.
 
 ## Directory Structure
 
@@ -20,16 +22,29 @@ We write the code dedicated to the npm package at the root and in the `src/` dir
 - We create and maintain a `README.md` file before doing any release
 - We create and update the `package.json` file's version before each release, following the [semver](mdc:https:/semver.org/lang/fr) model
 - We create and update the `CHANGELOG.md` file before each release, following the [keep a changelog](mdc:https:/keepachangelog.com/en/1.1.0) model
+- We keep `MIGRATING.md` up to date when a major version changes the API
 - We create and maintain a `.gitignore` file with at least `/dist` and `/node_modules` in it
-- We create and maintain a `.npmignore` file with each directory containing a NextJS app and `/node_modules` in it
-- We create and maintain a `.babelrc` file if it doesn't exist
-- We create an empty `.nojekyll` for GitHub pages when deplying a demo app
+- We create and maintain a `.npmignore` file with each directory containing a NextJS app and `/node_modules` in it (`package.json` `files` is the real allowlist)
 - We create and maintain an `src/` directory containing all the code for our npm package - more info in "### src directory"
 
 ### src directory
 
-- We create an `index.d.ts` for compatibility with TypeScript projects
-- We create all necessary files, following a clean architecture as mentioned in [general.mdc](mdc:.cursor/rules/general.mdc)
+One folder per component, with its children, tests and local types next to it:
+
+```
+src/
+├── index.ts                  the public API: every export goes through here
+├── Pill/                     layer 1, the primitive: Pill, parts, PillAction, PillPanel, usePill, types
+├── PillNotification/         layer 2, a template
+├── PillNavbar/               layer 2, a template (+ matchPath.ts)
+├── MagicPill/                layer 3, the host (+ choreography.ts, its pure animation planning)
+├── store/                    layer 3, the named-pill store, pill() and usePillQueue
+├── icons/                    one component per icon (PascalCase, e.g. CheckIcon.tsx)
+├── utils/                    shared helpers (url.ts, react.ts)
+├── styles.css                the only stylesheet, shipped as-is
+└── *.test.ts(x)              tests next to the code they test
+```
+
 **I try to put focus on package size, code efficiency and simplicity, as well as great architure management that follows the size of the project. Respect that at all costs.**
 
 ## Code architecture
@@ -37,87 +52,64 @@ We write the code dedicated to the npm package at the root and in the `src/` dir
 - As we're building small packages, we don't need high complexity. No need to build the most perfect architecture with contexts for everything if we only manage a single component.
 **Make it so the code makes sense and actually is adapted to the complexity of the overall project.**
 
+### The three layers
+1. **The primitive** (`Pill` and its parts): a container with the design language. Anything can go inside.
+2. **Templates** (`PillNotification`, `PillNavbar`…): plain arrangements of the parts, written the way users can write their own.
+3. **Controllers** (`<MagicPill>`, `pill(name)`): the store and the host. Everything is keyed by a pill's name; nothing may assume there's only one pill.
+
 ### Components & their children
 - Purpose: Is the core of the feature we're developping and must only contain the bare minimum. All minute details about this component are managed at atomic scale with child components.
 - Important: Always keep the scope of functions and props to the bare minimum. The goal is not to get cluttered components.
-- Example: A function that only serves my **notification child component** of **Magic Pill** should be located in the **notification component, not the parent**.
-- **Notification.tsx**
-  - Purpose: Manage the display of notifications through Magic Pill
-  - Example:
-  ```tsx
-  const { icon, message, cta, info } = notification || {};
-  const { icon: ctaIcon, label: ctaLabel, link: ctaLink } = cta || {};
-  const { title, content, closeLabel } = info || {};
+- Example: A function that only serves the **navbar template** belongs in `PillNavbar/`, not in `Pill/`.
+- Content is open: icons, messages and panels are `ReactNode`. Never parse strings as HTML, and render every `href` through `isSafeHref()` (`utils/url.ts`).
 
-  const [collapsed, setCollapsed] = useState(true);
-  ```
+### "use client" and Server Components
+- The build keeps one output file per module, so each module keeps its own directive.
+- Put `"use client"` **only** on modules with state, effects, context or event wiring (`Pill.tsx`, `PillPanel.tsx`, `PillNavbar.tsx`, `MagicPill.tsx`, `usePillQueue.ts`…).
+- Stateless modules (parts, `PillAction`, `PillNotification`, icons, the store and `pill()`) must **not** have it, so Server Components can render or import them without client references. CI checks both lists: update `.github/workflows/ci.yml` when you add a module.
+- No compound statics (`Pill.Icon`): a Server Component can't dot into a client module. Export each part by name.
 
-- **types/**
-  - Purpose: Centralized TypeScript interfaces and types
+### Styling
+- One stylesheet, `src/styles.css`, entirely inside `@layer magic-pill`, with the `look` and `behaviour` sub-layers (behaviour last, so hiding rules always win).
+- Select parts with `[data-mp="…"]` and states with data attributes (`data-presence`, `data-placement`, `data-orientation`, `data-variant`). No class names of ours.
+- Public tokens (`--mp-*`) are only **read**, with fallbacks, never declared, so users can set them anywhere. Private values start with `--_mp-`.
+- Never load fonts or anything else from the network (no `@import`, no `url()`); `styles.test.ts` guards it.
+- Check visual changes in a real browser, including a phone width and `prefers-reduced-motion`.
+
+- **types**
+  - Purpose: Strongly typed props and data, kept next to the component that owns them (e.g. `Pill/types.ts`)
   - Rules:
-    - Use descriptive, strongly-typed interfaces (e.g., Notification, Navbar) based on entities provided
+    - Use descriptive, strongly-typed interfaces (e.g., `PillProps`, `NavItem`) based on entities provided
     - Avoid any type; prefer explicit typing
-    - Export only complete types for usage across the project. All subtypes, if not necessary outside of broader type definitions shouldn't be exported.
-  - Examples:
-    **Non-exported type**
+    - Export publicly only what users need, through `src/index.ts`. Internal types stay in their module.
+    - Document every public prop with JSDoc: what it does and its default.
+  - Example:
     ```typescript
-    /**
-     * Defines the structure of a Magic Pill notification CTA with a link.
-     * @example
-     * ```ts
-     * {
-     *   icon: "info",
-     *   label: "Learn More",
-     *   link: "/learn-more"
-     * }
-     * ```
-     * @see {@link MagicPillNotificationWithLink} for the whole notification structure that incorporates this very type..
-     */
-    interface MagicPillNotificationCTAWithLink {
-     icon: string;
-     label?: string;
-     link: string;  // mandatory
+    export interface PillNavbarProps extends Omit<ComponentPropsWithoutRef<"nav">, "children"> {
+      items: readonly NavItem[];
+      /** The current path, e.g. Next's `usePathname()`. */
+      pathname?: string;
+      linkComponent?: LinkComponent;
     }
-    ```
-    **Exported type**
-    ```typescript
-    export type MagicPillNotification =
-    | MagicPillNotificationWithLink
-    | MagicPillNotificationWithoutLink
-    | MagicPillNotificationBase;
     ```
 
 ### utils/
 - Purpose: Centralize logic that is reused in several files to avoid repeating code (DRY principle) and make it simpler to maintain. It also helps keeping functions simple and pure, without adding specific treatment to their logic, thus avoiding unwanted side effects.
-- It's important, just like with components and their children to subdivide utils into files depending on where it is used. Generic utils can go into a `${mainComponentName}.ts` file, while tighter scope utils go into a `${subcomponentName}.ts` file.
-- Example: Definition of CTA icon, update of data fields, etc.
-- **icons.ts**
-  - Purpose: Returns the icon from the selected array of icons, based on the requested icon
-  - Rules:
-    - Follow Single Responsibility Principle (only returns the icon we're asking for)
-    - Use Singleton pattern
-    - Strongly typed data
-  - Example:
-    ```typescript
-    export function getIconComponent(iconName: string, iconsMap: Record<string, React.ComponentType<any>>) {
-      if (!iconName) return null;
-      return iconsMap[iconName] || null;
-    }
-    ```
+- It's important, just like with components and their children to subdivide utils into files depending on where it is used. Logic used by a single component stays in that component's folder (e.g. `PillNavbar/matchPath.ts`, `MagicPill/choreography.ts`).
+- Prefer pure functions for logic (matching, planning, URL checks): they're easy to test without React or timers.
 
-### __tests__/
+### Tests
 - Purpose: Ensure the correctness, reliability, and maintainability of the package through unit and integration tests.
 - Rules:
-  - Use Jest as the testing framework.
-  - Separate unit tests and integration tests (e.g., unit/ and integration/ subdirectories if needed).
-  - Mock external dependencies (e.g., API calls, database interactions) using Jest mocks and the library @faker-js/faker.
+  - Use **Vitest** with jsdom and Testing Library (`npm test`).
+  - Place test files alongside the code being tested: `*.test.ts` or `*.test.tsx`.
   - Cover edge cases and error handling scenarios.
   - Follow the AAA (Arrange, Act, Assert) pattern for test readability.
-  - Ensure each test is independent and idempotent.
-  - Place test files alongside the component being tested, following the naming convention *.test.ts.
+  - Ensure each test is independent and idempotent (reset the store with `resetStores()`, use fake timers for anything timed).
+  - Behaviour that jsdom can't show (layout, animations, cascade layers) is checked in a real browser too.
   - Examples:
-    - components/navbar.test.ts → Tests addition of navlinks, their functionality and makes sure Magic Pill isn't broken.
-    - components/utils/icons.test.ts → Tests the icons mapping and handling of edge cases.
+    - `PillNavbar/PillNavbar.test.tsx` → active item matching, `pathname` updates, link component, unsafe links.
+    - `utils/url.test.ts` → allowed and blocked URL schemes.
 
 ### ./
 - Purpose: Main configuration and entry points
@@ -129,74 +121,29 @@ We write the code dedicated to the npm package at the root and in the `src/` dir
   - Purpose: Prevents upload of sensible and heavy, non-necessary directories to npm
   - Rules:
     - Always ignore directories containing NextJS apps at least. Update the file when needed.
-- **.nojekyll**
-  - Purpose: Facilitates the deployment of NextJS demo apps to GitHub Pages
+- **tsdown.config.mts**
+  - Purpose: Builds `dist/` (ESM + CJS, typings, unbundled so each module keeps its directive) and copies `styles.css` as-is
   - Rules:
-    - No need to write anything in the file, all we need is to have it.
-- **.babelrc**
-  - Purpose: Helps with bundling.
+    - tsdown is 0.x and pinned to an exact version: read its changelog before any upgrade.
+- **tsconfig.json**
+  - Purpose: Type checking only (`npm run typecheck`, tests included); tsdown does the emitting
   - Rules:
-    - Add a preset that facilitates bundling for NextJS. Update the file when needed.
-  - Example:
-    ```json
-    {
-      "presets": ["@babel/preset-react"]
-    }
-    ```
-- **rollup.config.cjs**
-  - Purpose: Contains the setup for bundling the npm package
-  - Rules:
-    - Add a preset that facilitates bundling for NextJS. Update the file when needed.
-  - Typical example:
-    ```cjs
-    const babel = require('@rollup/plugin-babel').default;
-    const { terser } = require('rollup-plugin-terser');
-    const pkg = require('./package.json');
-    const postcss = require('rollup-plugin-postcss');
-
-    module.exports = () => {
-      return {
-        input: 'src/MagicPill.js',
-        output: [
-          {
-            file: pkg.main,
-            format: 'cjs',
-            sourcemap: true,
-          },
-          {
-            file: pkg.module,
-            format: 'esm',
-            sourcemap: true,
-          },
-        ],
-        plugins: [
-          babel({
-            exclude: 'node_modules/**',
-            babelHelpers: 'bundled',
-            presets: [
-              '@babel/preset-env',
-              '@babel/preset-react'
-            ]
-          }),
-          postcss({
-            extract: 'magicpill.css',
-            minimize: true,
-          }),
-          terser(),
-        ],
-        external: ['react', 'react-dom', 'next'],
-      };
-    };
-    ```
+    - Stay on TypeScript 6 until TypeScript 7's JS API and the tools that depend on it are ready.
+- **vitest.config.mts** / **vitest.setup.ts**
+  - Purpose: The test setup (jsdom, cleanup, real timers between tests)
+- **.github/workflows/**
+  - `ci.yml`: typecheck, tests, build and output checks on every supported Node version, plus a dependency audit.
+  - `publish.yml`: releases through npm **staged publishing** (pre-releases under the `next` tag). Never publish directly with `npm publish`, and never rename this file: the npm trusted publisher is tied to it.
 - **README.md**
   - Purpose: Gives detailed information regarding the project, how to set it up and use it
   - Rules:
     - When significant changes have been done to the project, check if the `README.md` file needs an update. If it does, update it.
     - It's important to keep it structured and clear, as it's the primary document user will go through regarding the project.
+    - Code examples must compile against the real API.
 - **CHANGELOG.md**
   - Purpose: Keeps track of all changes in the project. Helps with versioning and communicating on updates
   - Rules:
-    - Always keep this file up to date before releasing a new version of the package.
+    - Always keep this file up to date before releasing a new version of the package (log changes under `[Unreleased]` as they're merged).
     - We follow the [keep a changelog](https://keepachangelog.com/en/1.1.0/) model, with [SemVer](https://semver.org/lang/fr/) versioning model
 - **LICENSE.md**
   - Purpose: Notify to users what they **can** and **can't** do with this package.
@@ -212,9 +159,10 @@ We write the code dedicated to the npm package at the root and in the `src/` dir
   - Purpose: Keeps track of dependencies and script we can run regarding the projet
   - Rules:
     - We try to keep it as simple as possible, especially in terms of dependencies, as mentionned before regarding keeping the project simple and lightweight
+    - Zero runtime dependencies; `react` and `react-dom` (>= 18) are the only peer dependencies.
     - We add deployment and CI/CD related scripts to it to facilitate releases. Update the file when needed.
     - Always ask me before chosing to install dependencies. Explain to me why you picked installing a dependency instead of writting code.
 - **package-lock.json**
-  - Purpose: Keeps tracks of dependencies and script we can run regarding the projet
+  - Purpose: Records the exact dependency tree
   - Rules:
-    - Never change this file.
+    - Never edit it by hand. It may change only through npm commands (`npm install`, `npm version`…).
