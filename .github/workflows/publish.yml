@@ -7,6 +7,10 @@ name: Stage new release on npm
 # So nothing reaches users without a human with 2FA, even if this workflow
 # or the GitHub account is compromised. The npm trusted publisher only allows
 # `npm stage publish` (not `npm publish`).
+#
+# Pre-releases (e.g. 9.0.0-next.1) are staged under the `next` dist-tag.
+# Create their GitHub release with the pre-release box ticked:
+#   gh release create v9.0.0-next.1 --prerelease --target main …
 
 on:
   release:
@@ -51,10 +55,42 @@ jobs:
       - name: Test
         run: npm test
 
+      # Pre-release versions (9.0.0-next.1…) go to the `next` dist-tag, so
+      # `latest` doesn't move; npm refuses a pre-release without --tag anyway.
+      # On a release, the GitHub tag and its "pre-release" box must match package.json.
+      - name: Pick the npm dist-tag
+        id: dist-tag
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_IS_PRERELEASE: ${{ github.event.release.prerelease }}
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          case "$version" in
+            *-*) tag=next; prerelease=true ;;
+            *) tag=latest; prerelease=false ;;
+          esac
+          if [ "$EVENT_NAME" = "release" ]; then
+            if [ "$RELEASE_TAG" != "v$version" ]; then
+              echo "::error::Release tag $RELEASE_TAG doesn't match package.json version $version (expected v$version)"
+              exit 1
+            fi
+            if [ "$RELEASE_IS_PRERELEASE" != "$prerelease" ]; then
+              echo "::error::The GitHub release's pre-release flag is $RELEASE_IS_PRERELEASE, but $version means $prerelease"
+              exit 1
+            fi
+          fi
+          echo "$version → dist-tag $tag"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
       - name: Build and dry-run stage
         if: github.event_name == 'workflow_dispatch'
-        run: npm stage publish --dry-run
+        env:
+          DIST_TAG: ${{ steps.dist-tag.outputs.tag }}
+        run: npm stage publish --dry-run --tag "$DIST_TAG"
 
       - name: Build and stage on npm (approve with 2FA to publish)
         if: github.event_name == 'release'
-        run: npm stage publish --provenance
+        env:
+          DIST_TAG: ${{ steps.dist-tag.outputs.tag }}
+        run: npm stage publish --provenance --tag "$DIST_TAG"
