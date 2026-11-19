@@ -50,13 +50,13 @@ jobs:
             test -f "$f" || { echo "::error::Missing build output: $f"; exit 1; }
           done
           # Components with state must keep their "use client" directive (Server Component support)
-          for f in MagicPill Pill/Pill Pill/PillContext Pill/PillPanel; do
+          for f in MagicPill Pill/Pill Pill/PillContext Pill/PillPanel PillNavbar/PillNavbar; do
             for ext in js mjs; do
               test "$(head -c 13 "dist/$f.$ext")" = '"use client";' || { echo "::error::dist/$f.$ext doesn't start with \"use client\""; exit 1; }
             done
           done
           # Stateless modules must not have it, or Server Components would get client references
-          for f in Pill/parts Pill/PillAction icons/CheckIcon utils/url; do
+          for f in Pill/parts Pill/PillAction PillNotification/PillNotification PillNavbar/matchPath icons/CheckIcon utils/url; do
             for ext in js mjs; do
               ! grep -q '"use client"' "dist/$f.$ext" || { echo "::error::dist/$f.$ext must stay server-safe (no \"use client\")"; exit 1; }
             done

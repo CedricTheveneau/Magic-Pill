@@ -10,6 +10,9 @@ Work towards 9.0.0, the first release with a stable API. The 8.x API still works
   - Horizontal or vertical orientation, and `neutral`, `success`, `danger` or custom variants
   - Stateless parts and `PillAction` can be rendered by React Server Components without becoming client code
 - Link actions take a `linkComponent` (e.g. Next's `Link`) and only render relative, `http(s):`, `mailto:` and `tel:` URLs. Any other scheme, such as `javascript:`, renders no link
+- Templates built from those parts:
+  - `PillNotification`: icon, message, an action (`onClick` or `href`) and an optional expandable panel. Every content is a React node, so nothing is parsed as HTML any more
+  - `PillNavbar`: a `<nav>` of icon links for any router (`pathname`, `linkComponent`). Items match whole path segments, the longest match wins, and the active link gets `aria-current="page"`
 - Twelve icons as components (`ArrowIcon`, `BoxIcon`, `CheckIcon`, `CloseIcon`, `CouponIcon`, `DocumentIcon`, `HelpIcon`, `InfoIcon`, `MailIcon`, `PhoneIcon`, `PlusIcon`, `UndoIcon`): drawn in `currentColor`, decorative by default
 - A new stylesheet, `magic-pill/styles.css`:
   - every rule sits in a `magic-pill` cascade layer and targets `data-mp` attributes, so your own CSS overrides it without `!important` and no class names collide;

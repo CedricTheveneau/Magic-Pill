@@ -30,6 +30,13 @@ describe("styles.css", () => {
     expect(topLevelBlocks).toBe(1);
   });
 
+  it("declares the behaviour sub-layer after the look, so hiding rules always win", () => {
+    // Assert
+    expect(withoutComments).toMatch(/@layer magic-pill\s*{\s*@layer look, behaviour;/);
+    expect(withoutComments.indexOf("@layer behaviour {")).toBeGreaterThan(-1);
+    expect(withoutComments.indexOf("@layer look {")).toBeGreaterThan(-1);
+  });
+
   it("selects by data attributes, never by class names that could collide (L12)", () => {
     // Assert
     expect(withoutComments).not.toMatch(/(^|[\s,>+~(])\.[a-zA-Z_-]/m);
