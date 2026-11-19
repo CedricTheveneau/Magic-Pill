@@ -13,11 +13,27 @@ Work towards 9.0.0, the first release with a stable API. The 8.x API still works
 - Templates built from those parts:
   - `PillNotification`: icon, message, an action (`onClick` or `href`) and an optional expandable panel. Every content is a React node, so nothing is parsed as HTML any more
   - `PillNavbar`: a `<nav>` of icon links for any router (`pathname`, `linkComponent`). Items match whole path segments, the longest match wins, and the active link gets `aria-current="page"`
+- `<MagicPill>` and `pill(name)`: mount the host once, then call `pill().notify({...})` from anywhere, including outside React. This replaces the 8.x Context, Provider and Initializer (about 135 lines of user code)
+  - Notifications queue first in, first out, take the pill over, then hand it back to the host's **base layer** (its children, e.g. a `PillNavbar`), so navbar and notifications are no longer exclusive
+  - `update(id, patch)`, `dismiss(id?)`, `clear()`, and `notify()` with an existing `id` to update in place
+  - `duration` per notification or on the host (`Infinity` keeps it). The countdown pauses on hover, keyboard focus, an open panel and a hidden browser tab
+  - Action clicks dismiss the notification unless the handler calls `event.preventDefault()`; `onDismiss(id, reason)` reports `timeout`, `action`, `dismissed` or `cleared`
+  - `render` for your own template, which keeps the queue, timing and animation
+  - Several named hosts per page (`<MagicPill name="sidebar">`), and `idle="rest"` for a discreet resting circle
+  - Shape changes: the pill collapses to a circle, swaps its content there and grows back; with reduced motion, it fades instead
+  - Announcements go through a separate live region, so a hidden pill can leave the accessibility tree
+  - On the server, `pill()` does nothing (it warns in development), so requests never share notifications
+- `usePillQueue(name)`: the queue as a hook, to build your own host
 - Twelve icons as components (`ArrowIcon`, `BoxIcon`, `CheckIcon`, `CloseIcon`, `CouponIcon`, `DocumentIcon`, `HelpIcon`, `InfoIcon`, `MailIcon`, `PhoneIcon`, `PlusIcon`, `UndoIcon`): drawn in `currentColor`, decorative by default
 - A new stylesheet, `magic-pill/styles.css`:
   - every rule sits in a `magic-pill` cascade layer and targets `data-mp` attributes, so your own CSS overrides it without `!important` and no class names collide;
   - it loads no fonts (it uses your page's fonts unless you set `--mp-font-text`/`--mp-font-accent`);
   - it's sized in `rem`, fits phone screens and safe areas, and supports reduced motion and forced colours
+
+### Removed
+- The 8.x API: the `pillData` prop and `mode`, the types (`MagicPillType`, `Mode`, `NotificationIcon`, `CTAIcon`, `MagicPillNotification*`, `MagicPillNavbar*`), the 15 handlers (`updateMode` … `handleActiveNavItem`), `Icons`, `CTAIcons`, `getIconComponent` and `defaultPillData`
+- The 8.x stylesheet: its `.magicPill`/`.CTA`/… classes, the `--mp__*` variables and the Google Fonts `@import`. The `magic-pill/magicpill.css` and `magic-pill/dist/magicpill.css` paths now serve the new stylesheet
+- Raw HTML content: `info.content` was injected with `dangerouslySetInnerHTML`. Contents are React nodes now
 
 ## [8.1.0] - 2026-11-19
 A maintenance release: bug fixes, accessibility, a modern build and an up-to-date toolchain. Imports, props and the documented stylesheet path are unchanged.
