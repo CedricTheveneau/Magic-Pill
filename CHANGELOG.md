@@ -33,6 +33,10 @@ Work towards 9.0.0, the first release with a stable API. It's a breaking release
 - A migration guide from 8.x, [MIGRATING.md](./MIGRATING.md), shipped in the package
 - The README is rewritten for v9: quick start, notifications, the host and its base layer, the primitive, React Server Components, styling and tokens, accessibility and security
 
+### Changed
+- The published JavaScript is readable (not minified) and has no source maps. Your app bundles exactly the same amount of code (your bundler minifies it), and the package is about 40% smaller to install (196 kB unpacked instead of 331 kB in 9.0.0-next.0)
+- Size, measured and checked in CI: the quick start (`MagicPill` + `pill()`) adds about 4.9 kB of gzipped JavaScript and 3.6 kB of gzipped CSS to an app; a hand-written `Pill` with its parts, about 1.4 kB
+
 ### Removed
 - The 8.x API: the `pillData` prop and `mode`, the types (`MagicPillType`, `Mode`, `NotificationIcon`, `CTAIcon`, `MagicPillNotification*`, `MagicPillNavbar*`), the 15 handlers (`updateMode` … `handleActiveNavItem`), `Icons`, `CTAIcons`, `getIconComponent` and `defaultPillData`
 - The 8.x stylesheet: its `.magicPill`/`.CTA`/… classes, the `--mp__*` variables and the Google Fonts `@import`. The `magic-pill/magicpill.css` and `magic-pill/dist/magicpill.css` paths now serve the new stylesheet

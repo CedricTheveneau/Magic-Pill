@@ -27,6 +27,7 @@ On top of it come ready-made **templates** (a notification, a navbar) and a **co
  - [X] Accessible: screen reader announcements, keyboard focus pauses the countdown, focus handling for panels and modals
  - [X] Works in any React 18+ app, including React Server Components (Next.js App Router), with any router
  - [X] Styles you can override without `!important`, design tokens, no fonts loaded behind your back
+ - [X] Tiny: the quick start adds about **8.5 kB gzipped** to your app (4.9 kB of JavaScript + 3.6 kB of CSS), checked in CI. Unused parts are tree-shaken.
  - [X] Written in TypeScript, zero runtime dependencies
 
 ## Installation
@@ -376,6 +377,7 @@ npm install
 npm run typecheck   # TypeScript
 npm test            # Vitest test suite
 npm run build       # Builds dist/ with tsdown
+npm run size        # What an app ships, against the size budget (after a build)
 ```
 
 4. You're good to go! For easier development, we recommend creating a Next.js app and creating a symbolic link between the app and the package. Now, when you're making changes to the code in src/, the changes should be reflected in your Next.js app.
