@@ -17,7 +17,10 @@ export default defineConfig({
   // <MagicPill> directly, while plain exports (types, handlers,
   // defaultPillData) stay ordinary values instead of client references.
   unbundle: true,
-  // Consumers import the stylesheet themselves (magic-pill/dist/magicpill.css),
-  // so it's shipped untouched next to the bundles (L9)
-  copy: [{ from: "src/magicpill.css", to: "dist" }],
+  // Consumers import the stylesheets themselves, so they're shipped untouched
+  // next to the bundles (L9): magicpill.css (8.x) and styles.css (v9)
+  copy: [
+    { from: "src/magicpill.css", to: "dist" },
+    { from: "src/styles.css", to: "dist" },
+  ],
 });

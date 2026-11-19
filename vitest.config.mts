@@ -8,5 +8,7 @@ export default defineConfig({
     // Every test starts from real timers and untouched mocks
     restoreMocks: true,
     unstubGlobals: true,
+    // Lets styles.test.ts read the v9 stylesheet as text (`?raw`)
+    css: { include: [/src\/styles\.css/] },
   },
 });

@@ -16,6 +16,7 @@
         "default": "./dist/index.js"
       }
     },
+    "./styles.css": "./dist/styles.css",
     "./magicpill.css": "./dist/magicpill.css",
     "./dist/magicpill.css": "./dist/magicpill.css",
     "./package.json": "./package.json"
