@@ -1,0 +1,268 @@
+"use client"
+import {
+  forwardRef,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FocusEvent,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
+
+import Pill from "../Pill/Pill";
+import { PillIcon } from "../Pill/parts";
+import type { LinkComponent, PillPresence, PillProps } from "../Pill/types";
+import { NotificationContent, type PillNotificationClassNames } from "../PillNotification/PillNotification";
+import { getStore, type QueuedNotification } from "../store/store";
+import { usePillQueue } from "../store/usePillQueue";
+import { mergeRefs } from "../utils/react";
+import {
+  BASE,
+  IDLE,
+  NONE,
+  isOpen,
+  planSteps,
+  readTimings,
+  type Displayed,
+  type Scene,
+} from "./choreography";
+
+export interface MagicPillProps
+  extends Omit<PillProps, "presence" | "defaultPresence" | "onPresenceChange" | "children"> {
+  /** Default "main". Two hosts with the same name warn in development. */
+  name?: string;
+  /**
+   * The base layer (e.g. a <PillNavbar>), shown whenever no notification is.
+   * Notifications take the pill over, then it returns to this content.
+   */
+  children?: ReactNode;
+  /** Default display time for notifications, in ms. Default 5000. */
+  duration?: number;
+  /** With no base layer and nothing queued: hide (default) or rest as a circle. */
+  idle?: "hidden" | "rest";
+  /** The icon shown when `idle="rest"`. */
+  idleIcon?: ReactNode;
+  /** Passed to notification actions that have an `href`. */
+  linkComponent?: LinkComponent;
+  classNames?: PillNotificationClassNames;
+}
+
+const DEFAULT_DURATION = 5000;
+
+// Readable by screen readers, invisible on screen, and independent of the
+// stylesheet (it must work for unstyled pills too)
+const VISUALLY_HIDDEN: CSSProperties = {
+  position: "absolute",
+  width: 1,
+  height: 1,
+  margin: -1,
+  padding: 0,
+  overflow: "hidden",
+  clip: "rect(0 0 0 0)",
+  whiteSpace: "nowrap",
+  border: 0,
+};
+
+const hasContent = (node: ReactNode) => node !== undefined && node !== null && node !== false;
+
+function useDocumentHidden(): boolean {
+  const [hidden, setHidden] = useState(false);
+  useEffect(() => {
+    const update = () => setHidden(document.visibilityState === "hidden");
+    update();
+    document.addEventListener("visibilitychange", update);
+    return () => document.removeEventListener("visibilitychange", update);
+  }, []);
+  return hidden;
+}
+
+/**
+ * The batteries-included pill: a <Pill> with a base layer, a queue of
+ * notifications fed by pill(name), and a live region that announces them.
+ */
+const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
+  {
+    name = "main",
+    children,
+    duration = DEFAULT_DURATION,
+    idle = "hidden",
+    idleIcon,
+    linkComponent,
+    classNames,
+    placement = "bottom",
+    variant,
+    onMouseEnter,
+    onMouseLeave,
+    onFocus,
+    onBlur,
+    ...rest
+  },
+  forwardedRef,
+) {
+  const store = getStore(name);
+  const { current } = usePillQueue(name);
+  const rootRef = useRef<HTMLElement | null>(null);
+  const ref = useMemo(() => mergeRefs(rootRef, forwardedRef), [forwardedRef]);
+
+  useEffect(() => store.registerHost(), [store]);
+
+  // What the pill should show now. Stable objects, so a re-render isn't a change.
+  const hasBase = hasContent(children);
+  const target = useMemo<Scene>(
+    () => (current ? { kind: "notification", item: current } : hasBase ? BASE : idle === "rest" ? IDLE : NONE),
+    [current, hasBase, idle],
+  );
+
+  // What it shows, moved towards the target one timed step at a time
+  const [displayed, setDisplayed] = useState<Displayed>(() => ({
+    scene: target.kind === "notification" ? NONE : target,
+    presence: target.kind === "base" ? "compact" : target.kind === "idle" ? "rest" : "hidden",
+  }));
+  const displayedRef = useRef(displayed);
+  displayedRef.current = displayed;
+
+  useEffect(() => {
+    const steps = planSteps(displayedRef.current, target, readTimings(rootRef.current));
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    let at = 0;
+    steps.forEach((step, index) => {
+      at += step.delay;
+      // Steps due at the same time collapse into the last one
+      const next = steps[index + 1];
+      if (next && next.delay === 0) return;
+      const apply = () => setDisplayed({ scene: step.scene, presence: step.presence });
+      if (at === 0) {
+        apply();
+      } else {
+        timers.push(setTimeout(apply, at));
+      }
+    });
+    return () => timers.forEach(clearTimeout);
+  }, [target]);
+
+  // Pauses: pointer, keyboard focus, an open panel, a hidden tab (Y3)
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const documentHidden = useDocumentHidden();
+  useEffect(() => {
+    // An inert pill loses focus without always firing blur
+    if (displayed.presence === "hidden") {
+      setHovered(false);
+      setFocused(false);
+    }
+  }, [displayed.presence]);
+
+  const shown: QueuedNotification | null =
+    displayed.scene.kind === "notification" && isOpen(displayed.presence) ? displayed.scene.item : null;
+  const paused = hovered || focused || documentHidden || displayed.presence === "panel";
+
+  // The countdown starts once the notification is fully shown, and again from
+  // the full duration after each pause, or when its content is updated
+  useEffect(() => {
+    if (!shown || paused) return;
+    const ms = shown.input.duration ?? duration;
+    if (!Number.isFinite(ms)) return;
+    const timer = setTimeout(() => store.dismiss(shown.id, "timeout"), ms);
+    return () => clearTimeout(timer);
+  }, [shown, paused, duration, store]);
+
+  // Announcements go through a separate live region, so the pill itself can
+  // leave the accessibility tree when hidden (Y1, Y5)
+  const [announcement, setAnnouncement] = useState<{ key: QueuedNotification; text: string } | null>(null);
+  useEffect(() => {
+    if (!shown) return;
+    const { announce } = shown.input;
+    if (announce === false) return;
+    const root = rootRef.current;
+    const text =
+      typeof announce === "string"
+        ? announce
+        : (root?.querySelector('[data-mp="message"]') ?? root)?.textContent?.trim() ?? "";
+    if (text) setAnnouncement((previous) => (previous?.key === shown ? previous : { key: shown, text }));
+  }, [shown]);
+
+  const handlePresenceChange = (next: PillPresence) => {
+    const { scene, presence } = displayedRef.current;
+    if (next === "hidden") {
+      // Escape on an overlay, for instance: that's a dismissal
+      if (scene.kind === "notification") store.dismiss(scene.item.id, "dismissed");
+      return;
+    }
+    if (isOpen(next) && isOpen(presence)) {
+      setDisplayed({ scene, presence: next });
+    }
+  };
+
+  const renderScene = (scene: Scene): ReactNode => {
+    switch (scene.kind) {
+      case "base":
+        return children;
+      case "idle":
+        return <PillIcon>{idleIcon}</PillIcon>;
+      case "notification": {
+        const { id, input } = scene.item;
+        if (input.render) {
+          return input.render({ id, dismiss: () => store.dismiss(id, "dismissed") });
+        }
+        return (
+          <NotificationContent
+            key={id}
+            icon={input.icon}
+            message={input.message}
+            action={input.action}
+            panel={input.panel}
+            linkComponent={linkComponent}
+            classNames={classNames}
+            onAction={(event: MouseEvent<HTMLElement>) => {
+              if (!event.defaultPrevented) store.dismiss(id, "action");
+            }}
+          />
+        );
+      }
+      default:
+        return null;
+    }
+  };
+
+  const sceneVariant =
+    displayed.scene.kind === "notification" ? (displayed.scene.item.input.variant ?? variant) : variant;
+
+  return (
+    <>
+      <Pill
+        {...rest}
+        ref={ref}
+        placement={placement}
+        variant={sceneVariant}
+        presence={displayed.presence}
+        onPresenceChange={handlePresenceChange}
+        onMouseEnter={(event) => {
+          onMouseEnter?.(event);
+          setHovered(true);
+        }}
+        onMouseLeave={(event) => {
+          onMouseLeave?.(event);
+          setHovered(false);
+        }}
+        onFocus={(event) => {
+          onFocus?.(event);
+          setFocused(true);
+        }}
+        onBlur={(event: FocusEvent<HTMLDivElement>) => {
+          onBlur?.(event);
+          // Focus moving between elements inside the pill keeps it paused
+          setFocused(event.currentTarget.contains(event.relatedTarget as Node | null));
+        }}
+      >
+        {renderScene(displayed.scene)}
+      </Pill>
+      <div role="status" aria-live="polite" aria-atomic="true" data-mp="announcer" style={VISUALLY_HIDDEN}>
+        {announcement && <span key={announcement.key.id + announcement.text}>{announcement.text}</span>}
+      </div>
+    </>
+  );
+});
+
+export default MagicPill;

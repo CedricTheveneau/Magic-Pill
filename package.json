@@ -17,8 +17,8 @@
       }
     },
     "./styles.css": "./dist/styles.css",
-    "./magicpill.css": "./dist/magicpill.css",
-    "./dist/magicpill.css": "./dist/magicpill.css",
+    "./magicpill.css": "./dist/styles.css",
+    "./dist/magicpill.css": "./dist/styles.css",
     "./package.json": "./package.json"
   },
   "sideEffects": [

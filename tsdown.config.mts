@@ -14,13 +14,10 @@ export default defineConfig({
   minify: true,
   // One output file per source module, so each component keeps its own
   // "use client" directive (L2). A Server Component can then render
-  // <MagicPill> directly, while plain exports (types, handlers,
-  // defaultPillData) stay ordinary values instead of client references.
+  // the client components directly, while stateless modules (parts, icons,
+  // the store and pill()) stay ordinary values instead of client references.
   unbundle: true,
-  // Consumers import the stylesheets themselves, so they're shipped untouched
-  // next to the bundles (L9): magicpill.css (8.x) and styles.css (v9)
-  copy: [
-    { from: "src/magicpill.css", to: "dist" },
-    { from: "src/styles.css", to: "dist" },
-  ],
+  // Consumers import the stylesheet themselves, so it's shipped untouched next
+  // to the bundles (L9). package.json maps the 8.x paths to it too.
+  copy: [{ from: "src/styles.css", to: "dist" }],
 });
