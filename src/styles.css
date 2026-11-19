@@ -140,13 +140,24 @@
         max-block-size: var(--_mp-rest-size);
       }
 
-      /* The content stays while the pill closes over it, then hides */
+      /* The content stays while the pill closes over it, then hides. The
+         message unwraps at once when the pill shrinks, and may wrap again
+         only once the pill has grown (a discrete transition, where supported) */
       & > :not([data-mp="icon"], [data-mp="panel"]) {
-        transition: visibility 0s;
+        transition:
+          visibility 0s,
+          white-space 0s linear var(--_mp-change);
+        transition-behavior: allow-discrete;
       }
 
-      &[data-presence="rest"] > :not([data-mp="icon"], [data-mp="panel"]) {
-        transition: visibility 0s linear var(--_mp-change);
+      &:is([data-presence="rest"], [data-presence="hidden"]) > :not([data-mp="icon"], [data-mp="panel"]) {
+        transition:
+          visibility 0s linear var(--_mp-change),
+          white-space 0s;
+      }
+
+      &:is([data-presence="rest"], [data-presence="hidden"]) > [data-mp="message"] {
+        white-space: nowrap;
       }
 
       &[data-presence="panel"] {
@@ -262,14 +273,17 @@
         block-size: 1px;
       }
 
-      /* Its own width, up to a cap: it doesn't reflow word by word while the
-         pill grows (the pill reveals it instead), and still wraps on phones */
+      /* Its own width up to a cap, and it wraps when space runs out (phones,
+         narrow containers). While the pill grows it stays on one line (see
+         the presence rules), so the pill reveals it instead of it reflowing
+         word by word */
       & [data-mp="message"] {
-        flex: 0 0 auto;
+        flex: 0 1 auto;
+        min-inline-size: 0;
         inline-size: max-content;
-        max-inline-size: min(var(--mp-message-width, 24rem), 100vw - 14rem);
+        max-inline-size: var(--mp-message-width, 24rem);
         font-style: italic;
-        text-wrap: balance;
+        text-wrap-style: balance;
       }
 
       & [data-mp="actions"] {
@@ -283,27 +297,39 @@
         flex-direction: column;
       }
 
+      /* The <a>/<button> stays neutral and the look lives on its inner body:
+         an app's global resets (a { color: inherit }, button { background:
+         none; padding: 0 }…) are unlayered, so they'd beat this layer on
+         the element, but they don't reach the body */
       & [data-mp="action"] {
         appearance: none;
         flex: none;
         display: inline-flex;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 9999px;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      & [data-mp="action-body"] {
+        display: inline-flex;
         align-items: center;
         block-size: var(--_mp-action-size);
         min-inline-size: var(--_mp-action-size);
-        margin: 0;
         padding-inline: calc((var(--_mp-action-size) - 1.25rem) / 2);
         overflow: hidden;
-        border: 0;
         border-radius: 9999px;
         background: var(--_mp-action);
         color: var(--_mp-on-action);
-        font: inherit;
         font-family: var(--mp-font-accent, inherit);
         font-style: normal;
         font-weight: 700;
         white-space: nowrap;
-        text-decoration: none;
-        cursor: pointer;
         transition: padding var(--_mp-change) ease-in-out;
       }
 
@@ -344,7 +370,9 @@
 
       & [data-mp="action"]:is(:hover, :focus-visible, [data-expanded], [aria-current="page"], [aria-current="true"]),
       &:is([data-presence="expanded"], [data-presence="panel"]) [data-mp="action"] {
-        padding-inline-end: calc(var(--_mp-action-size) / 2.5);
+        & [data-mp="action-body"] {
+          padding-inline-end: calc(var(--_mp-action-size) / 2.5);
+        }
 
         & [data-mp="label"] {
           max-inline-size: 20rem;
@@ -409,7 +437,8 @@
         }
 
         & [data-mp="label"],
-        & [data-mp="action"],
+        & [data-mp="action-body"],
+        & [data-mp="message"],
         & [data-mp="panel"] {
           transition: none;
         }
@@ -419,7 +448,7 @@
     /* Forced colours (e.g. Windows High Contrast): keep the shapes visible */
     @media (forced-colors: active) {
       [data-mp="pill"]:not([data-unstyled]),
-      [data-mp="pill"]:not([data-unstyled]) [data-mp="action"] {
+      [data-mp="pill"]:not([data-unstyled]) [data-mp="action-body"] {
         border: 1px solid CanvasText;
       }
     }

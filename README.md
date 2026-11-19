@@ -27,7 +27,7 @@ On top of it come ready-made **templates** (a notification, a navbar) and a **co
  - [X] Accessible: screen reader announcements, keyboard focus pauses the countdown, focus handling for panels and modals
  - [X] Works in any React 18+ app, including React Server Components (Next.js App Router), with any router
  - [X] Styles you can override without `!important`, design tokens, no fonts loaded behind your back
- - [X] Tiny: the quick start adds about **8.5 kB gzipped** to your app (4.9 kB of JavaScript + 3.6 kB of CSS), checked in CI. Unused parts are tree-shaken.
+ - [X] Tiny: the quick start adds about **7 kB gzipped** to your app (4.9 kB of JavaScript + 2.2 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
  - [X] Written in TypeScript, zero runtime dependencies
 
 ## Installation
@@ -320,8 +320,9 @@ Twelve built-in icons, drawn in `currentColor` and decorative by default (`aria-
 
 ## Styling
 - **Easy to override:** every rule sits in a `magic-pill` cascade layer. Any CSS of yours that isn't in a layer wins, whatever its specificity, with no `!important`.
-- **No collisions:** parts are selected by `data-mp` attributes (`[data-mp="pill"]`, `"icon"`, `"divider"`, `"message"`, `"actions"`, `"action"`, `"action-icon"`, `"label"`, `"panel"`, `"panel-title"`, `"panel-body"`, `"panel-footer"`, `"navbar"`), and states by `data-presence`, `data-placement`, `data-orientation` and `data-variant`. There are no class names of ours to clash with yours.
+- **No collisions:** parts are selected by `data-mp` attributes (`[data-mp="pill"]`, `"icon"`, `"divider"`, `"message"`, `"actions"`, `"action"`, `"action-body"`, `"action-icon"`, `"label"`, `"panel"`, `"panel-title"`, `"panel-body"`, `"panel-footer"`, `"navbar"`), and states by `data-presence`, `data-placement`, `data-orientation` and `data-variant`. There are no class names of ours to clash with yours.
 - **Classes:** every part takes a `className`; templates and `<MagicPill>` take `classNames`.
+- **Global resets are safe:** an action's look lives on its inner `[data-mp="action-body"]`, so app-wide rules such as `a { color: inherit }` or `button { background: none }` don't break it. To restyle an action, target `[data-mp="action-body"]`.
 - **Tailwind CSS v4:** declare the layer order once, before your imports, so utilities win: `@layer theme, base, magic-pill, components, utilities;`.
 - **Your own variants:** `variant="brand"` gives `data-variant="brand"`, so you can write `[data-variant="brand"] { --mp-surface: #4b2bd6; }`.
 

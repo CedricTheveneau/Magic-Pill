@@ -35,7 +35,11 @@ Work towards 9.0.0, the first release with a stable API. It's a breaking release
 
 ### Changed
 - The published JavaScript is readable (not minified) and has no source maps. Your app bundles exactly the same amount of code (your bundler minifies it), and the package is about 40% smaller to install (196 kB unpacked instead of 331 kB in 9.0.0-next.0)
-- Size, measured and checked in CI: the quick start (`MagicPill` + `pill()`) adds about 4.9 kB of gzipped JavaScript and 3.6 kB of gzipped CSS to an app; a hand-written `Pill` with its parts, about 1.4 kB
+- Size, measured and checked in CI: the quick start (`MagicPill` + `pill()`) adds about 4.9 kB of gzipped JavaScript and 2.2 kB of gzipped CSS to an app (both minified, as your bundler does); a hand-written `Pill` with its parts, about 1.4 kB of JavaScript
+
+### Fixed (since 9.0.0-next.0)
+- Global resets on links and buttons, such as `a { color: inherit }` or `button { background: none }`, no longer blank out the pill's actions: their look now lives on an inner `[data-mp="action-body"]`
+- In a narrow container, an inline pill wraps its message instead of cutting off its action. While the pill grows, the message still stays on one line
 
 ### Removed
 - The 8.x API: the `pillData` prop and `mode`, the types (`MagicPillType`, `Mode`, `NotificationIcon`, `CTAIcon`, `MagicPillNotification*`, `MagicPillNavbar*`), the 15 handlers (`updateMode` … `handleActiveNavItem`), `Icons`, `CTAIcons`, `getIconComponent` and `defaultPillData`

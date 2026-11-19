@@ -18,15 +18,18 @@ const PillAction = forwardRef<HTMLElement, PillActionProps>(function PillAction(
     // Without an icon, the label is all there is to show
     "data-expanded": expanded || !hasIcon ? "" : undefined,
   };
+  // The look lives on this inner span, not on the <a>/<button>: global resets
+  // such as `a { color: inherit }` or `button { background: none }` target
+  // those elements and would otherwise win over the stylesheet's layer
   const content = (
-    <>
+    <span data-mp="action-body">
       {hasIcon && (
         <span data-mp="action-icon" aria-hidden="true">
           {icon}
         </span>
       )}
       <span data-mp="label">{label}</span>
-    </>
+    </span>
   );
 
   if (props.href !== undefined) {
