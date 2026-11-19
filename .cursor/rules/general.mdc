@@ -1,14 +1,14 @@
 ---
-description: Cursor Rules for Node.js/TypeScript Connector Project
+description: General coding rules for the Magic Pill npm package
 globs: 
 alwaysApply: true
 ---
-# Cursor Rules for NextJS with TypeScript npm package Project
+# Cursor Rules for the Magic Pill npm package (React + TypeScript)
 
 ## Project Context
-- **Language**: NextJS with TypeScript
+- **Language**: React with TypeScript (works with Next.js and any other React setup)
 - **Project Type**: npm package (component)
-- **Target Directories**: All code generation and modifications occur in the `magic-pill-demo` folder for development. When we'll work on updating the actual npm package, it will happen in `src`
+- **Target Directories**: The npm package lives in `src/` (see `architecture.mdc`). The demo app lives in `magic-pill-demo/` and only consumes the published package
 - **Role**: Senior Lead Tech NextJS, Software Architecture Master, Expert in Best Practices
 - **Guiding Principles**:
   - Clean Code by Robert C. Martin
@@ -33,17 +33,16 @@ alwaysApply: true
 - Example: Separate data fetching, validation, and processing into different units.
 
 ### 3. Modularity and File Structure
-- Each main component has its own folder at the root of the `magic-pill-demo` directory to prevent logic from being mixed between components. All potential children component would be in the same directory of the main one. It is essential to keep each main component isolated within the `magic-pill-demo` folder, similar to a monorepo architecture (e.g., `components/Magic-Pill/magicPill.ts`, `components/Magic-Pill/notification.ts`).
-- Create separate files for distinct components, utilities, or services in the connector folder.
+- Each main component has its own folder in `src/` to prevent logic from being mixed between components. All potential children components, their types and their tests sit in the same folder as the main one (e.g., `src/Pill/Pill.tsx`, `src/Pill/parts.tsx`, `src/Pill/types.ts`, `src/Pill/Pill.test.tsx`).
+- Create separate files for distinct components, utilities, or services.
 - Use a clear naming convention: 
-  - `app/components/Magic-Pill/navbar.ts`
-  - `app/components/Magic-Pill/types/notification.ts`
-  - `app/components/Magic-Pill/utils/magicPill.ts`
+  - components in PascalCase, named after their export: `src/PillNavbar/PillNavbar.tsx`, `src/icons/CheckIcon.tsx`
+  - helpers in camelCase: `src/PillNavbar/matchPath.ts`, `src/utils/url.ts`
 - Favor reusability and maintainability over monolithic files.
 
 ### 4. DRY Principle
 - Eliminate code duplication by extracting reusable functions, constants, or classes.
-- Example: Move repeated state update logic into a shared utility like `app/components/Magic-Pill/utils/stateManagement.ts`.
+- Example: Move a check used by several components into a shared utility, like `isSafeHref()` in `src/utils/url.ts`.
 
 ### 5. Encapsulation and Decoupling
 - Use interfaces or abstract classes to define contracts between components.
@@ -54,22 +53,16 @@ alwaysApply: true
 - Only add comments in English when explaining *why* (not *what*) for complex logic.
 - Example: 
 ```jsx
-// Handles animation management when the mouse hovers Magic Pill to avoid messy UX
-  const handleMouseEnter = () => {
-    setHovering(true);
-    clearExitAnimation();
-  };
+// An inert pill loses focus without always firing blur
+useEffect(() => {
+  if (displayed.presence === "hidden") setFocused(false);
+}, [displayed.presence]);
 ```
 
 ### 7. Type Safety
 - No any or type casting unless unavoidable.
 - Use unknown for untyped data (e.g., API responses), followed by validation or type guards.
 
-### 7. Favor a Step-by-Step Approach
+### 8. Favor a Step-by-Step Approach
 - Always prefer a step-by-step approach when generating or modifying code. This ensures better control over the output and allows for incremental adjustments rather than a full rewrite.
 - Don't hesitate to ask yes/no questions before editing or generating.
-
-### 8. Let the User Know What You Are Doing!
-- When responding to a request, acknowledge that you have considered the general rules stated here by displaying the message:
-"Alright, I have taken note of the general rules!" before your answer.
-
