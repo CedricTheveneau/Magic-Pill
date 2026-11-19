@@ -74,6 +74,7 @@
   "files": [
     "dist",
     "CHANGELOG.md",
+    "MIGRATING.md",
     "LICENSE.md",
     "NOTICE.md"
   ]

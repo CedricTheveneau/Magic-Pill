@@ -1,7 +1,7 @@
 # Changelog
 
 ## [Unreleased]
-Work towards 9.0.0, the first release with a stable API. The 8.x API still works until 9.0.0 removes it.
+Work towards 9.0.0, the first release with a stable API. It's a breaking release: see [MIGRATING.md](./MIGRATING.md) to move from 8.x.
 
 ### Added
 - The pill primitive: `Pill` with its parts `PillIcon`, `PillDivider`, `PillMessage`, `PillActions`, `PillAction`, `PillPanel` and `PillPanelTrigger`, plus the `usePill()` hook to write your own templates
@@ -29,6 +29,9 @@ Work towards 9.0.0, the first release with a stable API. The 8.x API still works
   - every rule sits in a `magic-pill` cascade layer and targets `data-mp` attributes, so your own CSS overrides it without `!important` and no class names collide;
   - it loads no fonts (it uses your page's fonts unless you set `--mp-font-text`/`--mp-font-accent`);
   - it's sized in `rem`, fits phone screens and safe areas, and supports reduced motion and forced colours
+
+- A migration guide from 8.x, [MIGRATING.md](./MIGRATING.md), shipped in the package
+- The README is rewritten for v9: quick start, notifications, the host and its base layer, the primitive, React Server Components, styling and tokens, accessibility and security
 
 ### Removed
 - The 8.x API: the `pillData` prop and `mode`, the types (`MagicPillType`, `Mode`, `NotificationIcon`, `CTAIcon`, `MagicPillNotification*`, `MagicPillNavbar*`), the 15 handlers (`updateMode` … `handleActiveNavItem`), `Icons`, `CTAIcons`, `getIconComponent` and `defaultPillData`

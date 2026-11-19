@@ -1,9 +1,7 @@
 # Magic Pill
 Let it empower you.
 
-## Disclaimer
-Magic Pill 8.x is usable and maintained: it gets bug fixes and security updates.
-Please keep in mind that its API isn't final yet, though. The next major version will rework it (with breaking changes), and the documentation is still being improved.
+> **Status:** Magic Pill 9 is the first version with a **stable, documented API**. While it's in pre-release, install it with `npm install magic-pill@next`. The `latest` tag is still 8.1.0, documented in the [8.1.0 README](https://github.com/CedricTheveneau/Magic-Pill/tree/v8.1.0#readme). Coming from 8.x? Read the [migration guide](./MIGRATING.md).
 
 #### Thank you !!
 Thank you for your patience and to all people who already have shown interest in Magic Pill, it's my very first npm package and I couldn't ask for a better reception of my package after only a few days after its initial release.
@@ -14,295 +12,349 @@ Thank you for your patience and to all people who already have shown interest in
 [![DeepScan grade](https://deepscan.io/api/teams/23515/projects/28307/branches/911491/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=23515&pid=28307&bid=911491)
 [![Known Vulnerabilities](https://snyk.io/test/github/CedricTheveneau/Magic-Pill/badge.svg)](https://snyk.io/test/github/CedricTheveneau/Magic-Pill)
 [![install size](https://packagephobia.com/badge?p=magic-pill@latest)](https://packagephobia.com/result?p=magic-pill@latest)
-[<svg width=20 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 98 96"><path d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z"></path></svg>](https://github.com/CedricTheveneau/Magic-Pill)
-[<svg width=20 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 7.334v8h6.666v1.332H12v-1.332h12v-8zm6.666 6.664H5.334v-4H3.999v4H1.335V8.667h5.331zm4 0v1.336H8.001V8.667h5.334v5.332zm12.001 0h-1.33v-4h-1.336v4h-1.335v-4h-1.33v4h-2.671V8.667h8.002z"></path><path d="M10.665 10H12v2.667h-1.335z"></path></svg>](https://www.npmjs.com/package/magic-pill)
 
 ## Introduction
-Magic Pill is a powerful React component that lets you show contextual information to your users in multiple ways. It can function as a notification system mimicking Apple's Dynamic Island, or as a dynamic navbar for seamless navigation. Built with TypeScript for enhanced type safety and developer experience.
+Magic Pill is **a design primitive, not just a notification library.** At its core is *the pill*: a dark, fully rounded, elevated container with a strong design language, and you can put anything inside it.
+
+On top of it come ready-made **templates** (a notification, a navbar) and a **controller** you can call from anywhere: `pill().notify(...)`. Use one pill as a discreet assistant at the bottom of the page, or several pills together (a sidebar, a navbar, a modal) to build a whole interface.
 
 ## Features
- - [X] Multiple modes: Notification system and Dynamic Navbar
- - [X] Written in TypeScript with comprehensive type definitions
- - [X] Highly customizable React component with strongly typed props
- - [X] Fully customized styling based on CSS variables for easy theme adaptation
- - [X] Works in any React 18+ app: Next.js (Server Components included), Vite, React Router…
- - [X] Zero runtime dependencies: React is the only peer dependency
- - [X] Accessible: announced by screen readers, pauses on hover and keyboard focus, respects reduced motion
- - [X] Lightweight and efficient
+ - [X] Two lines to get started: mount `<MagicPill />`, then call `pill().notify(...)` from anywhere, even outside React
+ - [X] A notification queue on top of a **base layer** (e.g. a navbar): notifications take the pill over, then hand it back
+ - [X] Several named pills on one page, at any edge or corner, inline, or as a modal
+ - [X] Anything inside: messages, icons and panels are React content; build your own templates from the same parts
+ - [X] Shape-changing animations (circle ↔ pill ↔ panel) that respect reduced motion
+ - [X] Accessible: screen reader announcements, keyboard focus pauses the countdown, focus handling for panels and modals
+ - [X] Works in any React 18+ app, including React Server Components (Next.js App Router), with any router
+ - [X] Styles you can override without `!important`, design tokens, no fonts loaded behind your back
+ - [X] Written in TypeScript, zero runtime dependencies
 
 ## Installation
-### npm
-Magic Pill is available on npm, simply use the following command and you're ready to go!
 ```bash
-npm install magic-pill
+npm install magic-pill@next
 ```
 
 ### Requirements
 - **React and React DOM 18 or later** (peer dependencies).
-- **Next.js is optional**: Magic Pill works in any React app.
+- **Next.js is optional**: Magic Pill works in any React app (Vite, React Router, Remix…).
 - **TypeScript is optional**: the type definitions ship with the package.
+- Browsers from 2023 onwards (the stylesheet uses CSS nesting and cascade layers).
 
-> **No CDN build:** Magic Pill is published for bundlers (Next.js, Vite, webpack…) as ES modules and CommonJS. It has no UMD build, so it can't be loaded with a plain `<script>` tag.
+> **No CDN build:** Magic Pill is published for bundlers (Next.js, Vite, webpack…) as ES modules and CommonJS. It has no UMD build, so it can't be loaded with a plain `<script>` tag yet.
 
-## How to use it?
-### Import styles
-For it to work properly, you need to import styles in your app (we recommend importing it into your root layout or `App` file).
-```typescript
-// Import in your Next.js or React project
-import "magic-pill/dist/magicpill.css";
-// or, equivalently
-import "magic-pill/magicpill.css";
-```
+## Quick start
+**1. Import the stylesheet and mount the pill once**, e.g. in your root layout:
+```tsx
+// app/layout.tsx (Next.js App Router: this can stay a Server Component)
+import "magic-pill/styles.css";
+import { MagicPill } from "magic-pill";
 
-> **Fonts:** the stylesheet loads its fonts (Lexend and Overlock) from Google Fonts with a CSS `@import`. Next.js 16's default bundler, Turbopack, drops that `@import`. If the pill shows a generic font, load the fonts yourself (for example with `next/font`) or point `--mp__font-text` and `--mp__font-accent` to your own fonts (see [Customization](#customization)).
-
-### Usage with React/Next.js
-Magic Pill is designed to be used with a Context to manage its state globally. Here's how to set it up:
-
-> `MagicPill` is a Client Component, so you can also render it directly from a Server Component. The Context below is what lets any part of your app change its content.
-
-1. First, create a context for Magic Pill (e.g., in `app/contexts/magicPillContext.tsx`):
-```typescript
-"use client"
-import React, { createContext, useContext, useState } from "react";
-import { MagicPillType, Mode, NotificationIcon, CTAIcon, MagicPillNavbarItem } from "magic-pill";
-import { updateMode, updateNotificationIcon, updateNotificationMessage, updateCTAIcon, updateCTALabel, updateCTALink, updateInfoTitle, updateInfoContent, updateInfoCloseLabel, updateNavItemLabel, updateNavItemLink, updateNavItemIcon, addNavItem, deleteNavItem } from "magic-pill";
-
-const defaultPillData: MagicPillType = {
-  mode: "navbar",
-  navbar: {
-    navItems: [
-      {
-        icon: "arrow",
-        label: "mp-test",
-        link: "/mp-test"
-      },
-      {
-        icon: "cross",
-        label: "demo",
-        link: "/demo"
-      }
-    ]
-  }
-};
-
-interface MagicPillContextType {
-  pillData: MagicPillType;
-  setPillData: (data: MagicPillType) => void;
-  // Direct data manipulation methods
-  updateMode: (mode: Mode) => void;
-  updateNotificationIcon: (icon: NotificationIcon) => void;
-  updateNotificationMessage: (message: string) => void;
-  updateCTAIcon: (icon: CTAIcon) => void;
-  updateCTALabel: (label: string) => void;
-  updateCTALink: (link: string) => void;
-  updateInfoTitle: (title: string) => void;
-  updateInfoContent: (content: string) => void;
-  updateInfoCloseLabel: (closeLabel: string) => void;
-  updateNavItemLabel: (label: string, index: number) => void;
-  updateNavItemLink: (link: string, index: number) => void;
-  updateNavItemIcon: (icon: CTAIcon, index: number) => void;
-  addNavItem: (navItem: MagicPillNavbarItem) => void;
-  deleteNavItem: (index: number) => void;
-}
-
-const MagicPillContext = createContext<MagicPillContextType>({
-  pillData: defaultPillData,
-  setPillData: () => {},
-  updateMode: () => {},
-  updateNotificationIcon: () => {},
-  updateNotificationMessage: () => {},
-  updateCTAIcon: () => {},
-  updateCTALabel: () => {},
-  updateCTALink: () => {},
-  updateInfoTitle: () => {},
-  updateInfoContent: () => {},
-  updateInfoCloseLabel: () => {},
-  updateNavItemLabel: () => {},
-  updateNavItemLink: () => {},
-  updateNavItemIcon: () => {},
-  addNavItem: () => {},
-  deleteNavItem: () => {},
-});
-
-export const useMagicPill = () => useContext(MagicPillContext);
-
-export const MagicPillProvider = ({ 
-  children 
-}: { 
-  children: React.ReactNode 
-}) => {
-  const [pillData, setPillData] = useState<MagicPillType>(defaultPillData);
-
-  // Create wrapper functions that use the handlers with the local setPillData
-  const contextValue: MagicPillContextType = {
-    pillData,
-    setPillData,
-    updateMode: (mode: Mode) => updateMode(mode, setPillData),
-    updateNotificationIcon: (icon: NotificationIcon) => updateNotificationIcon(icon, setPillData),
-    updateNotificationMessage: (message: string) => updateNotificationMessage(message, setPillData),
-    updateCTAIcon: (icon: CTAIcon) => updateCTAIcon(icon, setPillData),
-    updateCTALabel: (label: string) => updateCTALabel(label, setPillData),
-    updateCTALink: (link: string) => updateCTALink(link, setPillData),
-    updateInfoTitle: (title: string) => updateInfoTitle(title, setPillData),
-    updateInfoContent: (content: string) => updateInfoContent(content, setPillData),
-    updateInfoCloseLabel: (closeLabel: string) => updateInfoCloseLabel(closeLabel, setPillData),
-    updateNavItemLabel: (label: string, index: number) => updateNavItemLabel(label, index, setPillData),
-    updateNavItemLink: (link: string, index: number) => updateNavItemLink(link, index, setPillData),
-    updateNavItemIcon: (icon: CTAIcon, index: number) => updateNavItemIcon(icon, index, setPillData),
-    addNavItem: (navItem: MagicPillNavbarItem) => addNavItem(navItem, setPillData),
-    deleteNavItem: (index: number) => deleteNavItem(index, setPillData),
-  };
-
-  return (
-    <MagicPillContext.Provider value={contextValue}>
-      {children}
-    </MagicPillContext.Provider>
-  );
-};
-```
-
-2. Wrap your app with the provider (in `app/layout.tsx`):
-```typescript
-import "magic-pill/dist/magicpill.css";
-import { MagicPillProvider } from "./contexts/magicPillContext";
-import { MagicPillInitializer } from "./contexts/magicPillInitializer";
-
-export default function RootLayout({ children }) {
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <MagicPillProvider>
-          {children}
-          <MagicPillInitializer />
-        </MagicPillProvider>
+        {children}
+        <MagicPill />
       </body>
     </html>
   );
 }
 ```
 
-3. Create an initializer file for Magic Pill (e.g., in `app/contexts/magicPillInitializer.tsx`):
+**2. Notify from anywhere** in your client code: an event handler, a store, a fetch callback…
 ```tsx
-"use client"
-import { MagicPill } from "magic-pill";
-import { useMagicPill } from "./magicPillContext";
+import { pill, CheckIcon } from "magic-pill";
 
-export const MagicPillInitializer = () => {
-  const { pillData } = useMagicPill();
-
-  return (
-   <MagicPill pillData={pillData}/>
-  )
-};
+pill().notify({ icon: <CheckIcon />, message: "Saved!", variant: "success" });
 ```
-> **🎉 | At this point, if you launch you app, Magic Pill should appear in your view**
 
-4. Use Magic Pill anywhere in your app (e.g., in `app/demo/page.tsx`):
-```typescript
-"use client"
-import { useEffect } from "react";
-import { useMagicPill } from "../contexts/magicPillContext";
+That's it. The pill pops in at the bottom of the page, stays for 5 seconds, then goes away.
 
-export default function MPTest() {
-  const { setPillData } = useMagicPill();
+### Fonts
+Magic Pill loads no fonts: it uses your page's fonts. For the signature look, an italic serif for messages (**Overlock**) and a bold sans for action labels (**Lexend**), point the two font tokens at them.
 
-  useEffect(() => {
-    setPillData({ mode: "notification", notification: { icon: "info", message: "Hello, world!" } });
-  }, []);
+With `next/font`, the `variable` option sets the tokens directly:
+```tsx
+// app/layout.tsx
+import { Lexend, Overlock } from "next/font/google";
 
+const overlock = Overlock({ subsets: ["latin"], style: "italic", weight: ["400", "700", "900"], variable: "--mp-font-text" });
+const lexend = Lexend({ subsets: ["latin"], weight: "700", variable: "--mp-font-accent" });
+
+// <html lang="en" className={`${overlock.variable} ${lexend.variable}`}>
+```
+
+Without Next.js, load the fonts however you like (self-hosted is best for privacy), then set the tokens:
+```css
+:root {
+  --mp-font-text: "Overlock", serif;
+  --mp-font-accent: "Lexend", sans-serif;
+}
+```
+
+## Notifications
+```tsx
+import { pill, CheckIcon, UndoIcon } from "magic-pill";
+
+const id = pill().notify({
+  variant: "success",
+  icon: <CheckIcon />,
+  message: "Item successfully removed from cart!",
+  action: { icon: <UndoIcon />, label: "Undo", onClick: restoreItem },
+  duration: 8000,
+});
+```
+
+| Option | Type | Notes |
+|---|---|---|
+| `message` | `ReactNode` | Required (unless you use `render`). Any content, e.g. `<>Total: <strong>768.99$</strong></>`. Never parsed as HTML. |
+| `icon` | `ReactNode` | The leading icon, followed by the divider. |
+| `action` | `{ icon?, label, onClick }` or `{ icon?, label, href }` | The round button. Its label shows on hover and focus. Clicking it dismisses the notification; call `event.preventDefault()` in `onClick` to keep it open. |
+| `panel` | `{ title?, content, trigger?, closeLabel? }` | A "Learn more" action that grows the pill into a panel. `trigger` defaults to `{ icon: <PlusIcon />, label: "Learn more" }`, `closeLabel` to `"Close"`. |
+| `variant` | `"neutral"` · `"success"` · `"danger"` · any string | Defaults to the host's variant. |
+| `duration` | `number` (ms) | Defaults to the host's (5000). `Infinity` keeps it until dismissed. |
+| `id` | `string` | Notifying again with the same id updates the notification in place. |
+| `announce` | `string` · `false` | What screen readers hear. Defaults to the message's text. |
+| `onDismiss` | `(id, reason) => void` | `reason` is `"timeout"`, `"action"`, `"dismissed"` or `"cleared"`. |
+| `render` | `({ id, dismiss }) => ReactNode` | Your own content instead of the template, with the same queue, timing and animation. See [Your own templates](#your-own-templates). |
+
+**How it behaves:**
+- Notifications queue up and show one at a time, first in, first out.
+- The countdown starts once the pill is fully shown. It pauses while the pill is hovered, holds keyboard focus or has its panel open, or while the browser tab is hidden, and it starts again from the full duration afterwards.
+- Calls made before `<MagicPill>` mounts are kept, and shown once it mounts.
+- `pill()` is for client code. Called on the server, it does nothing (it warns in development), so visitors never see each other's notifications.
+
+**The controller:**
+```ts
+const id = pill().notify({ message: "Saving…", duration: Infinity });
+pill().update(id, { message: "Saved", variant: "success", duration: 3000 }); // in place, countdown restarts
+pill().dismiss(id); // or pill().dismiss() for the visible one
+pill().clear();     // empty the queue
+```
+
+**More examples**, the templates from the design:
+```tsx
+// A question: the action is an answer
+pill().notify({ icon: <HelpIcon />, message: "Do you need some help?", action: { icon: <CheckIcon />, label: "Yes", onClick: openHelp } });
+
+// Live data, and a link (rendered with your router's link component, see below)
+pill().notify({
+  icon: <InfoIcon />,
+  message: <>Your current cart total is: <strong>{total}$</strong></>,
+  action: { icon: <CheckIcon />, label: "Checkout", href: "/checkout" },
+});
+
+// A promotion that stays open while it works
+pill().notify({
+  icon: <CouponIcon />,
+  message: "Interested in 10% off your next purchase?",
+  action: {
+    icon: <ArrowIcon />,
+    label: "Activate the promo code",
+    onClick: (event) => {
+      event.preventDefault();
+      activatePromo().then(() => pill().dismiss());
+    },
+  },
+});
+
+// An expandable panel
+pill().notify({
+  icon: <InfoIcon />,
+  message: "Discover the powers Magic Pill gives you!",
+  panel: { title: "Discover the powers Magic Pill gives you!", content: <p>Anything can go in a panel.</p> },
+  duration: Infinity,
+});
+```
+
+## The host: `<MagicPill>`
+`<MagicPill>` is a pill plus its queue. It takes every [`<Pill>` prop](#the-primitive) except `presence`, and adds:
+
+| Prop | Default | Notes |
+|---|---|---|
+| `name` | `"main"` | Which `pill(name)` controls it. Mount one host per name. |
+| `children` | none | The **base layer**: shown whenever no notification is. Without it, the pill hides between notifications. |
+| `duration` | `5000` | Default display time for notifications. |
+| `idle` | `"hidden"` | With no base layer and nothing queued: `"hidden"`, or `"rest"` for a small resting circle showing `idleIcon`. |
+| `idleIcon` | none | The icon of the resting circle. |
+| `linkComponent` | `<a>` | Renders notification actions that have an `href`, e.g. Next's `Link`. |
+| `classNames` | none | Classes for the notification's parts: `icon`, `divider`, `message`, `actions`, `action`, `panel`. |
+| `placement` | `"bottom"` | See [placements](#the-primitive). |
+
+### A navbar as the base layer
+Notifications take the pill over, then it goes back to the navbar. The navbar works with any router: give it the current `pathname` and your link component.
+
+```tsx
+// app/app-pill.tsx
+"use client";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { MagicPill, PillNavbar, BoxIcon, DocumentIcon, MailIcon } from "magic-pill";
+
+const items = [
+  { href: "/", label: "Home", icon: <BoxIcon /> },
+  { href: "/blog", label: "Blog", icon: <DocumentIcon /> },
+  { href: "/contact", label: "Contact", icon: <MailIcon /> },
+];
+
+export function AppPill() {
   return (
-   <h1>Magic Pill Demo Page</h1>
+    <MagicPill linkComponent={Link}>
+      <PillNavbar items={items} pathname={usePathname()} linkComponent={Link} />
+    </MagicPill>
   );
 }
 ```
-> **It really is as simple as that, to use Magic Pill, once the setup is done**
 
-A notification appears as a small pill, expands after 2.5 s, and hides itself 5 s later (it stays open while hovered or focused). Setting a notification with different content shows the pill again.
+- **Matching:** an item is active on its own path and below it, on whole segments: `/blog` is active on `/blog/my-post`, not on `/blogroll`. `/` is only active on `/`. When several items match, the longest `href` wins. Override with `match: "exact"` or `match: (pathname) => boolean`.
+- **The active link** shows its label and gets `aria-current="page"`.
+- **Without `pathname`**, the navbar reads `window.location.pathname` after mounting and on back/forward navigation. That misses client-side navigations, so pass `pathname` when you use a client-side router.
+- **`aria-label`** defaults to `"Main"`.
 
-### Update Magic Pill's content granularly
-Magic Pill, right from the start, has been thought out to be as highly customizable as possible.
-To help you use it in the best way possible, a collection of handlers is part of the package.
+**React Router:** its `Link` takes `to` instead of `href`. Wrap it once:
+```tsx
+import { forwardRef, type AnchorHTMLAttributes } from "react";
+import { Link, useLocation } from "react-router";
+import type { LinkComponent } from "magic-pill";
 
-- `updateMode` - Change Magic Pill's mode between "notification" and "navbar"
-- `updateNotificationIcon` - Change the main notification icon
-- `updateNotificationMessage` - Change the main notification message
-- `updateCTAIcon` - Change the notification's CTA (Call To Action) icon
-- `updateCTALabel` - Change the notification's CTA (Call To Action) label
-- `updateCTALink` - Change the notification's CTA (Call To Action) redirection link
-- `updateInfoTitle` - Change the notification's expanded info title
-- `updateInfoContent` - Change the notification's expanded info main content
-- `updateInfoCloseLabel` - Change the notification's expanded info close button's label
-- `updateNavItemLabel` - Change a navbar item's label
-- `updateNavItemLink` - Change a navbar item's link
-- `updateNavItemIcon` - Change a navbar item's icon
-- `handleActiveNavItem` - Automatically working handler directly used by the navbar to update the active link
-- `addNavItem` - Add an item to the navbar
-- `deleteNavItem` - Delete an item from the navbar
+export const RouterLink: LinkComponent = forwardRef<HTMLAnchorElement, AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }>(
+  function RouterLink({ href, ...props }, ref) {
+    return <Link to={href} {...props} ref={ref} />;
+  },
+);
 
-### ⚠️ Security: `info.content` is raw HTML
-The notification's expanded info content (`notification.info.content`, or `updateInfoContent`) is rendered as **raw HTML**, without any sanitising, so that you can format it.
-
-**Never put user input or any other untrusted text in it** (form values, URL parameters, data from an API or a database that users can write to…). Doing so lets anyone inject scripts into your page (XSS).
-- Only pass HTML that you wrote yourself.
-- If you really need to display external text there, sanitise it first with a dedicated library such as [DOMPurify](https://github.com/cure53/DOMPurify).
-
-The message, the info title and the labels are rendered as plain text, so they're safe. Links (`cta.link`, navbar `link`) go into an `href`: if they can come from users, only allow `http(s)` or relative URLs, because React 18 doesn't block `javascript:` URLs (React 19 does).
-
-A future major version will replace this HTML string with regular React content.
-
-### Available Icons
-#### Notification Icons
-- `"info"` - Information icon
-- `"checkmark"` - Success/confirmation icon
-- `"questionmark"` - Help/question icon
-- `"coupon"` - Coupon/offer icon
-- `""` - No icon
-
-#### CTA (Call to Action) Icons
-- `"arrow"` - Arrow icon
-- `"box"` - Box icon
-- `"checkmark"` - Checkmark icon
-- `"cross"` - Cross/close icon
-- `"info"` - Information icon
-- `"mail"` - Mail/email icon
-- `"plus"` - Plus/add icon
-- `"quotation"` - Quote/speech icon
-- `"tel"` - Phone/telephone icon
-- `"undo"` - Undo/back icon
-- `""` - No icon
-
-### Accessibility
-- Notifications are announced by screen readers (the pill is a polite live region).
-- The auto-hide pauses while the pill is hovered or holds keyboard focus.
-- With `prefers-reduced-motion: reduce`, the animations become short fades.
-- The info toggle exposes `aria-expanded` and `aria-controls`.
-
-### Customization
-Magic Pill is easily customizable through CSS variables. Simply replace the theme colors or fonts by changing the values in the variables set in ":root".
-
-```css
-/* Font import */
-@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&family=Overlock:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap');
-
-/* CSS variables */
-:root {
-  --mp__themeDark: #141414;
-  --mp__themeLight: #F9F9F9;
-  --mp__font-text: "Overlock", sans-serif;
-  --mp__font-accent: "Lexend", sans-serif;
-  --mp__normal: normal;
-  --mp__italic: italic;
-  --mp__medium: 400;
-  --mp__bold: 700;
-  --mp__black: 900;
-  --mp__success: #3F7253;
-  --mp__danger: #FC5D6A;
-  --mp__textSize: 19.4px;
-  --mp__titleSize: 31.42px;
-}
+// <PillNavbar items={items} pathname={useLocation().pathname} linkComponent={RouterLink} />
 ```
+
+### Several pills
+Give each host a name, and target it with `pill(name)`:
+```tsx
+<MagicPill name="sidebar" placement="left">
+  <PillNavbar items={items} pathname={pathname} linkComponent={Link} />
+</MagicPill>
+<MagicPill name="assistant" placement="bottom-end" idle="rest" idleIcon={<HelpIcon />} />
+```
+```ts
+pill("sidebar").notify({ message: "3 new posts" });
+pill("assistant").notify({ icon: <HelpIcon />, message: "Need a hand?", duration: Infinity });
+```
+
+## The primitive
+Everything above is built from `<Pill>` and its parts, and you can use them directly. A `<Pill>` you write yourself isn't connected to `pill()`: you control it with props.
+
+```tsx
+import { Pill, PillActions, PillAction, PhoneIcon, MailIcon, DocumentIcon } from "magic-pill";
+
+// The toolbox from the design: only actions
+<Pill placement="bottom" aria-label="Contact us">
+  <PillActions>
+    <PillAction icon={<PhoneIcon />} label="Call us" href="tel:+33100000000" />
+    <PillAction icon={<MailIcon />} label="Send an email" href="mailto:hello@example.com" />
+    <PillAction icon={<DocumentIcon />} label="Ask for a quotation" href="/quote" linkComponent={Link} />
+  </PillActions>
+</Pill>
+```
+
+| `<Pill>` prop | Values | Default |
+|---|---|---|
+| `placement` | `"inline"` (in the page flow), `"top"`, `"bottom"`, `"left"`, `"right"`, `"top-start"`, `"top-end"`, `"bottom-start"`, `"bottom-end"` (fixed; `start`/`end` follow the text direction), `"overlay"` (a modal `<dialog>`) | `"inline"` |
+| `presence` / `defaultPresence` / `onPresenceChange` | `"hidden"`, `"rest"` (a circle with the icon only), `"compact"`, `"expanded"` (every action label shown), `"panel"` | `"compact"` |
+| `orientation` | `"horizontal"`, `"vertical"` | `"vertical"` for `left`/`right` |
+| `variant` | `"neutral"`, `"success"`, `"danger"`, or any string (see [Styling](#styling)) | `"neutral"` |
+| `unstyled` | `boolean`: keep the behaviour, drop the look | `false` |
+
+Any other prop (`className`, `aria-label`, `ref`…) goes to the element.
+
+**The parts:**
+- `PillIcon`: the leading icon. Decorative unless you give it a `label`.
+- `PillDivider`: the thin line after the icon.
+- `PillMessage`: the message, in the italic serif.
+- `PillActions` and `PillAction`: round buttons. `label` is required: it's the accessible name, and it shows on hover, on focus, with `expanded`, or at the `expanded` level. A `PillAction` is a `<button>` with `onClick`, or a link with `href` (through `linkComponent` if you pass one).
+- `PillPanel` and `PillPanelTrigger`: content shown at the `panel` level, and the action that opens it. The panel takes the focus when it opens, closes on Escape or with its close button, and gives the focus back to the trigger. One panel per pill.
+
+**A modal:** `placement="overlay"` renders a native modal `<dialog>`, which brings a focus trap, Escape and an inert page with it.
+```tsx
+<Pill placement="overlay" variant="danger" presence={open ? "compact" : "hidden"} onPresenceChange={(p) => setOpen(p !== "hidden")}>
+  <PillMessage>Delete this item?</PillMessage>
+  <PillActions>
+    <PillAction icon={<CheckIcon />} label="Delete" expanded onClick={confirmDelete} />
+    <PillAction icon={<CloseIcon />} label="Cancel" onClick={() => setOpen(false)} />
+  </PillActions>
+</Pill>
+```
+
+### Your own templates
+Templates are plain arrangements of the parts, so yours work the same way. `usePill()` gives a part access to its pill (`presence`, `setPresence`, `placement`, `orientation`, `variant`). Inside a `<MagicPill>`, the `render` option puts your arrangement in the queue:
+
+```tsx
+pill().notify({
+  announce: "Incoming call from Alex",
+  duration: Infinity,
+  render: ({ dismiss }) => (
+    <>
+      <PillIcon><PhoneIcon /></PillIcon>
+      <PillDivider />
+      <PillMessage>Alex is calling</PillMessage>
+      <PillActions>
+        <PillAction icon={<CheckIcon />} label="Answer" onClick={() => { answer(); dismiss(); }} />
+        <PillAction icon={<CloseIcon />} label="Decline" onClick={dismiss} />
+      </PillActions>
+    </>
+  ),
+});
+```
+
+### React Server Components
+- The parts, `PillAction`, `PillNotification`, the icons and `pill()` have no `"use client"`. A Server Component can render them (and pass `linkComponent={Link}`) without shipping them to the browser.
+- `Pill`, `MagicPill`, `PillPanel`, `PillPanelTrigger`, `PillNavbar`, `usePill` and `usePillQueue` are Client Components. You can still render them from a Server Component.
+- Call `pill()` from client code: event handlers, effects, client-side stores.
+
+### Headless: `usePillQueue`
+To build your own display on the same store: `const { current, queued } = usePillQueue("main");`.
+
+## Icons
+Twelve built-in icons, drawn in `currentColor` and decorative by default (`aria-hidden`). Any other icon or SVG works too: icons are just React content.
+
+`ArrowIcon` · `BoxIcon` · `CheckIcon` · `CloseIcon` · `CouponIcon` · `DocumentIcon` · `HelpIcon` · `InfoIcon` · `MailIcon` · `PhoneIcon` · `PlusIcon` · `UndoIcon`
+
+## Styling
+- **Easy to override:** every rule sits in a `magic-pill` cascade layer. Any CSS of yours that isn't in a layer wins, whatever its specificity, with no `!important`.
+- **No collisions:** parts are selected by `data-mp` attributes (`[data-mp="pill"]`, `"icon"`, `"divider"`, `"message"`, `"actions"`, `"action"`, `"action-icon"`, `"label"`, `"panel"`, `"panel-title"`, `"panel-body"`, `"panel-footer"`, `"navbar"`), and states by `data-presence`, `data-placement`, `data-orientation` and `data-variant`. There are no class names of ours to clash with yours.
+- **Classes:** every part takes a `className`; templates and `<MagicPill>` take `classNames`.
+- **Tailwind CSS v4:** declare the layer order once, before your imports, so utilities win: `@layer theme, base, magic-pill, components, utilities;`.
+- **Your own variants:** `variant="brand"` gives `data-variant="brand"`, so you can write `[data-variant="brand"] { --mp-surface: #4b2bd6; }`.
+
+**Tokens:** set them on `:root`, on one pill, or anywhere in between.
+
+| Token | Default |
+|---|---|
+| `--mp-surface` / `--mp-on-surface` | `#141414` / `#f9f9f9` |
+| `--mp-action` / `--mp-on-action` | `#f9f9f9` / `#141414` |
+| `--mp-success` / `--mp-danger` | `#3f7253` / `#c2303e` |
+| `--mp-font-text` / `--mp-font-accent` | `inherit` (see [Fonts](#fonts)) |
+| `--mp-text-size` / `--mp-title-size` | fluid, about 1rem / 1.5–2rem |
+| `--mp-padding` / `--mp-gap` / `--mp-action-size` | `0.875rem` / `1rem` / `2.75rem` |
+| `--mp-max-width` / `--mp-message-width` / `--mp-panel-width` | `48rem` / `24rem` / `32rem` |
+| `--mp-radius-panel` / `--mp-shadow` | `2.5rem` / a soft drop shadow |
+| `--mp-offset` / `--mp-z-index` | `1.5rem` from the viewport edges (plus safe areas) / `50` |
+| `--mp-backdrop` | the overlay's backdrop |
+| `--mp-duration-enter` / `--mp-duration-change` / `--mp-duration-exit` | `500ms` / `250ms` / `300ms` |
+
+The pill fits small screens: sizes are in `rem`, fixed pills stay inside the viewport and its safe areas, and long panels scroll.
+
+## Accessibility
+- **Announcements:** each `<MagicPill>` has a polite live region that reads notifications out (or your `announce` text). A hidden pill leaves the accessibility tree.
+- **Time to act:** the countdown pauses on hover and keyboard focus, and while a panel is open.
+- **Panels and modals:** they take and give back the focus, and close on Escape. The overlay is a native modal `<dialog>`.
+- **Accessible names:** every action has one (`label` is required), and icons are hidden from assistive technology.
+- **Motion and contrast:** with `prefers-reduced-motion`, shape changes become short fades. In forced-colours mode, the shapes keep visible outlines.
+
+## Security
+- **No HTML strings:** contents are React nodes and never parsed as HTML, so text from your users can't inject markup.
+- **Safe links:** links only render relative, `http(s):`, `mailto:` and `tel:` URLs. Anything else, such as `javascript:`, renders without a link (with a warning in development). React 18 doesn't block those URLs by itself.
+
+## TypeScript
+Everything is typed. The main types are `NotifyOptions`, `NotifyInput`, `PillController`, `MagicPillProps`, `PillProps`, `PillPresence`, `PillPlacement`, `PillVariant`, `NavItem` and `LinkComponent`.
 
 ## Build your own
 Maybe what I brought to the table wasn't enough but you like the idea behind it, that's why Magic Pill is under [MIT License](https://www.tldrlegal.com/license/mit-license), which means you can pretty much do whatever you want and build upon my own version of Magic Pill to bring it to new heights or just make it your own.
@@ -339,16 +391,16 @@ npm link magic-pill
 ```
 
 ## Troubleshooting / Contact
-Magic Pill is still under development, you'll certainly encounter issues with it.
-You can send me emails anytime at [theveneaucedricpro@gmail.com](mailto:theveneaucedricpro@gmail.com), I'll try my best to help you out.
+Found a bug or something unclear? Please [open an issue](https://github.com/CedricTheveneau/Magic-Pill/issues).
+You can also send me emails anytime at [theveneaucedricpro@gmail.com](mailto:theveneaucedricpro@gmail.com), I'll try my best to help you out.
 
 ## License
 Magic Pill is distributed under the [MIT License](https://www.tldrlegal.com/license/mit-license).
 
 ## What's next?
-| TODO | DOING |
+| Coming next | Done in 9.0 |
 |-----------|-----------|
-| Support of custom svg icons | Animation fixes |
-| Transition between two modes | Responsive version + Proportions rework |
-| Implementation of function triggers on CTAs | Full documentation |
-| | Proper testing |
+| Toolbox and carousel indicator templates | Custom icons (any React content) |
+| Animated morphing between contents | Transitions between the navbar and notifications |
+| More built-in icons | Function triggers on actions (`onClick`) |
+| A documentation site with live examples | Responsive styles, full documentation, tests |
