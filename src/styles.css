@@ -84,8 +84,13 @@
       font-size: var(--mp-text-size, clamp(0.9375rem, 0.875rem + 0.25vw, 1.0625rem));
       line-height: 1.3;
       scale: 1;
+      /* Lets the width animate from its real size (fit-content) to the
+         circle's, where supported; elsewhere max-inline-size does the work */
+      interpolate-size: allow-keywords;
       transition:
         scale var(--_mp-enter) var(--_mp-ease-enter),
+        inline-size var(--_mp-change) ease-in-out,
+        block-size var(--_mp-change) ease-in-out,
         max-inline-size var(--_mp-change) ease-in-out,
         max-block-size var(--_mp-change) ease-in-out,
         border-radius var(--_mp-change) ease-in-out,
@@ -112,11 +117,14 @@
       /* Presence levels */
       &[data-presence="hidden"] {
         scale: 0;
+        inline-size: var(--_mp-rest-size);
         max-inline-size: var(--_mp-rest-size);
         max-block-size: var(--_mp-rest-size);
         /* Shrink to a circle, then scale out, then stop being visible */
         transition:
           scale var(--_mp-exit) ease-in var(--_mp-change),
+          inline-size var(--_mp-change) ease-in-out,
+          block-size var(--_mp-change) ease-in-out,
           max-inline-size var(--_mp-change) ease-in-out,
           max-block-size var(--_mp-change) ease-in-out,
           border-radius var(--_mp-change) ease-in-out,
@@ -127,8 +135,18 @@
 
       /* A circle: both axes clamped, whatever the hidden content would need */
       &[data-presence="rest"] {
+        inline-size: var(--_mp-rest-size);
         max-inline-size: var(--_mp-rest-size);
         max-block-size: var(--_mp-rest-size);
+      }
+
+      /* The content stays while the pill closes over it, then hides */
+      & > :not([data-mp="icon"], [data-mp="panel"]) {
+        transition: visibility 0s;
+      }
+
+      &[data-presence="rest"] > :not([data-mp="icon"], [data-mp="panel"]) {
+        transition: visibility 0s linear var(--_mp-change);
       }
 
       &[data-presence="panel"] {
@@ -217,6 +235,10 @@
         max-block-size: calc(100dvh - 2 * var(--_mp-offset));
       }
 
+      &[data-orientation="vertical"]:is([data-presence="rest"], [data-presence="hidden"]) {
+        block-size: var(--_mp-rest-size);
+      }
+
       /* Parts */
       & [data-mp="icon"] {
         flex: none;
@@ -240,9 +262,12 @@
         block-size: 1px;
       }
 
+      /* Its own width, up to a cap: it doesn't reflow word by word while the
+         pill grows (the pill reveals it instead), and still wraps on phones */
       & [data-mp="message"] {
-        flex: 1 1 auto;
-        min-inline-size: 0;
+        flex: 0 0 auto;
+        inline-size: max-content;
+        max-inline-size: min(var(--mp-message-width, 24rem), 100vw - 14rem);
         font-style: italic;
         text-wrap: balance;
       }
