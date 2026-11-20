@@ -129,6 +129,7 @@ src/
   - Purpose: Type checking only (`npm run typecheck`, tests included); tsdown does the emitting
   - Rules:
     - Stay on TypeScript 6 until TypeScript 7's JS API and the tools that depend on it are ready.
+    - `noUnusedLocals` and `noUnusedParameters` are on: remove unused code rather than silencing the check (prefix a parameter with `_` only when a signature requires it).
 - **vitest.config.mts** / **vitest.setup.ts**
   - Purpose: The test setup (jsdom, cleanup, real timers between tests)
 - **.github/workflows/**
