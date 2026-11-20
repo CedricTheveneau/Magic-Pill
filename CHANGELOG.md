@@ -46,6 +46,7 @@ Work towards 9.0.0, the first release with a stable API. It's a breaking release
 - Long text no longer looks clipped while the pill changes size. When the pill closes, its content fades out first, then the pill shrinks; when it opens, the pill grows first, then the content fades in
 - When the app removes the host's base layer (e.g. `{showNavbar && <PillNavbar … />}`), the pill closes around it into a circle, then scales out, instead of losing its content at once and collapsing into a narrow oval
 - The pill scales from its centre instead of the edge it sits on (see `--mp-scale-origin`)
+- Security: `PillNavbar` matches paths in linear time. Stripping trailing slashes used a regular expression that could take seconds on a crafted URL made of many slashes (ReDoS)
 - On touchscreens, a notification whose panel was opened and closed no longer stays until the next tap elsewhere. The countdown pauses for keyboard focus and for a mouse or pen hovering, not for a tap, and after a tap the panel gives the focus back without showing it as keyboard focus
 
 ### Removed
