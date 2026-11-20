@@ -6,15 +6,24 @@ export interface MatchableItem {
   match?: NavMatch;
 }
 
+const SLASH = 47; // "/"
+
 /** "/blog/?q=1#top" → "/blog": no query, no hash, no trailing slash (except the root). */
 function normalisePath(path: string): string {
   const withoutSuffix = path.split(/[?#]/, 1)[0];
-  return withoutSuffix.length > 1 ? withoutSuffix.replace(/\/+$/, "") || "/" : withoutSuffix;
+  // A loop, not /\/+$/: that regex backtracks quadratically on a long run of
+  // slashes followed by another character, and the path comes from the URL (ReDoS)
+  let end = withoutSuffix.length;
+  while (end > 1 && withoutSuffix.charCodeAt(end - 1) === SLASH) end--;
+  return withoutSuffix.slice(0, end);
 }
 
 function matches(pathname: string, item: MatchableItem): boolean {
-  if (typeof item.match === "function") {
-    return item.match(pathname);
+  // The item's own matcher function (not String.prototype.match: no regular
+  // expression is built from the path)
+  const customMatch = item.match;
+  if (typeof customMatch === "function") {
+    return customMatch(pathname);
   }
   // Only same-site paths can match by themselves; anything else needs a function
   if (!item.href.startsWith("/") || item.href.startsWith("//")) {
