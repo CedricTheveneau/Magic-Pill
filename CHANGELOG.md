@@ -35,13 +35,15 @@ Work towards 9.0.0, the first release with a stable API. It's a breaking release
 
 ### Changed
 - The published JavaScript is readable (not minified) and has no source maps. Your app bundles exactly the same amount of code (your bundler minifies it), and the package is about 40% smaller to install (196 kB unpacked instead of 331 kB in 9.0.0-next.0)
-- Size, measured and checked in CI: the quick start (`MagicPill` + `pill()`) adds about 5 kB of gzipped JavaScript and 2.2 kB of gzipped CSS to an app (both minified, as your bundler does); a hand-written `Pill` with its parts, about 1.4 kB of JavaScript
+- Size, measured and checked in CI: the quick start (`MagicPill` + `pill()`) adds about 5.2 kB of gzipped JavaScript and 2.3 kB of gzipped CSS to an app (both minified, as your bundler does); a hand-written `Pill` with its parts, about 1.4 kB of JavaScript
 
 ### Fixed (since 9.0.0-next.0)
 - Global resets on links and buttons, such as `a { color: inherit }` or `button { background: none }`, no longer blank out the pill's actions: their look now lives on an inner `[data-mp="action-body"]`
 - In a narrow container, an inline pill wraps its message instead of cutting off its action. While the pill grows, the message still stays on one line
 - On touchscreens, a tapped action no longer stays open: labels open on hover only on devices that can really hover. Keyboard focus, an expanded panel and the current page still open them everywhere
-- When a notification takes the pill over (from the navbar, or the next one in the queue), its message no longer wraps one word per line while the pill grows. `<MagicPill>` shows new content closed first, then the pill opens around it. The content also fades in as the pill grows, and out as it closes
+- When a notification takes the pill over (from the navbar, or the next one in the queue), its message no longer wraps one word per line while the pill grows: `<MagicPill>` shows new content closed first, then the pill opens around it
+- Long text no longer looks clipped while the pill changes size. When the pill closes, its content fades out first, then the pill shrinks; when it opens, the pill grows first, then the content fades in
+- On touchscreens, a notification whose panel was opened and closed no longer stays until the next tap elsewhere. The countdown pauses for keyboard focus and for a mouse or pen hovering, not for a tap, and after a tap the panel gives the focus back without showing it as keyboard focus
 
 ### Removed
 - The 8.x API: the `pillData` prop and `mode`, the types (`MagicPillType`, `Mode`, `NotificationIcon`, `CTAIcon`, `MagicPillNotification*`, `MagicPillNavbar*`), the 15 handlers (`updateMode` … `handleActiveNavItem`), `Icons`, `CTAIcons`, `getIconComponent` and `defaultPillData`
