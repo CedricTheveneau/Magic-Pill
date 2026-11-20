@@ -141,6 +141,27 @@ describe("MagicPill", () => {
       expect(screen.getByRole("navigation", { name: "Main" })).toBeTruthy();
     });
 
+    it("keeps the base on screen while it closes, once the app removes it", () => {
+      // Arrange
+      const navbar = () => root().querySelector('[data-mp="navbar"]');
+      const { rerender } = render(
+        <MagicPill>
+          <PillNavbar items={items} pathname="/" />
+        </MagicPill>,
+      );
+
+      // Act
+      rerender(<MagicPill>{false}</MagicPill>);
+
+      // Assert: it closes around the navbar, then drops it once out of sight
+      expect(presence()).toBe("hidden");
+      expect(navbar()).not.toBeNull();
+      advance(FADE + CHANGE + EXIT - 1);
+      expect(navbar()).not.toBeNull();
+      advance(1);
+      expect(navbar()).toBeNull();
+    });
+
     it("lets a notification take the pill over, then returns to the base", () => {
       // Arrange
       render(

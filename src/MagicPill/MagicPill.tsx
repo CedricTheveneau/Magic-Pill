@@ -113,6 +113,10 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
 
   // What the pill should show now. Stable objects, so a re-render isn't a change.
   const hasBase = hasContent(children);
+  // The base layer as last given: when the app removes it, the pill still
+  // shows it while it closes, instead of collapsing around nothing
+  const lastBase = useRef<ReactNode>(children);
+  if (hasBase) lastBase.current = children;
   const target = useMemo<Scene>(
     () => (current ? { kind: "notification", item: current } : hasBase ? BASE : idle === "rest" ? IDLE : NONE),
     [current, hasBase, idle],
@@ -214,7 +218,7 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
   const renderScene = (scene: Scene): ReactNode => {
     switch (scene.kind) {
       case "base":
-        return children;
+        return hasBase ? children : lastBase.current;
       case "idle":
         return <PillIcon>{idleIcon}</PillIcon>;
       case "notification": {
