@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { BASE, IDLE, NONE, parseDuration, planSteps, type Scene, type Timings } from "./choreography";
+import { BASE, IDLE, NONE, batchSteps, parseDuration, planSteps, type Displayed, type Scene, type Timings } from "./choreography";
 
-const timings: Timings = { enter: 500, change: 250, exit: 300, reduced: false };
-const reduced: Timings = { enter: 0, change: 0, exit: 150, reduced: true };
+const timings: Timings = { enter: 500, fade: 150, change: 250, exit: 300, reduced: false };
+const reduced: Timings = { enter: 0, fade: 0, change: 0, exit: 150, reduced: true };
 const note = (id: string): Scene => ({ kind: "notification", item: { id, input: { message: id } } });
 
 // [delay, presence, scene kind or notification id]
@@ -23,14 +23,14 @@ describe("planSteps", () => {
     ]);
   });
 
-  it("swaps content at the circle: collapse, swap after the shape change, grow back", () => {
+  it("swaps content at the circle: fade out, collapse, swap after the shape change, grow back", () => {
     // Act
     const steps = planSteps({ scene: BASE, presence: "compact" }, note("a"), timings);
 
     // Assert
     expect(summary(steps)).toEqual([
       [0, "rest", "base"],
-      [250, "rest", "a"],
+      [400, "rest", "a"],
       [0, "compact", "a"],
     ]);
   });
@@ -42,7 +42,7 @@ describe("planSteps", () => {
     // Assert
     expect(summary(steps)).toEqual([
       [0, "hidden", "a"],
-      [550, "hidden", "none"],
+      [700, "hidden", "none"],
     ]);
   });
 
@@ -53,7 +53,7 @@ describe("planSteps", () => {
     // Assert
     expect(summary(steps)).toEqual([
       [0, "rest", "a"],
-      [250, "rest", "idle"],
+      [400, "rest", "idle"],
     ]);
   });
 
@@ -90,6 +90,66 @@ describe("planSteps", () => {
       [150, "hidden", "b"],
       [0, "compact", "b"],
     ]);
+  });
+});
+
+describe("batchSteps", () => {
+  // [at, [presence, scene kind or notification id] per state]
+  const batches = (current: Displayed, target: Scene, timing: Timings = timings) =>
+    batchSteps(current, planSteps(current, target, timing)).map(({ at, states }) => [
+      at,
+      states.map(({ presence, scene }) => [presence, scene.kind === "notification" ? scene.item.id : scene.kind]),
+    ]);
+
+  it("shows new content closed before the pill grows around it (L21)", () => {
+    // Act
+    const steps = batches({ scene: BASE, presence: "compact" }, note("a"));
+
+    // Assert
+    expect(steps).toEqual([
+      [0, [["rest", "base"]]],
+      [
+        400,
+        [
+          ["rest", "a"],
+          ["compact", "a"],
+        ],
+      ],
+    ]);
+  });
+
+  it("does the same with reduced motion, where the swap happens hidden", () => {
+    // Act
+    const enter = batches({ scene: NONE, presence: "hidden" }, note("a"), reduced);
+
+    // Assert
+    expect(enter).toEqual([
+      [
+        0,
+        [
+          ["hidden", "a"],
+          ["compact", "a"],
+        ],
+      ],
+    ]);
+  });
+
+  it("collapses steps due at the same time when nothing new opens", () => {
+    // Act
+    const enter = batches({ scene: NONE, presence: "hidden" }, note("a"));
+    const before = note("a");
+    const update = batchSteps({ scene: before, presence: "expanded" }, [
+      { delay: 0, presence: "expanded", scene: note("a") },
+    ]);
+
+    // Assert: popping in already shows the content closed, at the circle
+    expect(enter).toEqual([
+      [0, [["rest", "a"]]],
+      [500, [["compact", "a"]]],
+    ]);
+    // Content updated while open: swapped in place, in one render
+    expect(update).toHaveLength(1);
+    expect(update[0].states).toHaveLength(1);
   });
 });
 

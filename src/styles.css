@@ -62,6 +62,8 @@
       --_mp-enter: var(--mp-duration-enter, 500ms);
       --_mp-exit: var(--mp-duration-exit, 300ms);
       --_mp-change: var(--mp-duration-change, 250ms);
+      /* The content fades out before the pill shrinks, and in once it has grown */
+      --_mp-fade: 150ms;
       /* The entry overshoot from the mockups' "pop" */
       --_mp-ease-enter: cubic-bezier(0.34, 1.56, 0.64, 1);
 
@@ -84,6 +86,9 @@
       font-size: var(--mp-text-size, clamp(0.9375rem, 0.875rem + 0.25vw, 1.0625rem));
       line-height: 1.3;
       scale: 1;
+      /* Where the pill pops in from and scales out to: its centre, or e.g.
+         bottom to come out of the edge a bottom pill sits on */
+      transform-origin: var(--mp-scale-origin, center);
       /* Lets the width animate from its real size (fit-content) to the
          circle's, where supported; elsewhere max-inline-size does the work */
       interpolate-size: allow-keywords;
@@ -120,40 +125,63 @@
         inline-size: var(--_mp-rest-size);
         max-inline-size: var(--_mp-rest-size);
         max-block-size: var(--_mp-rest-size);
-        /* Shrink to a circle, then scale out, then stop being visible */
+        /* Fade the content out, shrink to a circle, scale out, then stop being visible */
         transition:
-          scale var(--_mp-exit) ease-in var(--_mp-change),
-          inline-size var(--_mp-change) ease-in-out,
-          block-size var(--_mp-change) ease-in-out,
-          max-inline-size var(--_mp-change) ease-in-out,
-          max-block-size var(--_mp-change) ease-in-out,
-          border-radius var(--_mp-change) ease-in-out,
-          padding var(--_mp-change) ease-in-out,
-          background-color var(--_mp-change) ease-in-out,
-          visibility 0s linear calc(var(--_mp-change) + var(--_mp-exit));
+          scale var(--_mp-exit) ease-in calc(var(--_mp-fade) + var(--_mp-change)),
+          inline-size var(--_mp-change) ease-in-out var(--_mp-fade),
+          block-size var(--_mp-change) ease-in-out var(--_mp-fade),
+          max-inline-size var(--_mp-change) ease-in-out var(--_mp-fade),
+          max-block-size var(--_mp-change) ease-in-out var(--_mp-fade),
+          border-radius var(--_mp-change) ease-in-out var(--_mp-fade),
+          padding var(--_mp-change) ease-in-out var(--_mp-fade),
+          background-color var(--_mp-change) ease-in-out var(--_mp-fade),
+          visibility 0s linear calc(var(--_mp-fade) + var(--_mp-change) + var(--_mp-exit));
+        /* An open horizontal pill has no height cap (none): without this, the
+           circle's cap would clip the content at once, while it still fades */
+        transition-behavior: allow-discrete;
       }
 
-      /* A circle: both axes clamped, whatever the hidden content would need */
+      /* A circle: both axes clamped, whatever the hidden content would need.
+         It shrinks once the content has faded out */
       &[data-presence="rest"] {
         inline-size: var(--_mp-rest-size);
         max-inline-size: var(--_mp-rest-size);
         max-block-size: var(--_mp-rest-size);
+        transition:
+          scale var(--_mp-enter) var(--_mp-ease-enter),
+          inline-size var(--_mp-change) ease-in-out var(--_mp-fade),
+          block-size var(--_mp-change) ease-in-out var(--_mp-fade),
+          max-inline-size var(--_mp-change) ease-in-out var(--_mp-fade),
+          max-block-size var(--_mp-change) ease-in-out var(--_mp-fade),
+          border-radius var(--_mp-change) ease-in-out var(--_mp-fade),
+          padding var(--_mp-change) ease-in-out var(--_mp-fade),
+          background-color var(--_mp-change) ease-in-out var(--_mp-fade),
+          visibility 0s;
+        transition-behavior: allow-discrete;
       }
 
-      /* The content stays while the pill closes over it, then hides. The
-         message unwraps at once when the pill shrinks, and may wrap again
-         only once the pill has grown (a discrete transition, where supported) */
+      /* The content is never seen while the pill changes size, so long text
+         never overflows or reflows word by word. Closing: it fades out as it
+         is, then the message unwraps (out of sight) and the pill shrinks over
+         it. Opening: the pill grows with the message on one line, then it may
+         wrap and the content fades in (discrete transitions, where
+         supported). <MagicPill> renders new content closed first, so it opens
+         the same way (L21) */
       & > :not([data-mp="icon"], [data-mp="panel"]) {
         transition:
+          opacity var(--_mp-fade) ease-out var(--_mp-change),
           visibility 0s,
           white-space 0s linear var(--_mp-change);
         transition-behavior: allow-discrete;
       }
 
       &:is([data-presence="rest"], [data-presence="hidden"]) > :not([data-mp="icon"], [data-mp="panel"]) {
+        opacity: 0;
         transition:
-          visibility 0s linear var(--_mp-change),
-          white-space 0s;
+          opacity var(--_mp-fade) ease-in,
+          visibility 0s linear calc(var(--_mp-fade) + var(--_mp-change)),
+          white-space 0s linear var(--_mp-fade);
+        transition-behavior: allow-discrete;
       }
 
       &:is([data-presence="rest"], [data-presence="hidden"]) > [data-mp="message"] {
@@ -182,12 +210,10 @@
 
       &[data-placement^="top"] {
         inset-block-start: calc(var(--_mp-offset) + env(safe-area-inset-top, 0px));
-        transform-origin: top;
       }
 
       &[data-placement^="bottom"] {
         inset-block-end: calc(var(--_mp-offset) + env(safe-area-inset-bottom, 0px));
-        transform-origin: bottom;
       }
 
       /* Centred with auto margins, not left: 50% + translate, which would
@@ -215,12 +241,10 @@
 
       &[data-placement="left"] {
         left: calc(var(--_mp-offset) + env(safe-area-inset-left, 0px));
-        transform-origin: left;
       }
 
       &[data-placement="right"] {
         right: calc(var(--_mp-offset) + env(safe-area-inset-right, 0px));
-        transform-origin: right;
       }
 
       &[data-placement="overlay"] {
@@ -368,7 +392,7 @@
           margin var(--_mp-change) ease-in-out;
       }
 
-      & [data-mp="action"]:is(:hover, :focus-visible, [data-expanded], [aria-current="page"], [aria-current="true"]),
+      & [data-mp="action"]:is(:focus-visible, [data-expanded], [aria-current="page"], [aria-current="true"]),
       &:is([data-presence="expanded"], [data-presence="panel"]) [data-mp="action"] {
         & [data-mp="action-body"] {
           padding-inline-end: calc(var(--_mp-action-size) / 2.5);
@@ -381,6 +405,25 @@
 
         & [data-mp="action-icon"] + [data-mp="label"] {
           margin-inline-start: 0.5rem;
+        }
+      }
+
+      /* The same on hover, only where the device really hovers: a tap on a
+         touchscreen leaves a "sticky" hover behind until the next tap (L20) */
+      @media (hover: hover) {
+        & [data-mp="action"]:hover {
+          & [data-mp="action-body"] {
+            padding-inline-end: calc(var(--_mp-action-size) / 2.5);
+          }
+
+          & [data-mp="label"] {
+            max-inline-size: 20rem;
+            opacity: 1;
+          }
+
+          & [data-mp="action-icon"] + [data-mp="label"] {
+            margin-inline-start: 0.5rem;
+          }
         }
       }
 
@@ -431,6 +474,24 @@
         &[data-presence="hidden"] {
           scale: 1;
           opacity: 0;
+          transition:
+            opacity 150ms linear,
+            visibility 0s linear 150ms;
+        }
+
+        &[data-presence="rest"] {
+          transition:
+            opacity 150ms linear,
+            visibility 0s;
+        }
+
+        /* Nothing resizes, so the content doesn't wait: it fades with the
+           pill, and the message unwraps at once */
+        &:not([data-presence="rest"], [data-presence="hidden"]) > :not([data-mp="icon"], [data-mp="panel"]) {
+          transition: opacity 150ms linear;
+        }
+
+        &:is([data-presence="rest"], [data-presence="hidden"]) > :not([data-mp="icon"], [data-mp="panel"]) {
           transition:
             opacity 150ms linear,
             visibility 0s linear 150ms;

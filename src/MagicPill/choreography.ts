@@ -21,6 +21,8 @@ export interface Displayed {
 export interface Timings {
   /** hidden → rest: the pop */
   enter: number;
+  /** The content fading out before the pill shrinks (and in once it has grown) */
+  fade: number;
   /** rest ↔ compact: the shape change */
   change: number;
   /** rest → hidden: the scale out */
@@ -45,7 +47,7 @@ const settledPresence = (scene: Scene): PillPresence =>
 
 /**
  * The steps from what's displayed to the target scene:
- * - new content: collapse to the circle, swap the content there, grow back;
+ * - new content: fade it out, collapse to the circle, swap the content there, grow back;
  * - nothing left to show: hide (the stylesheet shrinks, then scales out), then drop the content;
  * - from hidden: pop in as a circle, then grow into the pill.
  * Open levels the user chose (expanded, panel) are kept while the scene stays the same.
@@ -63,7 +65,7 @@ export function planSteps(current: Displayed, target: Scene, timings: Timings): 
     if (target.kind === "none") {
       if (presence !== "hidden") go(0, "hidden");
       // Keep the old content on screen until it's out of sight
-      go(timings.reduced ? timings.exit : timings.change + timings.exit, "hidden", target);
+      go(timings.reduced ? timings.exit : timings.fade + timings.change + timings.exit, "hidden", target);
       return steps;
     }
     if (isOpen(presence)) {
@@ -72,7 +74,7 @@ export function planSteps(current: Displayed, target: Scene, timings: Timings): 
         go(timings.exit, "hidden", target);
       } else {
         go(0, "rest");
-        go(timings.change, "rest", target);
+        go(timings.fade + timings.change, "rest", target);
       }
     } else {
       go(0, presence, target);
@@ -96,6 +98,46 @@ export function planSteps(current: Displayed, target: Scene, timings: Timings): 
   return steps;
 }
 
+/** States to apply at `at` ms: the first at once, each next one a render later. */
+export interface Batch {
+  at: number;
+  states: Displayed[];
+}
+
+/**
+ * Groups the steps by the time they're due. Steps due at the same time
+ * collapse into the last one, except new content swapped in while the pill
+ * is closed: it's shown closed first, so the stylesheet can transition it
+ * open (otherwise it appears at the circle's width and wraps word by word).
+ */
+export function batchSteps(current: Displayed, steps: readonly Step[]): Batch[] {
+  const batches: Batch[] = [];
+  let at = 0;
+  let scene = current.scene;
+  // The batch's last state brings content that hasn't been shown closed yet
+  let unshown = false;
+  for (const { delay, scene: nextScene, presence } of steps) {
+    at += delay;
+    const state: Displayed = { scene: nextScene, presence };
+    const swapped = nextScene !== scene;
+    scene = nextScene;
+    const batch = batches[batches.length - 1];
+    if (batch && batch.at === at) {
+      if (unshown && isOpen(presence)) {
+        batch.states.push(state);
+        unshown = false;
+      } else {
+        batch.states[batch.states.length - 1] = state;
+        unshown = (unshown || swapped) && !isOpen(presence);
+      }
+    } else {
+      batches.push({ at, states: [state] });
+      unshown = swapped && !isOpen(presence);
+    }
+  }
+  return batches;
+}
+
 /** "500ms" or "0.5s" → 500; anything else → the fallback. */
 export function parseDuration(value: string, fallback: number): number {
   const match = /^\s*([\d.]+)(ms|s)\s*$/.exec(value);
@@ -113,6 +155,12 @@ export function readTimings(element: HTMLElement | null): Timings {
     typeof window.matchMedia === "function" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   return reduced
-    ? { enter: 0, change: 0, exit: 150, reduced }
-    : { enter: read("--_mp-enter", 500), change: read("--_mp-change", 250), exit: read("--_mp-exit", 300), reduced };
+    ? { enter: 0, fade: 0, change: 0, exit: 150, reduced }
+    : {
+        enter: read("--_mp-enter", 500),
+        fade: read("--_mp-fade", 150),
+        change: read("--_mp-change", 250),
+        exit: read("--_mp-exit", 300),
+        reduced,
+      };
 }

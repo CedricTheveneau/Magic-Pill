@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import Pill from "./Pill";
 import { PillActions, PillMessage } from "./parts";
 import { PillPanel, PillPanelTrigger } from "./PillPanel";
 import type { PillPresence } from "./types";
+import { resetInputModality } from "../utils/inputModality";
 
 const ExpandablePill = ({ onPresenceChange }: { onPresenceChange?: (presence: PillPresence) => void }) => (
   <Pill onPresenceChange={onPresenceChange}>
@@ -23,6 +24,10 @@ const pill = () => document.querySelector<HTMLElement>('[data-mp="pill"]')!;
 const panel = () => document.querySelector<HTMLElement>('[data-mp="panel"]')!;
 
 describe("PillPanel and PillPanelTrigger", () => {
+  beforeEach(() => {
+    resetInputModality();
+  });
+
   it("start closed, with the trigger pointing at the panel (Y4)", () => {
     // Act
     render(<ExpandablePill />);
@@ -67,6 +72,41 @@ describe("PillPanel and PillPanelTrigger", () => {
     expect(pill().dataset.presence).toBe("compact");
     expect(panel().hasAttribute("data-open")).toBe(false);
     expect(document.activeElement).toBe(trigger);
+  });
+
+  it("give the focus back as non-keyboard focus after a tap (L22)", () => {
+    // Arrange
+    render(<ExpandablePill />);
+    const trigger = screen.getByRole("button", { name: "Learn more" });
+    fireEvent.click(trigger);
+    const close = screen.getByRole("button", { name: "Close" });
+    const focus = vi.spyOn(trigger, "focus");
+
+    // Act
+    fireEvent.pointerDown(close);
+    close.focus();
+    fireEvent.click(close);
+
+    // Assert
+    expect(focus).toHaveBeenCalledExactlyOnceWith({ focusVisible: false });
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it("give the focus back as keyboard focus after a key press", () => {
+    // Arrange
+    render(<ExpandablePill />);
+    const trigger = screen.getByRole("button", { name: "Learn more" });
+    fireEvent.click(trigger);
+    const close = screen.getByRole("button", { name: "Close" });
+    const focus = vi.spyOn(trigger, "focus");
+
+    // Act
+    fireEvent.keyDown(close, { key: "Enter" });
+    close.focus();
+    fireEvent.click(close);
+
+    // Assert
+    expect(focus).toHaveBeenCalledExactlyOnceWith(undefined);
   });
 
   it("close on Escape and give the focus back", () => {

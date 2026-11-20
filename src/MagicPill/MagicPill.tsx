@@ -16,12 +16,14 @@ import { PillIcon } from "../Pill/parts";
 import type { LinkComponent, PillPresence, PillProps } from "../Pill/types";
 import { NotificationContent, type PillNotificationClassNames } from "../PillNotification/PillNotification";
 import { getStore, type QueuedNotification } from "../store/store";
+import { getInputModality, trackInputModality } from "../utils/inputModality";
 import { usePillQueue } from "../store/usePillQueue";
 import { mergeRefs } from "../utils/react";
 import {
   BASE,
   IDLE,
   NONE,
+  batchSteps,
   isOpen,
   planSteps,
   readTimings,
@@ -93,8 +95,8 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
     classNames,
     placement = "bottom",
     variant,
-    onMouseEnter,
-    onMouseLeave,
+    onPointerEnter,
+    onPointerLeave,
     onFocus,
     onBlur,
     ...rest
@@ -107,9 +109,14 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
   const ref = useMemo(() => mergeRefs(rootRef, forwardedRef), [forwardedRef]);
 
   useEffect(() => store.registerHost(), [store]);
+  useEffect(trackInputModality, []);
 
   // What the pill should show now. Stable objects, so a re-render isn't a change.
   const hasBase = hasContent(children);
+  // The base layer as last given: when the app removes it, the pill still
+  // shows it while it closes, instead of collapsing around nothing
+  const lastBase = useRef<ReactNode>(children);
+  if (hasBase) lastBase.current = children;
   const target = useMemo<Scene>(
     () => (current ? { kind: "notification", item: current } : hasBase ? BASE : idle === "rest" ? IDLE : NONE),
     [current, hasBase, idle],
@@ -122,27 +129,40 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
   }));
   const displayedRef = useRef(displayed);
   displayedRef.current = displayed;
+  // States to show one render after another
+  const followUps = useRef<Displayed[]>([]);
+
+  // New content is on the page in its closed state: have the browser style it
+  // (reading a layout value forces that), then open the pill, so the content
+  // transitions open instead of appearing open at the circle's width (L21).
+  // Declared before the effect below: when both run after one commit, the
+  // follow-ups it clears must not be applied first.
+  useEffect(() => {
+    const next = followUps.current.shift();
+    if (!next) return;
+    void rootRef.current?.offsetWidth;
+    setDisplayed(next);
+  }, [displayed]);
 
   useEffect(() => {
-    const steps = planSteps(displayedRef.current, target, readTimings(rootRef.current));
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    let at = 0;
-    steps.forEach((step, index) => {
-      at += step.delay;
-      // Steps due at the same time collapse into the last one
-      const next = steps[index + 1];
-      if (next && next.delay === 0) return;
-      const apply = () => setDisplayed({ scene: step.scene, presence: step.presence });
-      if (at === 0) {
-        apply();
-      } else {
-        timers.push(setTimeout(apply, at));
-      }
+    const current = displayedRef.current;
+    const batches = batchSteps(current, planSteps(current, target, readTimings(rootRef.current)));
+    const timers = batches.map(({ at, states }) => {
+      const apply = () => {
+        followUps.current = states.slice(1);
+        setDisplayed(states[0]);
+      };
+      if (at > 0) return setTimeout(apply, at);
+      apply();
+      return undefined;
     });
-    return () => timers.forEach(clearTimeout);
+    return () => {
+      timers.forEach(clearTimeout);
+      followUps.current = [];
+    };
   }, [target]);
 
-  // Pauses: pointer, keyboard focus, an open panel, a hidden tab (Y3)
+  // Pauses: pointer, keyboard focus, an open panel, a hidden tab (Y3, L22)
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const documentHidden = useDocumentHidden();
@@ -198,7 +218,7 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
   const renderScene = (scene: Scene): ReactNode => {
     switch (scene.kind) {
       case "base":
-        return children;
+        return hasBase ? children : lastBase.current;
       case "idle":
         return <PillIcon>{idleIcon}</PillIcon>;
       case "notification": {
@@ -238,22 +258,26 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
         variant={sceneVariant}
         presence={displayed.presence}
         onPresenceChange={handlePresenceChange}
-        onMouseEnter={(event) => {
-          onMouseEnter?.(event);
-          setHovered(true);
+        onPointerEnter={(event) => {
+          onPointerEnter?.(event);
+          // A mouse or a pen: a tap also "enters" the pill, and on mobile the
+          // matching leave only comes with the next tap elsewhere (L22)
+          if (event.pointerType !== "touch") setHovered(true);
         }}
-        onMouseLeave={(event) => {
-          onMouseLeave?.(event);
+        onPointerLeave={(event) => {
+          onPointerLeave?.(event);
           setHovered(false);
         }}
         onFocus={(event) => {
           onFocus?.(event);
-          setFocused(true);
+          // Keyboard focus only: after a tap (e.g. closing the panel gives the
+          // focus back to its trigger), the focus would keep the pill forever
+          if (getInputModality() === "keyboard") setFocused(true);
         }}
         onBlur={(event: FocusEvent<HTMLDivElement>) => {
           onBlur?.(event);
           // Focus moving between elements inside the pill keeps it paused
-          setFocused(event.currentTarget.contains(event.relatedTarget as Node | null));
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false);
         }}
       >
         {renderScene(displayed.scene)}

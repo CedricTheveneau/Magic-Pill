@@ -7,11 +7,13 @@ import { PillMessage } from "../Pill/parts";
 import { PillNavbar } from "../PillNavbar/PillNavbar";
 import { getStore, pill, resetStores, type NotifyInput } from "../store/store";
 import { usePillQueue } from "../store/usePillQueue";
+import { resetInputModality } from "../utils/inputModality";
 import CheckIcon from "../icons/CheckIcon";
 import HelpIcon from "../icons/HelpIcon";
 
 // The stylesheet's default timings, which the host falls back to in jsdom
 const ENTER = 500;
+const FADE = 150;
 const CHANGE = 250;
 const EXIT = 300;
 const DURATION = 5000;
@@ -42,6 +44,7 @@ const items = [
 describe("MagicPill", () => {
   beforeEach(() => {
     resetStores();
+    resetInputModality();
     vi.useFakeTimers();
   });
 
@@ -71,7 +74,7 @@ describe("MagicPill", () => {
 
       // The content stays while it scales out, then goes
       expect(message()).toBe("Saved");
-      advance(CHANGE + EXIT);
+      advance(FADE + CHANGE + EXIT);
       expect(message()).toBeNull();
     });
 
@@ -88,7 +91,7 @@ describe("MagicPill", () => {
       // Assert
       expect(presence()).toBe("rest");
       expect(message()).toBe("first");
-      advance(CHANGE);
+      advance(FADE + CHANGE);
       expect(message()).toBe("second");
       expect(presence()).toBe("compact");
       advance(DURATION);
@@ -138,6 +141,27 @@ describe("MagicPill", () => {
       expect(screen.getByRole("navigation", { name: "Main" })).toBeTruthy();
     });
 
+    it("keeps the base on screen while it closes, once the app removes it", () => {
+      // Arrange
+      const navbar = () => root().querySelector('[data-mp="navbar"]');
+      const { rerender } = render(
+        <MagicPill>
+          <PillNavbar items={items} pathname="/" />
+        </MagicPill>,
+      );
+
+      // Act
+      rerender(<MagicPill>{false}</MagicPill>);
+
+      // Assert: it closes around the navbar, then drops it once out of sight
+      expect(presence()).toBe("hidden");
+      expect(navbar()).not.toBeNull();
+      advance(FADE + CHANGE + EXIT - 1);
+      expect(navbar()).not.toBeNull();
+      advance(1);
+      expect(navbar()).toBeNull();
+    });
+
     it("lets a notification take the pill over, then returns to the base", () => {
       // Arrange
       render(
@@ -149,7 +173,7 @@ describe("MagicPill", () => {
       // Act: take over
       notify({ message: "Hello" });
       expect(presence()).toBe("rest");
-      advance(CHANGE);
+      advance(FADE + CHANGE);
 
       // Assert
       expect(presence()).toBe("compact");
@@ -159,11 +183,34 @@ describe("MagicPill", () => {
       // Act: back to the base
       advance(DURATION);
       expect(presence()).toBe("rest");
-      advance(CHANGE);
+      advance(FADE + CHANGE);
 
       // Assert
       expect(presence()).toBe("compact");
       expect(screen.getByRole("navigation", { name: "Main" })).toBeTruthy();
+    });
+
+    it("lays new content out closed before the pill grows around it (L21)", () => {
+      // Arrange: record what's on screen whenever the host forces a layout
+      const layouts: [string | undefined, string | null][] = [];
+      const offsetWidth = vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockImplementation(function (this: HTMLElement) {
+        if (this.dataset.mp === "pill") layouts.push([presence(), message()]);
+        return 0;
+      });
+      render(
+        <MagicPill>
+          <PillNavbar items={items} pathname="/" />
+        </MagicPill>,
+      );
+
+      // Act
+      notify({ message: "Hello" });
+      advance(FADE + CHANGE);
+
+      // Assert: the message was on the page, closed, before the pill opened
+      expect(layouts).toEqual([["rest", "Hello"]]);
+      expect(presence()).toBe("compact");
+      offsetWidth.mockRestore();
     });
 
     it("can rest as a circle when idle", () => {
@@ -186,7 +233,7 @@ describe("MagicPill", () => {
       advance(2000);
       expect(presence()).toBe("hidden");
 
-      advance(CHANGE + EXIT);
+      advance(FADE + CHANGE + EXIT);
       show({ message: "own duration", duration: 8000 });
       advance(7999);
       expect(presence()).toBe("compact");
@@ -303,10 +350,10 @@ describe("MagicPill", () => {
       show({ message: "Hello" });
 
       // Act
-      fireEvent.mouseEnter(root());
+      fireEvent.pointerEnter(root(), { pointerType: "mouse" });
       advance(DURATION * 3);
       expect(presence()).toBe("compact");
-      fireEvent.mouseLeave(root());
+      fireEvent.pointerLeave(root(), { pointerType: "mouse" });
 
       // Assert
       advance(DURATION - 1);
@@ -321,7 +368,7 @@ describe("MagicPill", () => {
       notify({ message: "Hello" });
 
       // Act
-      fireEvent.mouseEnter(root());
+      fireEvent.pointerEnter(root(), { pointerType: "mouse" });
       advance(ENTER + DURATION * 3);
 
       // Assert
@@ -335,7 +382,8 @@ describe("MagicPill", () => {
       const link = screen.getByRole("link", { name: "Open" });
       const trigger = screen.getByRole("button", { name: "Learn more" });
 
-      // Act: focus moves from one action to the other
+      // Act: focus moves from one action to the other, with the keyboard
+      fireEvent.keyDown(document.body, { key: "Tab" });
       act(() => link.focus());
       act(() => trigger.focus());
       advance(DURATION * 3);
@@ -349,16 +397,49 @@ describe("MagicPill", () => {
       expect(presence()).toBe("hidden");
     });
 
+    it("doesn't pause for focus that follows a tap, e.g. the panel giving it back (L22)", () => {
+      // Arrange
+      render(<MagicPill />);
+      show({ message: "Discover", panel: { title: "Powers", content: "Body" } });
+      const trigger = screen.getByRole("button", { name: "Learn more" });
+      fireEvent.pointerDown(trigger);
+      fireEvent.click(trigger);
+      const close = screen.getByRole("button", { name: "Close" });
+
+      // Act: a tap on Close, which focuses the trigger again
+      fireEvent.pointerDown(close);
+      act(() => close.focus());
+      fireEvent.click(close);
+
+      // Assert
+      expect(document.activeElement).toBe(trigger);
+      advance(DURATION);
+      expect(presence()).toBe("hidden");
+    });
+
+    it("doesn't pause when a tap enters the pill (L22)", () => {
+      // Arrange
+      render(<MagicPill />);
+      show({ message: "Hello" });
+
+      // Act: a touch pointer enters, and doesn't leave until the next tap elsewhere
+      fireEvent.pointerEnter(root(), { pointerType: "touch" });
+
+      // Assert
+      advance(DURATION);
+      expect(presence()).toBe("hidden");
+    });
+
     it("waits for both the pointer and the focus to leave", () => {
       // Arrange
       render(<MagicPill />);
       show({ message: "Hello", action: { label: "Open", href: "/orders" } });
       const link = screen.getByRole("link", { name: "Open" });
-      fireEvent.mouseEnter(root());
+      fireEvent.pointerEnter(root(), { pointerType: "mouse" });
       act(() => link.focus());
 
       // Act + Assert: the pointer leaves first
-      fireEvent.mouseLeave(root());
+      fireEvent.pointerLeave(root(), { pointerType: "mouse" });
       advance(DURATION * 3);
       expect(presence()).toBe("compact");
 

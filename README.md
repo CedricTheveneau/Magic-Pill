@@ -27,7 +27,7 @@ On top of it come ready-made **templates** (a notification, a navbar) and a **co
  - [X] Accessible: screen reader announcements, keyboard focus pauses the countdown, focus handling for panels and modals
  - [X] Works in any React 18+ app, including React Server Components (Next.js App Router), with any router
  - [X] Styles you can override without `!important`, design tokens, no fonts loaded behind your back
- - [X] Tiny: the quick start adds about **7 kB gzipped** to your app (4.9 kB of JavaScript + 2.2 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
+ - [X] Tiny: the quick start adds about **7.5 kB gzipped** to your app (5.3 kB of JavaScript + 2.3 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
  - [X] Written in TypeScript, zero runtime dependencies
 
 ## Installation
@@ -341,12 +341,13 @@ Twelve built-in icons, drawn in `currentColor` and decorative by default (`aria-
 | `--mp-offset` / `--mp-z-index` | `1.5rem` from the viewport edges (plus safe areas) / `50` |
 | `--mp-backdrop` | the overlay's backdrop |
 | `--mp-duration-enter` / `--mp-duration-change` / `--mp-duration-exit` | `500ms` / `250ms` / `300ms` |
+| `--mp-scale-origin` | `center`: where the pill pops in from and scales out to (e.g. `bottom` to come out of the edge) |
 
 The pill fits small screens: sizes are in `rem`, fixed pills stay inside the viewport and its safe areas, and long panels scroll.
 
 ## Accessibility
 - **Announcements:** each `<MagicPill>` has a polite live region that reads notifications out (or your `announce` text). A hidden pill leaves the accessibility tree.
-- **Time to act:** the countdown pauses on hover and keyboard focus, and while a panel is open.
+- **Time to act:** the countdown pauses while a mouse hovers the pill, on keyboard focus, and while a panel is open. A tap doesn't pause it.
 - **Panels and modals:** they take and give back the focus, and close on Escape. The overlay is a native modal `<dialog>`.
 - **Accessible names:** every action has one (`label` is required), and icons are hidden from assistive technology.
 - **Motion and contrast:** with `prefers-reduced-motion`, shape changes become short fades. In forced-colours mode, the shapes keep visible outlines.
