@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { BASE, IDLE, NONE, batchSteps, parseDuration, planSteps, type Displayed, type Scene, type Timings } from "./choreography";
 
-const timings: Timings = { enter: 500, change: 250, exit: 300, reduced: false };
-const reduced: Timings = { enter: 0, change: 0, exit: 150, reduced: true };
+const timings: Timings = { enter: 500, fade: 150, change: 250, exit: 300, reduced: false };
+const reduced: Timings = { enter: 0, fade: 0, change: 0, exit: 150, reduced: true };
 const note = (id: string): Scene => ({ kind: "notification", item: { id, input: { message: id } } });
 
 // [delay, presence, scene kind or notification id]
@@ -23,14 +23,14 @@ describe("planSteps", () => {
     ]);
   });
 
-  it("swaps content at the circle: collapse, swap after the shape change, grow back", () => {
+  it("swaps content at the circle: fade out, collapse, swap after the shape change, grow back", () => {
     // Act
     const steps = planSteps({ scene: BASE, presence: "compact" }, note("a"), timings);
 
     // Assert
     expect(summary(steps)).toEqual([
       [0, "rest", "base"],
-      [250, "rest", "a"],
+      [400, "rest", "a"],
       [0, "compact", "a"],
     ]);
   });
@@ -42,7 +42,7 @@ describe("planSteps", () => {
     // Assert
     expect(summary(steps)).toEqual([
       [0, "hidden", "a"],
-      [550, "hidden", "none"],
+      [700, "hidden", "none"],
     ]);
   });
 
@@ -53,7 +53,7 @@ describe("planSteps", () => {
     // Assert
     expect(summary(steps)).toEqual([
       [0, "rest", "a"],
-      [250, "rest", "idle"],
+      [400, "rest", "idle"],
     ]);
   });
 
@@ -109,7 +109,7 @@ describe("batchSteps", () => {
     expect(steps).toEqual([
       [0, [["rest", "base"]]],
       [
-        250,
+        400,
         [
           ["rest", "a"],
           ["compact", "a"],

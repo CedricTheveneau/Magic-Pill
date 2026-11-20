@@ -12,6 +12,7 @@ import HelpIcon from "../icons/HelpIcon";
 
 // The stylesheet's default timings, which the host falls back to in jsdom
 const ENTER = 500;
+const FADE = 150;
 const CHANGE = 250;
 const EXIT = 300;
 const DURATION = 5000;
@@ -71,7 +72,7 @@ describe("MagicPill", () => {
 
       // The content stays while it scales out, then goes
       expect(message()).toBe("Saved");
-      advance(CHANGE + EXIT);
+      advance(FADE + CHANGE + EXIT);
       expect(message()).toBeNull();
     });
 
@@ -88,7 +89,7 @@ describe("MagicPill", () => {
       // Assert
       expect(presence()).toBe("rest");
       expect(message()).toBe("first");
-      advance(CHANGE);
+      advance(FADE + CHANGE);
       expect(message()).toBe("second");
       expect(presence()).toBe("compact");
       advance(DURATION);
@@ -149,7 +150,7 @@ describe("MagicPill", () => {
       // Act: take over
       notify({ message: "Hello" });
       expect(presence()).toBe("rest");
-      advance(CHANGE);
+      advance(FADE + CHANGE);
 
       // Assert
       expect(presence()).toBe("compact");
@@ -159,7 +160,7 @@ describe("MagicPill", () => {
       // Act: back to the base
       advance(DURATION);
       expect(presence()).toBe("rest");
-      advance(CHANGE);
+      advance(FADE + CHANGE);
 
       // Assert
       expect(presence()).toBe("compact");
@@ -181,7 +182,7 @@ describe("MagicPill", () => {
 
       // Act
       notify({ message: "Hello" });
-      advance(CHANGE);
+      advance(FADE + CHANGE);
 
       // Assert: the message was on the page, closed, before the pill opened
       expect(layouts).toEqual([["rest", "Hello"]]);
@@ -209,7 +210,7 @@ describe("MagicPill", () => {
       advance(2000);
       expect(presence()).toBe("hidden");
 
-      advance(CHANGE + EXIT);
+      advance(FADE + CHANGE + EXIT);
       show({ message: "own duration", duration: 8000 });
       advance(7999);
       expect(presence()).toBe("compact");
