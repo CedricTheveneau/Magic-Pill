@@ -9,6 +9,8 @@ Work towards 9.0.0, the first release with a stable API. It's a breaking release
   - Placements: `inline`, fixed at an edge or corner, or `overlay` (a native modal `<dialog>`)
   - Horizontal or vertical orientation, and `neutral`, `success`, `danger` or custom variants
   - Stateless parts and `PillAction` can be rendered by React Server Components without becoming client code
+  - The pill animates its real size, width and height together: a message that wraps to several lines, a panel opening or closing, a sidebar's labels unfolding. Its corners stay right at every frame: half the one-line pill's height, so a taller pill is a rounded rectangle, up to `--mp-radius-panel` for a panel
+  - The panel grows out of the pill (upwards from a bottom pill, sideways from a sidebar) and closes back into it. Its content fades in as it grows, behind an edge that fades out as the panel settles, instead of appearing all at once
 - Link actions take a `linkComponent` (e.g. Next's `Link`) and only render relative, `http(s):`, `mailto:` and `tel:` URLs. Any other scheme, such as `javascript:`, renders no link
 - Templates built from those parts:
   - `PillNotification`: icon, message, an action (`onClick` or `href`) and an optional expandable panel. Every content is a React node, so nothing is parsed as HTML any more
@@ -36,16 +38,20 @@ Work towards 9.0.0, the first release with a stable API. It's a breaking release
 
 ### Changed
 - The published JavaScript is readable (not minified) and has no source maps. Your app bundles exactly the same amount of code (your bundler minifies it), and the package is about 40% smaller to install (196 kB unpacked instead of 331 kB in 9.0.0-next.0)
-- Size, measured and checked in CI: the quick start (`MagicPill` + `pill()`) adds about 5.3 kB of gzipped JavaScript and 2.3 kB of gzipped CSS to an app (both minified, as your bundler does); a hand-written `Pill` with its parts, about 1.4 kB of JavaScript
+- Size, measured and checked in CI: the quick start (`MagicPill` + `pill()`) adds about 6.4 kB of gzipped JavaScript and 2.3 kB of gzipped CSS to an app (both minified, as your bundler does); a hand-written `Pill` with its parts, about 2.8 kB of JavaScript, most of it the size animation
 
 ### Fixed (since 9.0.0-next.0)
 - Global resets on links and buttons, such as `a { color: inherit }` or `button { background: none }`, no longer blank out the pill's actions: their look now lives on an inner `[data-mp="action-body"]`
-- In a narrow container, an inline pill wraps its message instead of cutting off its action. While the pill grows, the message still stays on one line
+- In a narrow container, an inline pill wraps its message instead of cutting off its action
 - On touchscreens, a tapped action no longer stays open: labels open on hover only on devices that can really hover. Keyboard focus, an expanded panel and the current page still open them everywhere
 - When a notification takes the pill over (from the navbar, or the next one in the queue), its message no longer wraps one word per line while the pill grows: `<MagicPill>` shows new content closed first, then the pill opens around it
 - Long text no longer looks clipped while the pill changes size. When the pill closes, its content fades out first, then the pill shrinks; when it opens, the pill grows first, then the content fades in
 - When the app removes the host's base layer (e.g. `{showNavbar && <PillNavbar … />}`), the pill closes around it into a circle, then scales out, instead of losing its content at once and collapsing into a narrow oval
 - The pill scales from its centre instead of the edge it sits on (see `--mp-scale-origin`)
+- A notification whose message wraps to two or three lines (e.g. on a phone) no longer jumps in height when it opens and closes: the pill animates to its measured size
+- A panel's corners no longer snap from fully round to their radius at the end of the opening animation
+- In a vertical pill, a label folds once the next one has unfolded, so the pill widens or narrows smoothly when the active item changes instead of narrowing in between. Labels now unfold at their real width
+- A sidebar's panel keeps the panel width cap (`--mp-panel-width`) instead of running to the edge of the screen
 - Security: `PillNavbar` matches paths in linear time. Stripping trailing slashes used a regular expression that could take seconds on a crafted URL made of many slashes (ReDoS)
 - On touchscreens, a notification whose panel was opened and closed no longer stays until the next tap elsewhere. The countdown pauses for keyboard focus and for a mouse or pen hovering, not for a tap, and after a tap the panel gives the focus back without showing it as keyboard focus
 
