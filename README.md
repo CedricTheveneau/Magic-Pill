@@ -11,7 +11,7 @@ Thank you for your patience and to all people who already have shown interest in
 ![npm downloads](https://img.shields.io/npm/dt/magic-pill?color=green)
 [![DeepScan grade](https://deepscan.io/api/teams/23515/projects/28307/branches/911491/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=23515&pid=28307&bid=911491)
 [![Known Vulnerabilities](https://snyk.io/test/github/CedricTheveneau/Magic-Pill/badge.svg)](https://snyk.io/test/github/CedricTheveneau/Magic-Pill)
-[![install size](https://packagephobia.com/badge?p=magic-pill@latest)](https://packagephobia.com/result?p=magic-pill@latest)
+[![install size](https://img.shields.io/npm/unpacked-size/magic-pill?label=install%20size)](https://packagephobia.com/result?p=magic-pill@latest)
 
 ## Introduction
 Magic Pill is **a design primitive, not just a notification library.** At its core is *the pill*: a dark, fully rounded, elevated container with a strong design language, and you can put anything inside it.
