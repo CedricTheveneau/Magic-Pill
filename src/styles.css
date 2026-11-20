@@ -245,6 +245,11 @@
         max-block-size: calc(100dvh - 2 * var(--_mp-offset));
       }
 
+      /* A sidebar's panel keeps the panel's width cap, like any other */
+      &[data-orientation="vertical"][data-presence="panel"] {
+        max-inline-size: var(--_mp-max-size);
+      }
+
       &[data-orientation="vertical"]:is([data-presence="rest"], [data-presence="hidden"]) {
         block-size: var(--_mp-rest-size);
       }
