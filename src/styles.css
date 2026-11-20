@@ -368,7 +368,7 @@
           margin var(--_mp-change) ease-in-out;
       }
 
-      & [data-mp="action"]:is(:hover, :focus-visible, [data-expanded], [aria-current="page"], [aria-current="true"]),
+      & [data-mp="action"]:is(:focus-visible, [data-expanded], [aria-current="page"], [aria-current="true"]),
       &:is([data-presence="expanded"], [data-presence="panel"]) [data-mp="action"] {
         & [data-mp="action-body"] {
           padding-inline-end: calc(var(--_mp-action-size) / 2.5);
@@ -381,6 +381,25 @@
 
         & [data-mp="action-icon"] + [data-mp="label"] {
           margin-inline-start: 0.5rem;
+        }
+      }
+
+      /* The same on hover, only where the device really hovers: a tap on a
+         touchscreen leaves a "sticky" hover behind until the next tap (L20) */
+      @media (hover: hover) {
+        & [data-mp="action"]:hover {
+          & [data-mp="action-body"] {
+            padding-inline-end: calc(var(--_mp-action-size) / 2.5);
+          }
+
+          & [data-mp="label"] {
+            max-inline-size: 20rem;
+            opacity: 1;
+          }
+
+          & [data-mp="action-icon"] + [data-mp="label"] {
+            margin-inline-start: 0.5rem;
+          }
         }
       }
 
