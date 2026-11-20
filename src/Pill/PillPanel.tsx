@@ -5,6 +5,7 @@ import PillAction from "./PillAction";
 import { useInternalPill } from "./PillContext";
 import type { PillButtonActionProps, PillPanelProps } from "./types";
 import CloseIcon from "../icons/CloseIcon";
+import { getInputModality, trackInputModality } from "../utils/inputModality";
 import { mergeRefs } from "../utils/react";
 
 /**
@@ -24,6 +25,7 @@ export const PillPanel = forwardRef<HTMLDivElement, PillPanelProps>(function Pil
 
   // Only on changes: a pill that starts as a panel doesn't steal the focus
   const wasOpenRef = useRef(isOpen);
+  useEffect(trackInputModality, []);
   useEffect(() => {
     const wasOpen = wasOpenRef.current;
     wasOpenRef.current = isOpen;
@@ -33,7 +35,8 @@ export const PillPanel = forwardRef<HTMLDivElement, PillPanelProps>(function Pil
       // Only when the focus would otherwise be lost (it was in the now hidden panel)
       const active = document.activeElement;
       if (!active || active === document.body || rootRef.current?.contains(active)) {
-        panelTriggerRef.current?.focus();
+        // After a tap, it isn't keyboard focus: don't show it as such (L22)
+        panelTriggerRef.current?.focus(getInputModality() === "pointer" ? { focusVisible: false } : undefined);
       }
     }
   }, [isOpen, panelTriggerRef, rootRef]);

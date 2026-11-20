@@ -16,6 +16,7 @@ import { PillIcon } from "../Pill/parts";
 import type { LinkComponent, PillPresence, PillProps } from "../Pill/types";
 import { NotificationContent, type PillNotificationClassNames } from "../PillNotification/PillNotification";
 import { getStore, type QueuedNotification } from "../store/store";
+import { getInputModality, trackInputModality } from "../utils/inputModality";
 import { usePillQueue } from "../store/usePillQueue";
 import { mergeRefs } from "../utils/react";
 import {
@@ -94,8 +95,8 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
     classNames,
     placement = "bottom",
     variant,
-    onMouseEnter,
-    onMouseLeave,
+    onPointerEnter,
+    onPointerLeave,
     onFocus,
     onBlur,
     ...rest
@@ -108,6 +109,7 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
   const ref = useMemo(() => mergeRefs(rootRef, forwardedRef), [forwardedRef]);
 
   useEffect(() => store.registerHost(), [store]);
+  useEffect(trackInputModality, []);
 
   // What the pill should show now. Stable objects, so a re-render isn't a change.
   const hasBase = hasContent(children);
@@ -156,7 +158,7 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
     };
   }, [target]);
 
-  // Pauses: pointer, keyboard focus, an open panel, a hidden tab (Y3)
+  // Pauses: pointer, keyboard focus, an open panel, a hidden tab (Y3, L22)
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const documentHidden = useDocumentHidden();
@@ -252,22 +254,26 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
         variant={sceneVariant}
         presence={displayed.presence}
         onPresenceChange={handlePresenceChange}
-        onMouseEnter={(event) => {
-          onMouseEnter?.(event);
-          setHovered(true);
+        onPointerEnter={(event) => {
+          onPointerEnter?.(event);
+          // A mouse or a pen: a tap also "enters" the pill, and on mobile the
+          // matching leave only comes with the next tap elsewhere (L22)
+          if (event.pointerType !== "touch") setHovered(true);
         }}
-        onMouseLeave={(event) => {
-          onMouseLeave?.(event);
+        onPointerLeave={(event) => {
+          onPointerLeave?.(event);
           setHovered(false);
         }}
         onFocus={(event) => {
           onFocus?.(event);
-          setFocused(true);
+          // Keyboard focus only: after a tap (e.g. closing the panel gives the
+          // focus back to its trigger), the focus would keep the pill forever
+          if (getInputModality() === "keyboard") setFocused(true);
         }}
         onBlur={(event: FocusEvent<HTMLDivElement>) => {
           onBlur?.(event);
           // Focus moving between elements inside the pill keeps it paused
-          setFocused(event.currentTarget.contains(event.relatedTarget as Node | null));
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false);
         }}
       >
         {renderScene(displayed.scene)}

@@ -7,6 +7,7 @@ import { PillMessage } from "../Pill/parts";
 import { PillNavbar } from "../PillNavbar/PillNavbar";
 import { getStore, pill, resetStores, type NotifyInput } from "../store/store";
 import { usePillQueue } from "../store/usePillQueue";
+import { resetInputModality } from "../utils/inputModality";
 import CheckIcon from "../icons/CheckIcon";
 import HelpIcon from "../icons/HelpIcon";
 
@@ -43,6 +44,7 @@ const items = [
 describe("MagicPill", () => {
   beforeEach(() => {
     resetStores();
+    resetInputModality();
     vi.useFakeTimers();
   });
 
@@ -327,10 +329,10 @@ describe("MagicPill", () => {
       show({ message: "Hello" });
 
       // Act
-      fireEvent.mouseEnter(root());
+      fireEvent.pointerEnter(root(), { pointerType: "mouse" });
       advance(DURATION * 3);
       expect(presence()).toBe("compact");
-      fireEvent.mouseLeave(root());
+      fireEvent.pointerLeave(root(), { pointerType: "mouse" });
 
       // Assert
       advance(DURATION - 1);
@@ -345,7 +347,7 @@ describe("MagicPill", () => {
       notify({ message: "Hello" });
 
       // Act
-      fireEvent.mouseEnter(root());
+      fireEvent.pointerEnter(root(), { pointerType: "mouse" });
       advance(ENTER + DURATION * 3);
 
       // Assert
@@ -359,7 +361,8 @@ describe("MagicPill", () => {
       const link = screen.getByRole("link", { name: "Open" });
       const trigger = screen.getByRole("button", { name: "Learn more" });
 
-      // Act: focus moves from one action to the other
+      // Act: focus moves from one action to the other, with the keyboard
+      fireEvent.keyDown(document.body, { key: "Tab" });
       act(() => link.focus());
       act(() => trigger.focus());
       advance(DURATION * 3);
@@ -373,16 +376,49 @@ describe("MagicPill", () => {
       expect(presence()).toBe("hidden");
     });
 
+    it("doesn't pause for focus that follows a tap, e.g. the panel giving it back (L22)", () => {
+      // Arrange
+      render(<MagicPill />);
+      show({ message: "Discover", panel: { title: "Powers", content: "Body" } });
+      const trigger = screen.getByRole("button", { name: "Learn more" });
+      fireEvent.pointerDown(trigger);
+      fireEvent.click(trigger);
+      const close = screen.getByRole("button", { name: "Close" });
+
+      // Act: a tap on Close, which focuses the trigger again
+      fireEvent.pointerDown(close);
+      act(() => close.focus());
+      fireEvent.click(close);
+
+      // Assert
+      expect(document.activeElement).toBe(trigger);
+      advance(DURATION);
+      expect(presence()).toBe("hidden");
+    });
+
+    it("doesn't pause when a tap enters the pill (L22)", () => {
+      // Arrange
+      render(<MagicPill />);
+      show({ message: "Hello" });
+
+      // Act: a touch pointer enters, and doesn't leave until the next tap elsewhere
+      fireEvent.pointerEnter(root(), { pointerType: "touch" });
+
+      // Assert
+      advance(DURATION);
+      expect(presence()).toBe("hidden");
+    });
+
     it("waits for both the pointer and the focus to leave", () => {
       // Arrange
       render(<MagicPill />);
       show({ message: "Hello", action: { label: "Open", href: "/orders" } });
       const link = screen.getByRole("link", { name: "Open" });
-      fireEvent.mouseEnter(root());
+      fireEvent.pointerEnter(root(), { pointerType: "mouse" });
       act(() => link.focus());
 
       // Act + Assert: the pointer leaves first
-      fireEvent.mouseLeave(root());
+      fireEvent.pointerLeave(root(), { pointerType: "mouse" });
       advance(DURATION * 3);
       expect(presence()).toBe("compact");
 
