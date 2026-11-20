@@ -29,13 +29,14 @@ Work towards 9.0.0, the first release with a stable API. It's a breaking release
   - every rule sits in a `magic-pill` cascade layer and targets `data-mp` attributes, so your own CSS overrides it without `!important` and no class names collide;
   - it loads no fonts (it uses your page's fonts unless you set `--mp-font-text`/`--mp-font-accent`);
   - it's sized in `rem`, fits phone screens and safe areas, and supports reduced motion and forced colours
+  - the pill pops in and scales out from its centre; `--mp-scale-origin` changes that (e.g. `bottom` to come out of the edge a bottom pill sits on)
 
 - A migration guide from 8.x, [MIGRATING.md](./MIGRATING.md), shipped in the package
 - The README is rewritten for v9: quick start, notifications, the host and its base layer, the primitive, React Server Components, styling and tokens, accessibility and security
 
 ### Changed
 - The published JavaScript is readable (not minified) and has no source maps. Your app bundles exactly the same amount of code (your bundler minifies it), and the package is about 40% smaller to install (196 kB unpacked instead of 331 kB in 9.0.0-next.0)
-- Size, measured and checked in CI: the quick start (`MagicPill` + `pill()`) adds about 5.2 kB of gzipped JavaScript and 2.3 kB of gzipped CSS to an app (both minified, as your bundler does); a hand-written `Pill` with its parts, about 1.4 kB of JavaScript
+- Size, measured and checked in CI: the quick start (`MagicPill` + `pill()`) adds about 5.3 kB of gzipped JavaScript and 2.3 kB of gzipped CSS to an app (both minified, as your bundler does); a hand-written `Pill` with its parts, about 1.4 kB of JavaScript
 
 ### Fixed (since 9.0.0-next.0)
 - Global resets on links and buttons, such as `a { color: inherit }` or `button { background: none }`, no longer blank out the pill's actions: their look now lives on an inner `[data-mp="action-body"]`
@@ -43,6 +44,8 @@ Work towards 9.0.0, the first release with a stable API. It's a breaking release
 - On touchscreens, a tapped action no longer stays open: labels open on hover only on devices that can really hover. Keyboard focus, an expanded panel and the current page still open them everywhere
 - When a notification takes the pill over (from the navbar, or the next one in the queue), its message no longer wraps one word per line while the pill grows: `<MagicPill>` shows new content closed first, then the pill opens around it
 - Long text no longer looks clipped while the pill changes size. When the pill closes, its content fades out first, then the pill shrinks; when it opens, the pill grows first, then the content fades in
+- When the app removes the host's base layer (e.g. `{showNavbar && <PillNavbar … />}`), the pill closes around it into a circle, then scales out, instead of losing its content at once and collapsing into a narrow oval
+- The pill scales from its centre instead of the edge it sits on (see `--mp-scale-origin`)
 - On touchscreens, a notification whose panel was opened and closed no longer stays until the next tap elsewhere. The countdown pauses for keyboard focus and for a mouse or pen hovering, not for a tap, and after a tap the panel gives the focus back without showing it as keyboard focus
 
 ### Removed
