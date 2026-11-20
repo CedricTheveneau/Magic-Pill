@@ -166,6 +166,29 @@ describe("MagicPill", () => {
       expect(screen.getByRole("navigation", { name: "Main" })).toBeTruthy();
     });
 
+    it("lays new content out closed before the pill grows around it (L21)", () => {
+      // Arrange: record what's on screen whenever the host forces a layout
+      const layouts: [string | undefined, string | null][] = [];
+      const offsetWidth = vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockImplementation(function (this: HTMLElement) {
+        if (this.dataset.mp === "pill") layouts.push([presence(), message()]);
+        return 0;
+      });
+      render(
+        <MagicPill>
+          <PillNavbar items={items} pathname="/" />
+        </MagicPill>,
+      );
+
+      // Act
+      notify({ message: "Hello" });
+      advance(CHANGE);
+
+      // Assert: the message was on the page, closed, before the pill opened
+      expect(layouts).toEqual([["rest", "Hello"]]);
+      expect(presence()).toBe("compact");
+      offsetWidth.mockRestore();
+    });
+
     it("can rest as a circle when idle", () => {
       // Act
       render(<MagicPill idle="rest" idleIcon={<HelpIcon data-testid="idle" />} />);

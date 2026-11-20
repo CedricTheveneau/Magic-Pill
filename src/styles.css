@@ -140,18 +140,24 @@
         max-block-size: var(--_mp-rest-size);
       }
 
-      /* The content stays while the pill closes over it, then hides. The
-         message unwraps at once when the pill shrinks, and may wrap again
-         only once the pill has grown (a discrete transition, where supported) */
+      /* The content fades out while the pill closes over it, then hides. The
+         message unwraps at once when the pill shrinks, so it never reflows
+         word by word; when the pill grows, the content fades in and the
+         message may wrap again only once the pill has grown (a discrete
+         transition, where supported). <MagicPill> renders new content
+         closed first, so it opens the same way (L21) */
       & > :not([data-mp="icon"], [data-mp="panel"]) {
         transition:
+          opacity var(--_mp-change) ease-in-out,
           visibility 0s,
           white-space 0s linear var(--_mp-change);
         transition-behavior: allow-discrete;
       }
 
       &:is([data-presence="rest"], [data-presence="hidden"]) > :not([data-mp="icon"], [data-mp="panel"]) {
+        opacity: 0;
         transition:
+          opacity var(--_mp-change) ease-in-out,
           visibility 0s linear var(--_mp-change),
           white-space 0s;
       }

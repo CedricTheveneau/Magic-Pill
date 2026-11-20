@@ -22,6 +22,7 @@ import {
   BASE,
   IDLE,
   NONE,
+  batchSteps,
   isOpen,
   planSteps,
   readTimings,
@@ -122,24 +123,37 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
   }));
   const displayedRef = useRef(displayed);
   displayedRef.current = displayed;
+  // States to show one render after another
+  const followUps = useRef<Displayed[]>([]);
+
+  // New content is on the page in its closed state: have the browser style it
+  // (reading a layout value forces that), then open the pill, so the content
+  // transitions open instead of appearing open at the circle's width (L21).
+  // Declared before the effect below: when both run after one commit, the
+  // follow-ups it clears must not be applied first.
+  useEffect(() => {
+    const next = followUps.current.shift();
+    if (!next) return;
+    void rootRef.current?.offsetWidth;
+    setDisplayed(next);
+  }, [displayed]);
 
   useEffect(() => {
-    const steps = planSteps(displayedRef.current, target, readTimings(rootRef.current));
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    let at = 0;
-    steps.forEach((step, index) => {
-      at += step.delay;
-      // Steps due at the same time collapse into the last one
-      const next = steps[index + 1];
-      if (next && next.delay === 0) return;
-      const apply = () => setDisplayed({ scene: step.scene, presence: step.presence });
-      if (at === 0) {
-        apply();
-      } else {
-        timers.push(setTimeout(apply, at));
-      }
+    const current = displayedRef.current;
+    const batches = batchSteps(current, planSteps(current, target, readTimings(rootRef.current)));
+    const timers = batches.map(({ at, states }) => {
+      const apply = () => {
+        followUps.current = states.slice(1);
+        setDisplayed(states[0]);
+      };
+      if (at > 0) return setTimeout(apply, at);
+      apply();
+      return undefined;
     });
-    return () => timers.forEach(clearTimeout);
+    return () => {
+      timers.forEach(clearTimeout);
+      followUps.current = [];
+    };
   }, [target]);
 
   // Pauses: pointer, keyboard focus, an open panel, a hidden tab (Y3)

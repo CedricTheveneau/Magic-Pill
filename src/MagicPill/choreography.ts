@@ -96,6 +96,46 @@ export function planSteps(current: Displayed, target: Scene, timings: Timings): 
   return steps;
 }
 
+/** States to apply at `at` ms: the first at once, each next one a render later. */
+export interface Batch {
+  at: number;
+  states: Displayed[];
+}
+
+/**
+ * Groups the steps by the time they're due. Steps due at the same time
+ * collapse into the last one, except new content swapped in while the pill
+ * is closed: it's shown closed first, so the stylesheet can transition it
+ * open (otherwise it appears at the circle's width and wraps word by word).
+ */
+export function batchSteps(current: Displayed, steps: readonly Step[]): Batch[] {
+  const batches: Batch[] = [];
+  let at = 0;
+  let scene = current.scene;
+  // The batch's last state brings content that hasn't been shown closed yet
+  let unshown = false;
+  for (const { delay, scene: nextScene, presence } of steps) {
+    at += delay;
+    const state: Displayed = { scene: nextScene, presence };
+    const swapped = nextScene !== scene;
+    scene = nextScene;
+    const batch = batches[batches.length - 1];
+    if (batch && batch.at === at) {
+      if (unshown && isOpen(presence)) {
+        batch.states.push(state);
+        unshown = false;
+      } else {
+        batch.states[batch.states.length - 1] = state;
+        unshown = (unshown || swapped) && !isOpen(presence);
+      }
+    } else {
+      batches.push({ at, states: [state] });
+      unshown = swapped && !isOpen(presence);
+    }
+  }
+  return batches;
+}
+
 /** "500ms" or "0.5s" → 500; anything else → the fallback. */
 export function parseDuration(value: string, fallback: number): number {
   const match = /^\s*([\d.]+)(ms|s)\s*$/.exec(value);
