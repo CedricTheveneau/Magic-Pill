@@ -27,6 +27,9 @@ describe("findActiveIndex (L8)", () => {
     ["/blog/drafts/1", "Drafts"], // longest match wins
     ["/blogroll", "none"], // whole segments only
     ["/contact", "none"],
+    ["/blog///", "Blog"], // trailing slashes, however many
+    ["///", "Home"],
+    ["/blog//post", "Blog"],
   ])("on %s, the active item is %s", (pathname, expected) => {
     // Act
     const index = findActiveIndex(pathname, items);
@@ -46,6 +49,19 @@ describe("findActiveIndex (L8)", () => {
     expect(findActiveIndex("/shop/item", custom)).toBe(-1);
     expect(findActiveIndex("/shop", custom)).toBe(0);
     expect(findActiveIndex("/checkout/pay", custom)).toBe(1);
+  });
+
+  it("stays fast on a crafted path made of many slashes (ReDoS)", () => {
+    // Arrange: a regex such as /\/+$/ takes seconds on this (quadratic backtracking)
+    const crafted = "/" + "/".repeat(200_000) + "x";
+    const start = performance.now();
+
+    // Act
+    const index = findActiveIndex(crafted, items);
+
+    // Assert: linear work takes about a millisecond; the bound leaves room for slow CI
+    expect(index).toBe(-1);
+    expect(performance.now() - start).toBeLessThan(500);
   });
 
   it("never matches external links by itself, and matches nothing without a pathname", () => {
