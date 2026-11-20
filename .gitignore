@@ -3,11 +3,7 @@
 
 # Build output
 /dist
-.rollup.cache
 *.tsbuildinfo
-
-# Demo apps
-/my-app
 
 # System files
 .DS_Store
