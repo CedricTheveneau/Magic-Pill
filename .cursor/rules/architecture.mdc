@@ -24,7 +24,7 @@ We write the code dedicated to the npm package at the root and in the `src/` dir
 - We create and update the `CHANGELOG.md` file before each release, following the [keep a changelog](mdc:https:/keepachangelog.com/en/1.1.0) model
 - We keep `MIGRATING.md` up to date when a major version changes the API
 - We create and maintain a `.gitignore` file with at least `/dist` and `/node_modules` in it
-- We create and maintain a `.npmignore` file with each directory containing a NextJS app and `/node_modules` in it (`package.json` `files` is the real allowlist)
+- `package.json` `files` is the allowlist of what's published (`dist` and the docs); there's no `.npmignore`. Check `npm pack --dry-run` when it changes
 - We create and maintain an `src/` directory containing all the code for our npm package - more info in "### src directory"
 
 ### src directory
@@ -117,10 +117,10 @@ src/
   - Purpose: Prevents upload of sensible and heavy, non-necessary directories to GitHub
   - Rules:
     - Always ignore `/dist` and `node_modules` at least. Update the file when needed.
-- **.npmignore**
-  - Purpose: Prevents upload of sensible and heavy, non-necessary directories to npm
+- **package.json `files`**
+  - Purpose: The allowlist of what's published to npm (`dist`, CHANGELOG, MIGRATING, LICENSE, NOTICE): the demo, sources and tooling never ship
   - Rules:
-    - Always ignore directories containing NextJS apps at least. Update the file when needed.
+    - Don't add an `.npmignore`: with `files`, it can only exclude things inside the allowlist. Check `npm pack --dry-run` (from a clean build) when the list changes.
 - **tsdown.config.mts**
   - Purpose: Builds `dist/` (ESM + CJS, typings, unbundled so each module keeps its directive) and copies `styles.css` as-is
   - Rules:
@@ -129,6 +129,7 @@ src/
   - Purpose: Type checking only (`npm run typecheck`, tests included); tsdown does the emitting
   - Rules:
     - Stay on TypeScript 6 until TypeScript 7's JS API and the tools that depend on it are ready.
+    - `noUnusedLocals` and `noUnusedParameters` are on: remove unused code rather than silencing the check (prefix a parameter with `_` only when a signature requires it).
 - **vitest.config.mts** / **vitest.setup.ts**
   - Purpose: The test setup (jsdom, cleanup, real timers between tests)
 - **.github/workflows/**
