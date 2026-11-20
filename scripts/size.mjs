@@ -20,19 +20,22 @@ const PROBES = [
     name: "MagicPill + pill()",
     description: "the quick start: the host, the store and the notification template",
     code: 'export { MagicPill, pill } from "ENTRY";',
-    budget: 5.5 * KB, // 4.89 kB at 9.0.0-next.0
+    // Raised from 5.5 kB for the size animation (Pill/morph.ts): 6.36 kB
+    budget: 6.5 * KB, // 4.89 kB at 9.0.0-next.0
   },
   {
     name: "Pill primitive",
     description: "a hand-written pill: Pill and its parts",
     code: 'export { Pill, PillIcon, PillDivider, PillMessage, PillActions, PillAction } from "ENTRY";',
-    budget: 1.75 * KB, // 1.44 kB at 9.0.0-next.0
+    // Raised from 1.75 kB for the size animation (Pill/morph.ts): 2.76 kB
+    budget: 3 * KB, // 1.44 kB at 9.0.0-next.0
   },
   {
     name: "Everything",
     description: "every export, icons included",
     code: 'export * from "ENTRY";',
-    budget: 10 * KB, // 9.07 kB at 9.0.0-next.0
+    // Raised from 10 kB for the size animation (Pill/morph.ts): 10.61 kB
+    budget: 11 * KB, // 9.07 kB at 9.0.0-next.0
   },
 ];
 const CSS_BUDGET = 2.5 * KB; // 2.15 kB at 9.0.0-next.1 (3.89 kB with its comments, as shipped)
