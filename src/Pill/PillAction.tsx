@@ -28,7 +28,10 @@ const PillAction = forwardRef<HTMLElement, PillActionProps>(function PillAction(
           {icon}
         </span>
       )}
-      <span data-mp="label">{label}</span>
+      {/* The inner span lets the stylesheet animate the label's real width */}
+      <span data-mp="label">
+        <span>{label}</span>
+      </span>
     </span>
   );
 
