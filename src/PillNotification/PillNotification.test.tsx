@@ -65,6 +65,39 @@ describe("PillNotification", () => {
     expect([...part("pill")!.children].map((child) => (child as HTMLElement).dataset.mp)).toEqual(["message"]);
   });
 
+  it.each([
+    ["a button", { onClick: () => {} }],
+    ["a link", { href: "/cart" }],
+  ] as const)("keeps the label of %s action open with expanded", (_kind, target) => {
+    // Act
+    render(
+      <Pill>
+        <PillNotification
+          message="Your current cart total is 768.99$"
+          action={{ icon: <CheckIcon />, label: "Checkout", expanded: true, ...target }}
+          panel={{ content: "Details", trigger: { label: "Learn more", icon: <CheckIcon />, expanded: true } }}
+        />
+      </Pill>,
+    );
+
+    // Assert
+    const actions = [...part("actions")!.querySelectorAll<HTMLElement>('[data-mp="action"]')];
+    expect(actions).toHaveLength(2);
+    for (const action of actions) expect(action.hasAttribute("data-expanded")).toBe(true);
+  });
+
+  it("shows action labels on hover and focus only, by default", () => {
+    // Act
+    render(
+      <Pill>
+        <PillNotification message="Hello" action={{ icon: <CheckIcon />, label: "OK", onClick: () => {} }} />
+      </Pill>,
+    );
+
+    // Assert
+    expect(part("action")!.hasAttribute("data-expanded")).toBe(false);
+  });
+
   it("renders link actions through linkComponent", () => {
     // Arrange
     const Link = vi.fn((props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => <a {...props} data-router="" />);

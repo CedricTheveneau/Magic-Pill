@@ -13,6 +13,8 @@ export type NotificationAction =
   | {
       icon?: ReactNode;
       label: string;
+      /** Always show the label, not only on hover and focus (phones don't hover). */
+      expanded?: boolean;
       /**
        * Inside a <MagicPill>, clicking an action dismisses the notification.
        * Call `event.preventDefault()` to keep it open.
@@ -20,13 +22,13 @@ export type NotificationAction =
       onClick: (event: MouseEvent<HTMLButtonElement>) => void;
       href?: undefined;
     }
-  | { icon?: ReactNode; label: string; href: string; onClick?: undefined };
+  | { icon?: ReactNode; label: string; expanded?: boolean; href: string; onClick?: undefined };
 
 export interface NotificationPanel {
   title?: ReactNode;
   content: ReactNode;
   /** The action that opens the panel. Default `{ icon: <PlusIcon />, label: "Learn more" }`. */
-  trigger?: { icon?: ReactNode; label: string };
+  trigger?: { icon?: ReactNode; label: string; expanded?: boolean };
   /** Default "Close". */
   closeLabel?: string;
 }
@@ -71,12 +73,13 @@ export function NotificationContent({
   const hasIcon = icon !== undefined && icon !== null;
 
   const renderAction = (notificationAction: NotificationAction) => {
-    const { icon: actionIcon, label } = notificationAction;
+    const { icon: actionIcon, label, expanded } = notificationAction;
     if (notificationAction.href !== undefined) {
       return (
         <PillAction
           icon={actionIcon}
           label={label}
+          expanded={expanded}
           href={notificationAction.href}
           linkComponent={linkComponent}
           className={classNames.action}
@@ -89,6 +92,7 @@ export function NotificationContent({
       <PillAction
         icon={actionIcon}
         label={label}
+        expanded={expanded}
         className={classNames.action}
         onClick={(event) => {
           onClick(event);
@@ -114,6 +118,7 @@ export function NotificationContent({
             <PillPanelTrigger
               icon={panel.trigger ? panel.trigger.icon : <PlusIcon />}
               label={panel.trigger?.label ?? "Learn more"}
+              expanded={panel.trigger?.expanded}
               className={classNames.action}
             />
           )}
