@@ -10,6 +10,7 @@ Work towards 9.0.0, the first release with a stable API. It's a breaking release
   - Horizontal or vertical orientation, and `neutral`, `success`, `danger` or custom variants
   - Stateless parts and `PillAction` can be rendered by React Server Components without becoming client code
   - The pill animates its real size, width and height together: a message that wraps to several lines, a panel opening or closing, a sidebar's labels unfolding. Its corners stay right at every frame: half the one-line pill's height, so a taller pill is a rounded rectangle, up to `--mp-radius-panel` for a panel
+  - Vertical pills line their items up along the screen edge they sit on (`left` or `right`), and a right-hand sidebar opens its labels towards the middle of the screen, so the icons stay in line; mirrored in right-to-left pages. The new `--mp-align` token (`start`, `center`, `end`) changes the alignment; an inline vertical pill stays centred
   - The panel grows out of the pill (upwards from a bottom pill, sideways from a sidebar) and closes back into it. Its content fades in as it grows, behind an edge that fades out as the panel settles, instead of appearing all at once
 - Link actions take a `linkComponent` (e.g. Next's `Link`) and only render relative, `http(s):`, `mailto:` and `tel:` URLs. Any other scheme, such as `javascript:`, renders no link
 - Templates built from those parts:

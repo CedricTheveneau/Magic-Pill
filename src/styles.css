@@ -233,9 +233,13 @@
         }
       }
 
-      /* Vertical pills (sidebars) */
+      /* Vertical pills (sidebars). Their items line up along the screen
+         edge they sit on (--mp-align: start, center or end, following the
+         text direction; centred when the pill isn't on a side) */
       &[data-orientation="vertical"] {
+        --_mp-align: var(--mp-align, center);
         flex-direction: column;
+        align-items: var(--_mp-align);
         inline-size: auto;
         block-size: fit-content;
         max-inline-size: none;
@@ -252,6 +256,38 @@
 
       &[data-orientation="vertical"]:is([data-presence="rest"], [data-presence="hidden"]) {
         block-size: var(--_mp-rest-size);
+      }
+
+      &[data-orientation="vertical"]:is([data-placement="left"]:dir(ltr), [data-placement="right"]:dir(rtl)) {
+        --_mp-align: var(--mp-align, start);
+      }
+
+      /* On the right-hand side (left-hand in right-to-left pages), labels
+         open towards the middle of the screen, so the icons stay in line
+         along the edge: the action reads the other way round (so its
+         spacing flips too), the label's text keeps the page's direction */
+      &[data-orientation="vertical"]:is([data-placement="right"]:dir(ltr), [data-placement="left"]:dir(rtl)) {
+        --_mp-align: var(--mp-align, end);
+      }
+
+      &[data-orientation="vertical"][data-placement="right"]:dir(ltr) {
+        & [data-mp="action-body"] {
+          direction: rtl;
+        }
+
+        & [data-mp="label"] > * {
+          direction: ltr;
+        }
+      }
+
+      &[data-orientation="vertical"][data-placement="left"]:dir(rtl) {
+        & [data-mp="action-body"] {
+          direction: ltr;
+        }
+
+        & [data-mp="label"] > * {
+          direction: rtl;
+        }
       }
 
       /* Parts */
@@ -299,6 +335,7 @@
 
       &[data-orientation="vertical"] [data-mp="actions"] {
         flex-direction: column;
+        align-items: var(--_mp-align);
       }
 
       /* The <a>/<button> stays neutral and the look lives on its inner body:

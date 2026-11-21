@@ -342,8 +342,11 @@ Twelve built-in icons, drawn in `currentColor` and decorative by default (`aria-
 | `--mp-backdrop` | the overlay's backdrop |
 | `--mp-duration-enter` / `--mp-duration-change` / `--mp-duration-exit` | `500ms` / `250ms` / `300ms` |
 | `--mp-scale-origin` | `center`: where the pill pops in from and scales out to (e.g. `bottom` to come out of the edge) |
+| `--mp-align` | How a vertical pill lines up its items: `start`, `center` or `end` (following the text direction). By default, along the screen edge for a `left` or `right` pill, centred otherwise |
 
 The pill fits small screens: sizes are in `rem`, fixed pills stay inside the viewport and its safe areas, and long panels scroll.
+
+**Sidebars:** a `left` or `right` pill lines its items up along the screen edge, and on the right-hand side its labels open towards the middle of the screen, so the icons stay in line (mirrored in right-to-left pages). Set `--mp-align` to change the alignment.
 
 **Shape and motion:** the pill animates its real size whenever its presence changes (a script measures it; with `unstyled` or reduced motion it doesn't). Its corners are half the one-line pill's height, so a taller pill, such as a wrapped message, is a rounded rectangle; a panel's corners are `--mp-radius-panel`.
 
