@@ -23,11 +23,11 @@ On top of it come ready-made **templates** (a notification, a navbar) and a **co
  - [X] A notification queue on top of a **base layer** (e.g. a navbar): notifications take the pill over, then hand it back
  - [X] Several named pills on one page, at any edge or corner, inline, or as a modal
  - [X] Anything inside: messages, icons and panels are React content; build your own templates from the same parts
- - [X] Shape-changing animations (circle ↔ pill ↔ panel) that respect reduced motion
+ - [X] Shape-changing animations (circle ↔ pill ↔ panel) at the pill's real size, that respect reduced motion
  - [X] Accessible: screen reader announcements, keyboard focus pauses the countdown, focus handling for panels and modals
  - [X] Works in any React 18+ app, including React Server Components (Next.js App Router), with any router
  - [X] Styles you can override without `!important`, design tokens, no fonts loaded behind your back
- - [X] Tiny: the quick start adds about **7.5 kB gzipped** to your app (5.3 kB of JavaScript + 2.3 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
+ - [X] Tiny: the quick start adds about **8.7 kB gzipped** to your app (6.4 kB of JavaScript + 2.3 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
  - [X] Written in TypeScript, zero runtime dependencies
 
 ## Installation
@@ -344,6 +344,8 @@ Twelve built-in icons, drawn in `currentColor` and decorative by default (`aria-
 | `--mp-scale-origin` | `center`: where the pill pops in from and scales out to (e.g. `bottom` to come out of the edge) |
 
 The pill fits small screens: sizes are in `rem`, fixed pills stay inside the viewport and its safe areas, and long panels scroll.
+
+**Shape and motion:** the pill animates its real size whenever its presence changes (a script measures it; with `unstyled` or reduced motion it doesn't). Its corners are half the one-line pill's height, so a taller pill, such as a wrapped message, is a rounded rectangle; a panel's corners are `--mp-radius-panel`.
 
 ## Accessibility
 - **Announcements:** each `<MagicPill>` has a polite live region that reads notifications out (or your `announce` text). A hidden pill leaves the accessibility tree.

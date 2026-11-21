@@ -1,6 +1,9 @@
 // Pure planning of the host's shape changes, so it can be tested without timers.
 import type { PillPresence } from "../Pill/types";
 import type { QueuedNotification } from "../store/store";
+import { parseDuration, prefersReducedMotion } from "../utils/timing";
+
+export { parseDuration };
 
 /** What the host's pill shows. */
 export type Scene =
@@ -138,22 +141,11 @@ export function batchSteps(current: Displayed, steps: readonly Step[]): Batch[] 
   return batches;
 }
 
-/** "500ms" or "0.5s" → 500; anything else → the fallback. */
-export function parseDuration(value: string, fallback: number): number {
-  const match = /^\s*([\d.]+)(ms|s)\s*$/.exec(value);
-  if (!match) return fallback;
-  const amount = Number.parseFloat(match[1]);
-  return match[2] === "s" ? amount * 1000 : amount;
-}
-
 /** The timings the stylesheet uses for this pill, or its defaults (e.g. when unstyled). */
 export function readTimings(element: HTMLElement | null): Timings {
   const style = element ? getComputedStyle(element) : null;
   const read = (name: string, fallback: number) => parseDuration(style?.getPropertyValue(name) ?? "", fallback);
-  const reduced =
-    typeof window !== "undefined" &&
-    typeof window.matchMedia === "function" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reduced = prefersReducedMotion();
   return reduced
     ? { enter: 0, fade: 0, change: 0, exit: 150, reduced }
     : {

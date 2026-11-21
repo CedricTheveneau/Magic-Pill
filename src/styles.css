@@ -74,11 +74,16 @@
       inline-size: fit-content;
       min-block-size: var(--_mp-rest-size);
       max-inline-size: var(--_mp-max-size);
+      position: relative;
       margin: 0;
       padding: var(--_mp-padding);
       overflow: hidden;
       border: 0;
-      border-radius: 9999px;
+      /* Half the one-line pill's height: round ends on a one-line pill, a
+         rounded rectangle when it grows taller (a wrapped message, a panel).
+         The browser shrinks it while the pill is smaller, so the size
+         animation (morph.ts) keeps the corners right at every frame */
+      border-radius: calc(var(--_mp-rest-size) / 2);
       background: var(--_mp-surface);
       color: var(--_mp-on-surface);
       box-shadow: var(--mp-shadow, 0 0.5rem 0.5rem rgb(20 20 20 / 0.45));
@@ -89,17 +94,11 @@
       /* Where the pill pops in from and scales out to: its centre, or e.g.
          bottom to come out of the edge a bottom pill sits on */
       transform-origin: var(--mp-scale-origin, center);
-      /* Lets the width animate from its real size (fit-content) to the
-         circle's, where supported; elsewhere max-inline-size does the work */
-      interpolate-size: allow-keywords;
+      /* The size itself is animated by script (morph.ts): CSS can't
+         transition a size that follows the content */
       transition:
         scale var(--_mp-enter) var(--_mp-ease-enter),
-        inline-size var(--_mp-change) ease-in-out,
-        block-size var(--_mp-change) ease-in-out,
-        max-inline-size var(--_mp-change) ease-in-out,
-        max-block-size var(--_mp-change) ease-in-out,
         border-radius var(--_mp-change) ease-in-out,
-        padding var(--_mp-change) ease-in-out,
         background-color var(--_mp-change) ease-in-out,
         visibility 0s;
 
@@ -128,17 +127,9 @@
         /* Fade the content out, shrink to a circle, scale out, then stop being visible */
         transition:
           scale var(--_mp-exit) ease-in calc(var(--_mp-fade) + var(--_mp-change)),
-          inline-size var(--_mp-change) ease-in-out var(--_mp-fade),
-          block-size var(--_mp-change) ease-in-out var(--_mp-fade),
-          max-inline-size var(--_mp-change) ease-in-out var(--_mp-fade),
-          max-block-size var(--_mp-change) ease-in-out var(--_mp-fade),
           border-radius var(--_mp-change) ease-in-out var(--_mp-fade),
-          padding var(--_mp-change) ease-in-out var(--_mp-fade),
           background-color var(--_mp-change) ease-in-out var(--_mp-fade),
           visibility 0s linear calc(var(--_mp-fade) + var(--_mp-change) + var(--_mp-exit));
-        /* An open horizontal pill has no height cap (none): without this, the
-           circle's cap would clip the content at once, while it still fades */
-        transition-behavior: allow-discrete;
       }
 
       /* A circle: both axes clamped, whatever the hidden content would need.
@@ -149,43 +140,27 @@
         max-block-size: var(--_mp-rest-size);
         transition:
           scale var(--_mp-enter) var(--_mp-ease-enter),
-          inline-size var(--_mp-change) ease-in-out var(--_mp-fade),
-          block-size var(--_mp-change) ease-in-out var(--_mp-fade),
-          max-inline-size var(--_mp-change) ease-in-out var(--_mp-fade),
-          max-block-size var(--_mp-change) ease-in-out var(--_mp-fade),
           border-radius var(--_mp-change) ease-in-out var(--_mp-fade),
-          padding var(--_mp-change) ease-in-out var(--_mp-fade),
           background-color var(--_mp-change) ease-in-out var(--_mp-fade),
           visibility 0s;
-        transition-behavior: allow-discrete;
       }
 
-      /* The content is never seen while the pill changes size, so long text
-         never overflows or reflows word by word. Closing: it fades out as it
-         is, then the message unwraps (out of sight) and the pill shrinks over
-         it. Opening: the pill grows with the message on one line, then it may
-         wrap and the content fades in (discrete transitions, where
-         supported). <MagicPill> renders new content closed first, so it opens
-         the same way (L21) */
+      /* The content is never seen while the pill changes size: the size
+         animation holds the pill's size while it reflows out of sight.
+         Closing: it fades out, then the pill shrinks. Opening: the pill
+         grows, then it fades in. <MagicPill> renders new content closed
+         first, so it opens the same way (L21) */
       & > :not([data-mp="icon"], [data-mp="panel"]) {
         transition:
           opacity var(--_mp-fade) ease-out var(--_mp-change),
-          visibility 0s,
-          white-space 0s linear var(--_mp-change);
-        transition-behavior: allow-discrete;
+          visibility 0s;
       }
 
       &:is([data-presence="rest"], [data-presence="hidden"]) > :not([data-mp="icon"], [data-mp="panel"]) {
         opacity: 0;
         transition:
           opacity var(--_mp-fade) ease-in,
-          visibility 0s linear calc(var(--_mp-fade) + var(--_mp-change)),
-          white-space 0s linear var(--_mp-fade);
-        transition-behavior: allow-discrete;
-      }
-
-      &:is([data-presence="rest"], [data-presence="hidden"]) > [data-mp="message"] {
-        white-space: nowrap;
+          visibility 0s linear calc(var(--_mp-fade) + var(--_mp-change));
       }
 
       &[data-presence="panel"] {
@@ -268,6 +243,11 @@
 
       &[data-orientation="vertical"]:not([data-presence="rest"], [data-presence="hidden"]) {
         max-block-size: calc(100dvh - 2 * var(--_mp-offset));
+      }
+
+      /* A sidebar's panel keeps the panel's width cap, like any other */
+      &[data-orientation="vertical"][data-presence="panel"] {
+        max-inline-size: var(--_mp-max-size);
       }
 
       &[data-orientation="vertical"]:is([data-presence="rest"], [data-presence="hidden"]) {
@@ -382,25 +362,43 @@
         block-size: 1em;
       }
 
-      /* Labels: folded away (but still the accessible name) until expanded */
+      /* Labels: folded away (but still the accessible name) until expanded.
+         A grid column from 0fr to 1fr animates the label's real width, so
+         the pill widens at the same pace as it unfolds */
       & [data-mp="label"] {
-        max-inline-size: 0;
+        display: grid;
+        grid-template-columns: 0fr;
+        max-inline-size: 20rem;
         opacity: 0;
         transition:
-          max-inline-size var(--_mp-change) ease-in-out,
+          grid-template-columns var(--_mp-change) ease-in-out,
           opacity var(--_mp-change) ease-in-out,
           margin var(--_mp-change) ease-in-out;
+
+        & > * {
+          min-inline-size: 0;
+          overflow: hidden;
+        }
+      }
+
+      /* In a column, the pill is as wide as its widest item: a label folds
+         only once the next one has unfolded, so the pill never narrows in
+         between (and moving the pointer from item to item keeps it steady) */
+      &[data-orientation="vertical"] :is([data-mp="label"], [data-mp="action-body"]) {
+        transition-delay: var(--_mp-change);
       }
 
       & [data-mp="action"]:is(:focus-visible, [data-expanded], [aria-current="page"], [aria-current="true"]),
       &:is([data-presence="expanded"], [data-presence="panel"]) [data-mp="action"] {
         & [data-mp="action-body"] {
           padding-inline-end: calc(var(--_mp-action-size) / 2.5);
+          transition-delay: 0s;
         }
 
         & [data-mp="label"] {
-          max-inline-size: 20rem;
+          grid-template-columns: 1fr;
           opacity: 1;
+          transition-delay: 0s;
         }
 
         & [data-mp="action-icon"] + [data-mp="label"] {
@@ -414,11 +412,13 @@
         & [data-mp="action"]:hover {
           & [data-mp="action-body"] {
             padding-inline-end: calc(var(--_mp-action-size) / 2.5);
+            transition-delay: 0s;
           }
 
           & [data-mp="label"] {
-            max-inline-size: 20rem;
+            grid-template-columns: 1fr;
             opacity: 1;
+            transition-delay: 0s;
           }
 
           & [data-mp="action-icon"] + [data-mp="label"] {
@@ -427,17 +427,30 @@
         }
       }
 
-      /* Panel */
+      /* Panel: its content fades in over the second half of the pill's
+         growth (the size animation fades its clipped edge), and out as the
+         pill shrinks, out of the flow so the pill can take its closed size */
       & [data-mp="panel"] {
         display: grid;
         gap: var(--_mp-gap);
         outline: none;
         opacity: 1;
-        transition: opacity var(--_mp-change) ease-out var(--_mp-change);
+        transition: opacity var(--_mp-change) ease-out calc(var(--_mp-change) / 2);
 
         @starting-style {
           opacity: 0;
         }
+      }
+
+      & [data-mp="panel"]:not([data-open]) {
+        position: absolute;
+        inset-block-start: calc(var(--_mp-padding) * 2.5);
+        inset-inline-start: calc(var(--_mp-padding) * 2.5);
+        opacity: 0;
+        transition:
+          opacity var(--_mp-fade) ease-in,
+          display 0s linear var(--_mp-fade);
+        transition-behavior: allow-discrete;
       }
 
       & [data-mp="panel-title"] {

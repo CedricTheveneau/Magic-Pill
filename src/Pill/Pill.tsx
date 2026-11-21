@@ -11,6 +11,7 @@ import {
   type SyntheticEvent,
 } from "react";
 
+import { useSizeMorph } from "./morph";
 import { PillContext, type InternalPillContextValue } from "./PillContext";
 import type { PillOrientation, PillPresence, PillProps } from "./types";
 import { inertProps, mergeRefs } from "../utils/react";
@@ -48,6 +49,7 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
   const ref = useMemo(() => mergeRefs(rootRef, forwardedRef), [forwardedRef]);
   const panelTriggerRef = useRef<HTMLElement | null>(null);
   const panelId = useId();
+  useSizeMorph(rootRef, presence, !unstyled);
 
   // Where closing the panel goes back to: the last visible level other than the panel
   const returnPresenceRef = useRef<PillPresence>("compact");
