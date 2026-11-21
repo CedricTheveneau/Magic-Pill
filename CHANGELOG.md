@@ -21,6 +21,7 @@ Work towards 9.0.0, the first release with a stable API. It's a breaking release
   - `duration` per notification or on the host (`Infinity` keeps it). The countdown pauses on hover, keyboard focus, an open panel and a hidden browser tab
   - Action clicks dismiss the notification unless the handler calls `event.preventDefault()`; `onDismiss(id, reason)` reports `timeout`, `action`, `dismissed` or `cleared`
   - `render` for your own template, which keeps the queue, timing and animation
+  - `expanded: true` on a notification's action (or its panel trigger) keeps its label open, not only on hover and focus, so phones show it too
   - Several named hosts per page (`<MagicPill name="sidebar">`), and `idle="rest"` for a discreet resting circle
   - Shape changes: the pill collapses to a circle, swaps its content there and grows back; with reduced motion, it fades instead
   - Announcements go through a separate live region, so a hidden pill can leave the accessibility tree

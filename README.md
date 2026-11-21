@@ -110,8 +110,8 @@ const id = pill().notify({
 |---|---|---|
 | `message` | `ReactNode` | Required (unless you use `render`). Any content, e.g. `<>Total: <strong>768.99$</strong></>`. Never parsed as HTML. |
 | `icon` | `ReactNode` | The leading icon, followed by the divider. |
-| `action` | `{ icon?, label, onClick }` or `{ icon?, label, href }` | The round button. Its label shows on hover and focus. Clicking it dismisses the notification; call `event.preventDefault()` in `onClick` to keep it open. |
-| `panel` | `{ title?, content, trigger?, closeLabel? }` | A "Learn more" action that grows the pill into a panel. `trigger` defaults to `{ icon: <PlusIcon />, label: "Learn more" }`, `closeLabel` to `"Close"`. |
+| `action` | `{ icon?, label, onClick }` or `{ icon?, label, href }`, plus `expanded?` | The round button. Its label shows on hover and focus, or all the time with `expanded: true` (phones don't hover). Clicking it dismisses the notification; call `event.preventDefault()` in `onClick` to keep it open. |
+| `panel` | `{ title?, content, trigger?, closeLabel? }` | A "Learn more" action that grows the pill into a panel. `trigger` defaults to `{ icon: <PlusIcon />, label: "Learn more" }` and takes `expanded` too, `closeLabel` to `"Close"`. |
 | `variant` | `"neutral"` · `"success"` · `"danger"` · any string | Defaults to the host's variant. |
 | `duration` | `number` (ms) | Defaults to the host's (5000). `Infinity` keeps it until dismissed. |
 | `id` | `string` | Notifying again with the same id updates the notification in place. |
