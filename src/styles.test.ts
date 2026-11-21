@@ -51,6 +51,17 @@ describe("styles.css", () => {
     }
   });
 
+  it("lines a sidebar's items up along its screen edge, overridable with --mp-align", () => {
+    // Assert
+    expect(withoutComments).toContain("--_mp-align: var(--mp-align, center);");
+    expect(withoutComments).toMatch(
+      /\[data-placement="left"\]:dir\(ltr\), \[data-placement="right"\]:dir\(rtl\)\)\s*{\s*--_mp-align: var\(--mp-align, start\);/,
+    );
+    expect(withoutComments).toMatch(
+      /\[data-placement="right"\]:dir\(ltr\), \[data-placement="left"\]:dir\(rtl\)\)\s*{\s*--_mp-align: var\(--mp-align, end\);/,
+    );
+  });
+
   it("follows prefers-reduced-motion", () => {
     // Assert
     expect(withoutComments).toContain("@media (prefers-reduced-motion: reduce)");
