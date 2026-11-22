@@ -35,6 +35,26 @@ describe("planSteps", () => {
     ]);
   });
 
+  it("swaps the next notification in place, without the circle (the host slides them)", () => {
+    // Act
+    const steps = planSteps({ scene: note("a"), presence: "compact" }, note("b"), timings);
+
+    // Assert
+    expect(summary(steps)).toEqual([[0, "compact", "b"]]);
+  });
+
+  it.each(["expanded", "panel"] as const)("still goes through the circle from the %s level", (level) => {
+    // Act
+    const steps = planSteps({ scene: note("a"), presence: level }, note("b"), timings);
+
+    // Assert
+    expect(summary(steps)).toEqual([
+      [0, "rest", "a"],
+      [400, "rest", "b"],
+      [0, "compact", "b"],
+    ]);
+  });
+
   it("hides, then drops the content once it's out of sight", () => {
     // Act
     const steps = planSteps({ scene: note("a"), presence: "expanded" }, NONE, timings);

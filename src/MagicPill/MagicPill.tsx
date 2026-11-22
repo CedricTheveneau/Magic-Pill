@@ -2,6 +2,7 @@
 import {
   forwardRef,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -12,6 +13,7 @@ import {
 } from "react";
 
 import Pill from "../Pill/Pill";
+import { captureSwap, playSwap, type SwapCapture } from "../Pill/morph";
 import { PillIcon } from "../Pill/parts";
 import type { LinkComponent, PillPresence, PillProps } from "../Pill/types";
 import { NotificationContent, type PillNotificationClassNames } from "../PillNotification/PillNotification";
@@ -25,6 +27,7 @@ import {
   NONE,
   batchSteps,
   isOpen,
+  isSwap,
   planSteps,
   readTimings,
   type Displayed,
@@ -66,6 +69,15 @@ const VISUALLY_HIDDEN: CSSProperties = {
   whiteSpace: "nowrap",
   border: 0,
 };
+
+// What the pill says, leaving out the copy of the previous notification sliding out
+const isCurrent = (element: Element) => !element.closest('[data-mp="outgoing"]');
+function readMessage(root: HTMLElement | null): string {
+  if (!root) return "";
+  const message = [...root.querySelectorAll('[data-mp="message"]')].find(isCurrent);
+  const parts = message ? [message] : [...root.children].filter(isCurrent);
+  return parts.map((part) => part.textContent).join("").trim();
+}
 
 const hasContent = (node: ReactNode) => node !== undefined && node !== null && node !== false;
 
@@ -131,6 +143,14 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
   displayedRef.current = displayed;
   // States to show one render after another
   const followUps = useRef<Displayed[]>([]);
+  // The notification on screen as the next one replaces it, to slide it out
+  const swap = useRef<SwapCapture | null>(null);
+
+  useLayoutEffect(() => {
+    const capture = swap.current;
+    swap.current = null;
+    if (capture && rootRef.current) playSwap(rootRef.current, capture);
+  }, [displayed]);
 
   // New content is on the page in its closed state: have the browser style it
   // (reading a layout value forces that), then open the pill, so the content
@@ -149,6 +169,7 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
     const batches = batchSteps(current, planSteps(current, target, readTimings(rootRef.current)));
     const timers = batches.map(({ at, states }) => {
       const apply = () => {
+        if (isSwap(displayedRef.current, states[0])) swap.current = captureSwap(rootRef.current);
         followUps.current = states.slice(1);
         setDisplayed(states[0]);
       };
@@ -195,11 +216,7 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
     if (!shown) return;
     const { announce } = shown.input;
     if (announce === false) return;
-    const root = rootRef.current;
-    const text =
-      typeof announce === "string"
-        ? announce
-        : (root?.querySelector('[data-mp="message"]') ?? root)?.textContent?.trim() ?? "";
+    const text = typeof announce === "string" ? announce : readMessage(rootRef.current);
     if (text) setAnnouncement((previous) => (previous?.key === shown ? previous : { key: shown, text }));
   }, [shown]);
 
