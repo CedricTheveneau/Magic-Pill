@@ -166,12 +166,21 @@ export interface SwapPlan {
 /**
  * One content replacing another in an open pill, in one overlapping movement
  * (the "rubik's cube"): the old content slides out through the top, the pill
- * resizes, the new content comes in from the bottom. A row's content lines up
- * on the anchor side (`undefined`: a column, left alone). Pure, so it can be tested.
+ * resizes, the new content comes in from the bottom (`down`: the other way
+ * round, for a pill at the top of the screen). A row's content lines up on
+ * the anchor side (`undefined`: a column, left alone). Pure, so it can be tested.
  */
-export function planSwap(from: Size, to: Size, timings: MorphTimings, anchor?: SwapAnchor): SwapPlan | null {
+export function planSwap(
+  from: Size,
+  to: Size,
+  timings: MorphTimings,
+  anchor?: SwapAnchor,
+  down = false,
+): SwapPlan | null {
   const total = timings.fade + timings.change;
   if (total <= 0) return null;
+  const out = down ? "" : "-";
+  const into = down ? "-" : "";
   const justify = anchor && { justifyContent: anchor === "center" ? anchor : `flex-${anchor}` };
   // Each content travels its own height. The new one is held at its final
   // width, or a message would rewrap at every frame of the resize.
@@ -182,12 +191,12 @@ export function planSwap(from: Size, to: Size, timings: MorphTimings, anchor?: S
       options: { id: MORPH, duration: total * 0.6, delay: total * 0.15, easing: EASING, fill: "backwards" },
     },
     outgoing: {
-      keyframes: [{}, { transform: `translateY(-${px(from.height)})`, opacity: 0 }],
+      keyframes: [{}, { transform: `translateY(${out}${px(from.height)})`, opacity: 0 }],
       options: { id: MORPH, duration: total * 0.45, easing: "ease-in", fill: "forwards" },
     },
     incoming: (width) => ({
       keyframes: [
-        { ...held(width), transform: `translateY(${px(to.height)})`, opacity: 0 },
+        { ...held(width), transform: `translateY(${into}${px(to.height)})`, opacity: 0 },
         { ...held(width), transform: "none", opacity: 1 },
       ],
       options: { id: MORPH, duration: total * 0.65, delay: total * 0.35, easing: "ease-out", fill: "backwards" },
@@ -195,11 +204,12 @@ export function planSwap(from: Size, to: Size, timings: MorphTimings, anchor?: S
   };
 }
 
-/** The content a swap slides out, the pill's size when it left, and the side that stays put. */
+/** The content a swap slides out, the pill's size when it left, the side that stays put, and the way it goes. */
 export interface SwapCapture {
   from: Size;
   outgoing: HTMLElement;
   anchor?: SwapAnchor;
+  down: boolean;
 }
 
 /**
@@ -226,21 +236,23 @@ export function captureSwap(element: HTMLElement | null): SwapCapture | null {
   // A row stays put on the side its placement pins; a column, where its items line up
   const style = getComputedStyle(element);
   const row = style.flexDirection.startsWith("row");
-  const side = row ? (element.dataset.placement ?? "").replace("inline", "-start") : style.alignItems;
+  const placement = element.dataset.placement ?? "";
+  const side = row ? placement.replace("inline", "-start") : style.alignItems;
   const anchor: SwapAnchor = /start$/.test(side) ? "start" : /end$/.test(side) ? "end" : "center";
   // Laid out like the pill, at the size it had, on that side
   outgoing.style.cssText = `position:absolute;inset-block:0;margin-block:auto;${
     anchor === "center" ? "inset-inline:0;margin-inline:auto" : `inset-inline-${anchor}:0`
   };box-sizing:border-box;width:${px(from.width)};height:${px(from.height)};display:flex;flex-direction:inherit;align-items:inherit;justify-content:inherit;gap:inherit;padding:inherit;pointer-events:none`;
   element.append(outgoing);
-  return { from, outgoing, anchor: row ? anchor : undefined };
+  // A pill at the top of the screen turns the other way: out through its bottom edge, in from the top
+  return { from, outgoing, anchor: row ? anchor : undefined, down: placement.startsWith("top") };
 }
 
 /** Once the new content is in: the swap prepared by `captureSwap`, played. */
-export function playSwap(element: HTMLElement, { from, outgoing, anchor }: SwapCapture) {
+export function playSwap(element: HTMLElement, { from, outgoing, anchor, down }: SwapCapture) {
   // Its natural size, free of an animation still running (e.g. the pill growing)
   stopMorphs(element, outgoing);
-  const plan = planSwap(from, readSize(element), readMorphTimings(element), anchor);
+  const plan = planSwap(from, readSize(element), readMorphTimings(element), anchor, down);
   const done = () => outgoing.remove();
   if (!plan) return done();
   const incoming = [...element.children].filter((child) => child !== outgoing);

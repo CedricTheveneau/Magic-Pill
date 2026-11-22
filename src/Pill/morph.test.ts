@@ -130,6 +130,15 @@ describe("planSwap", () => {
     ]);
   });
 
+  it("turns the other way for a pill at the top: out through the bottom, in from the top", () => {
+    // Act
+    const plan = planSwap({ width: 147, height: 72 }, TALL, TIMINGS, "center", true)!;
+
+    // Assert
+    expect(plan.outgoing.keyframes[1]).toEqual({ transform: "translateY(72px)", opacity: 0 });
+    expect(plan.incoming(314).keyframes[0]).toMatchObject({ transform: "translateY(-126px)", opacity: 0 });
+  });
+
   it("holds the new content at its final width, so it doesn't rewrap while the pill resizes", () => {
     // Act
     const { keyframes } = planSwap(PILL, TALL, TIMINGS, "center")!.incoming(314);
@@ -162,6 +171,28 @@ describe("planSwap", () => {
 describe("captureSwap", () => {
   afterEach(() => {
     delete (HTMLElement.prototype as Partial<HTMLElement>).animate;
+  });
+
+  it.each([
+    ["top", true],
+    ["top-end", true],
+    ["bottom", false],
+    ["inline", false],
+  ])("lays an inert copy over a %s pill, which turns down: %s", (placement, down) => {
+    // Arrange
+    Object.defineProperty(HTMLElement.prototype, "animate", { value: vi.fn(), configurable: true });
+    const pill = document.createElement("div");
+    pill.dataset.placement = placement;
+    pill.innerHTML = '<span data-mp="message" id="m">Hi</span>';
+
+    // Act
+    const capture = captureSwap(pill)!;
+
+    // Assert
+    expect(capture.down).toBe(down);
+    expect(capture.outgoing.parentElement).toBe(pill);
+    expect(capture.outgoing.hasAttribute("inert")).toBe(true);
+    expect(capture.outgoing.querySelector("[id]")).toBeNull();
   });
 
   it("does nothing for unstyled pills or without the Web Animations API", () => {
