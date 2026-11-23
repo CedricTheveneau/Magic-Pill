@@ -21,7 +21,7 @@ const PROBES = [
     description: "the quick start: the host, the store and the notification template",
     code: 'export { MagicPill, pill } from "ENTRY";',
     // Raised from 5.5 kB for the size animation (Pill/morph.ts): 6.36 kB,
-    // then from 6.5 kB for the queue's swap animation: 7.38 kB
+    // then from 6.5 kB for the queue's swap animation: 7.47 kB
     budget: 7.5 * KB, // 4.89 kB at 9.0.0-next.0
   },
   {
@@ -36,7 +36,7 @@ const PROBES = [
     description: "every export, icons included",
     code: 'export * from "ENTRY";',
     // Raised from 10 kB for the size animation (Pill/morph.ts): 10.61 kB,
-    // then from 11 kB for the queue's swap animation: 11.64 kB
+    // then from 11 kB for the queue's swap animation: 11.74 kB
     budget: 12 * KB, // 9.07 kB at 9.0.0-next.0
   },
 ];
