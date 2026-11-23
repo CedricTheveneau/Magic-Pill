@@ -110,6 +110,11 @@ p {
   color: var(--muted);
 }
 
+.early-access code {
+  color: var(--ink);
+  white-space: nowrap;
+}
+
 .links {
   display: flex;
   flex-wrap: wrap;

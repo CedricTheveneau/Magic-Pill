@@ -11,8 +11,11 @@ export default function Home() {
           pills building a whole interface.
         </p>
         <pre className="code code-inline">
-          <code>npm install magic-pill@next</code>
+          <code>npm install magic-pill@latest</code>
         </pre>
+        <p className="hint early-access">
+          Want to see what we’re building before everyone else? <code>npm install magic-pill@next</code>
+        </p>
         <p className="links">
           <a href="https://github.com/CedricTheveneau/Magic-Pill#readme">Documentation</a>
           <a href="https://www.npmjs.com/package/magic-pill">npm</a>
