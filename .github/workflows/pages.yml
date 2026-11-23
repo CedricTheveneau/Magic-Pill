@@ -1,16 +1,17 @@
 name: Demo
 
 # Lints and builds the demo (magic-pill-demo/) on pull requests, and deploys
-# it to GitHub Pages on main. The deployment uses GitHub Pages' own Actions
+# it to GitHub Pages on main. Its migration page renders MIGRATING.md, so a
+# change there redeploys it too. The deployment uses GitHub Pages' own Actions
 # artifact (free on public repos): nothing is pushed to a gh-pages branch.
 # It needs the repo's Pages source set to "GitHub Actions".
 
 on:
   push:
     branches: [main]
-    paths: ['magic-pill-demo/**', '.github/workflows/pages.yml', '.nvmrc']
+    paths: ['magic-pill-demo/**', 'MIGRATING.md', '.github/workflows/pages.yml', '.nvmrc']
   pull_request:
-    paths: ['magic-pill-demo/**', '.github/workflows/pages.yml', '.nvmrc']
+    paths: ['magic-pill-demo/**', 'MIGRATING.md', '.github/workflows/pages.yml', '.nvmrc']
   workflow_dispatch:
 
 permissions:

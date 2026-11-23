@@ -4,6 +4,7 @@ import "./globals.css";
 
 import { AppPill } from "./app-pill";
 import { DemoProvider } from "./demo-context";
+import { HelpPill } from "./help-pill";
 
 // The README's font recipe: next/font self-hosts the fonts (nothing is loaded
 // from Google at runtime) and `variable` sets Magic Pill's font tokens
@@ -26,6 +27,7 @@ export default function RootLayout({ children }) {
       <body>
         <DemoProvider>
           {children}
+          <HelpPill />
           <AppPill />
         </DemoProvider>
       </body>
