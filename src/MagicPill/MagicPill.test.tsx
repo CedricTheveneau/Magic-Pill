@@ -78,7 +78,7 @@ describe("MagicPill", () => {
       expect(message()).toBeNull();
     });
 
-    it("shows queued notifications one after the other, swapping at the circle", () => {
+    it("shows queued notifications one after the other, swapping in the open pill", () => {
       // Arrange
       render(<MagicPill />);
       show({ message: "first" });
@@ -88,14 +88,103 @@ describe("MagicPill", () => {
       // Act
       advance(DURATION);
 
+      // Assert: no circle in between
+      expect(presence()).toBe("compact");
+      expect(message()).toBe("second");
+      advance(DURATION);
+      expect(presence()).toBe("hidden");
+    });
+
+    it("with swap=\"never\", goes through the circle between notifications", () => {
+      // Arrange
+      render(<MagicPill swap="never" />);
+      show({ message: "first" });
+      notify({ message: "second" });
+
+      // Act
+      advance(DURATION);
+
       // Assert
       expect(presence()).toBe("rest");
-      expect(message()).toBe("first");
       advance(FADE + CHANGE);
       expect(message()).toBe("second");
       expect(presence()).toBe("compact");
-      advance(DURATION);
-      expect(presence()).toBe("hidden");
+      expect(root().hasAttribute("swap")).toBe(false);
+    });
+
+    it("with swap=\"always\", also swaps between the base layer and notifications", () => {
+      // Arrange
+      render(
+        <MagicPill swap="always">
+          <PillNavbar items={items} pathname="/" />
+        </MagicPill>,
+      );
+
+      // Act + Assert: in, without the circle
+      notify({ message: "Saved", duration: 1000 });
+      expect(presence()).toBe("compact");
+      expect(message()).toBe("Saved");
+
+      // Act + Assert: and back
+      advance(1000);
+      expect(presence()).toBe("compact");
+      expect(message()).toBeNull();
+      expect(screen.getByRole("navigation")).toBeTruthy();
+    });
+
+    describe("the swap's animation", () => {
+      let finish: () => void;
+      const outgoing = () => root().querySelector<HTMLElement>('[data-mp="outgoing"]');
+
+      beforeEach(() => {
+        const finished = new Promise<void>((resolve) => {
+          finish = resolve;
+        });
+        const animate = vi.fn(() => ({ finished, cancel: vi.fn() }));
+        Object.defineProperty(HTMLElement.prototype, "animate", { value: animate, configurable: true });
+      });
+
+      afterEach(() => {
+        delete (HTMLElement.prototype as Partial<HTMLElement>).animate;
+      });
+
+      it("slides out a copy of the previous notification, hidden from assistive tech, then removes it", async () => {
+        // Arrange
+        render(<MagicPill />);
+        show({ message: "first", panel: { title: "More", content: "Details" } });
+        notify({ message: "second" });
+
+        // Act
+        advance(DURATION);
+
+        // Assert: a still copy over the new content, out of the accessibility tree
+        const copy = outgoing()!;
+        expect(copy.textContent).toContain("first");
+        expect(copy.getAttribute("aria-hidden")).toBe("true");
+        expect(copy.hasAttribute("inert")).toBe(true);
+        expect(copy.querySelector("[id]")).toBeNull();
+        expect(root().querySelector(':scope > [data-mp="message"]')?.textContent).toBe("second");
+        expect(screen.getByRole("status").textContent).toBe("second");
+
+        // Act + Assert: gone once the animation ends
+        await act(async () => finish());
+        expect(outgoing()).toBeNull();
+      });
+
+      it("drops the copy when the pill changes level meanwhile", () => {
+        // Arrange
+        render(<MagicPill />);
+        const first = show({ message: "first", duration: Infinity });
+        notify({ message: "second", duration: Infinity });
+        act(() => pill().dismiss(first));
+        expect(outgoing()).not.toBeNull();
+
+        // Act
+        act(() => pill().clear());
+
+        // Assert
+        expect(outgoing()).toBeNull();
+      });
     });
 
     it("shows notifications sent before it mounted", () => {

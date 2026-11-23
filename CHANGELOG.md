@@ -24,7 +24,7 @@ Work towards 9.0.0, the first release with a stable API. It's a breaking release
   - `render` for your own template, which keeps the queue, timing and animation
   - `expanded: true` on a notification's action (or its panel trigger) keeps its label open, not only on hover and focus, so phones show it too
   - Several named hosts per page (`<MagicPill name="sidebar">`), and `idle="rest"` for a discreet resting circle
-  - Shape changes: the pill collapses to a circle, swaps its content there and grows back; with reduced motion, it fades instead
+  - Shape changes: the next notification in the queue replaces the current one in one movement, without closing the pill: the current one slides out through the top while the pill resizes, and the next one comes in from the bottom (the other way round for a pill at the top of the screen). Other changes (the navbar and a notification) collapse to a circle, swap the content there and grow back. `swap="always"` slides between the base layer and notifications too, so it all feels like one pill; `swap="never"` uses the circle everywhere. With reduced motion, the pill fades instead
   - Announcements go through a separate live region, so a hidden pill can leave the accessibility tree
   - On the server, `pill()` does nothing (it warns in development), so requests never share notifications
 - `usePillQueue(name)`: the queue as a hook, to build your own host
@@ -40,7 +40,7 @@ Work towards 9.0.0, the first release with a stable API. It's a breaking release
 
 ### Changed
 - The published JavaScript is readable (not minified) and has no source maps. Your app bundles exactly the same amount of code (your bundler minifies it), and the package is about 40% smaller to install (196 kB unpacked instead of 331 kB in 9.0.0-next.0)
-- Size, measured and checked in CI: the quick start (`MagicPill` + `pill()`) adds about 6.4 kB of gzipped JavaScript and 2.3 kB of gzipped CSS to an app (both minified, as your bundler does); a hand-written `Pill` with its parts, about 2.8 kB of JavaScript, most of it the size animation
+- Size, measured and checked in CI: the quick start (`MagicPill` + `pill()`) adds about 7.5 kB of gzipped JavaScript and 2.4 kB of gzipped CSS to an app (both minified, as your bundler does); a hand-written `Pill` with its parts, about 2.9 kB of JavaScript, most of it the size animation
 
 ### Fixed (since 9.0.0-next.0)
 - Global resets on links and buttons, such as `a { color: inherit }` or `button { background: none }`, no longer blank out the pill's actions: their look now lives on an inner `[data-mp="action-body"]`

@@ -43,11 +43,26 @@ export interface MorphPlan {
 }
 
 const CLOSED: ReadonlySet<PillPresence> = new Set(["rest", "hidden"]);
+/** Tags this module's animations, so a size change can stop the one before it. */
+const MORPH = "mp-morph";
 /** The length of the fading edge over the panel's clipped content. */
 const EDGE = 48;
 const EASING = "ease-in-out";
 
 const px = (value: number) => `${Math.max(0, Math.round(value * 100) / 100)}px`;
+/**
+ * The pill at a size. Nothing in the stylesheet may cap it meanwhile (the
+ * circle clamps both axes, a panel scrolls past a maximum height).
+ */
+const sized = (size: Size): Keyframe => ({
+  minWidth: "0px",
+  minHeight: "0px",
+  maxWidth: "none",
+  maxHeight: "none",
+  overflow: "hidden",
+  width: px(size.width),
+  height: px(size.height),
+});
 const sameSize = (a: Size, b: Size) => Math.abs(a.width - b.width) < 1 && Math.abs(a.height - b.height) < 1;
 
 /**
@@ -91,14 +106,8 @@ export function planMorph(
   if (timings.change <= 0 || sameSize(from, to)) return null;
   // Closing to the circle: the content fades out first, then the pill shrinks
   const delay = CLOSED.has(next) && !CLOSED.has(previous) ? timings.fade : 0;
-  // Nothing in the stylesheet may cap the animated size (the circle clamps
-  // both axes, a panel scrolls past a maximum height)
-  const free = { minWidth: "0px", minHeight: "0px", maxWidth: "none", maxHeight: "none", overflow: "hidden" };
   const plan: MorphPlan = {
-    pill: [
-      { ...free, width: px(from.width), height: px(from.height) },
-      { ...free, width: px(to.width), height: px(to.height) },
-    ],
+    pill: [sized(from), sized(to)],
     options: { duration: timings.change, delay, easing: EASING, fill: "backwards" },
   };
   // A panel opening (or closing): its content shows as the pill grows (or
@@ -122,6 +131,148 @@ export function planMorph(
 }
 
 const readSize = (element: HTMLElement): Size => ({ width: element.offsetWidth, height: element.offsetHeight });
+
+/**
+ * Stops the size animations running on the pill (and in it), and drops the
+ * copy of the content a swap slides out (but `keep`). Returns whether anything ran.
+ */
+function stopMorphs(element: HTMLElement, keep?: Element): boolean {
+  let stopped = false;
+  for (const animation of element.getAnimations?.({ subtree: true }) ?? []) {
+    if (animation.id === MORPH) {
+      animation.cancel();
+      stopped = true;
+    }
+  }
+  for (const outgoing of element.querySelectorAll(':scope > [data-mp="outgoing"]')) {
+    if (outgoing !== keep) {
+      outgoing.remove();
+      stopped = true;
+    }
+  }
+  return stopped;
+}
+
+/**
+ * The size to the fraction of a pixel (offsetWidth rounds it): the copy of a
+ * message that just fits would wrap otherwise. An open pill isn't scaled.
+ */
+const readExactSize = (element: HTMLElement): Size => {
+  const { width, height } = element.getBoundingClientRect();
+  return { width, height };
+};
+
+/** Where the content sits along the pill's inline axis while it resizes: the side that stays put. */
+export type SwapAnchor = "start" | "center" | "end";
+
+export interface SwapPlan {
+  pill: { keyframes: Keyframe[]; options: KeyframeAnimationOptions };
+  outgoing: { keyframes: Keyframe[]; options: KeyframeAnimationOptions };
+  /** For each incoming child, from its natural (final) width */
+  incoming: (width: number) => { keyframes: Keyframe[]; options: KeyframeAnimationOptions };
+}
+
+/**
+ * One content replacing another in an open pill, in one overlapping movement
+ * (the "rubik's cube"): the old content slides out through the top, the pill
+ * resizes, the new content comes in from the bottom (`down`: the other way
+ * round, for a pill at the top of the screen). A row's content lines up on
+ * the anchor side (`undefined`: a column, left alone). Pure, so it can be tested.
+ */
+export function planSwap(
+  from: Size,
+  to: Size,
+  timings: MorphTimings,
+  anchor?: SwapAnchor,
+  down = false,
+): SwapPlan | null {
+  const total = timings.fade + timings.change;
+  if (total <= 0) return null;
+  const out = down ? "" : "-";
+  const into = down ? "-" : "";
+  const justify = anchor && { justifyContent: anchor === "center" ? anchor : `flex-${anchor}` };
+  // Each content travels its own height. The new one is held at its final
+  // width, or a message would rewrap at every frame of the resize.
+  const held = (width: number) => ({ flexShrink: 0, width: px(width) });
+  return {
+    pill: {
+      keyframes: [{ ...sized(from), ...justify }, { ...sized(to), ...justify }],
+      options: { id: MORPH, duration: total * 0.6, delay: total * 0.15, easing: EASING, fill: "backwards" },
+    },
+    outgoing: {
+      keyframes: [{}, { transform: `translateY(${out}${px(from.height)})`, opacity: 0 }],
+      options: { id: MORPH, duration: total * 0.45, easing: "ease-in", fill: "forwards" },
+    },
+    incoming: (width) => ({
+      keyframes: [
+        { ...held(width), transform: `translateY(${into}${px(to.height)})`, opacity: 0 },
+        { ...held(width), transform: "none", opacity: 1 },
+      ],
+      options: { id: MORPH, duration: total * 0.65, delay: total * 0.35, easing: "ease-out", fill: "backwards" },
+    }),
+  };
+}
+
+/** The content a swap slides out, the pill's size when it left, the side that stays put, and the way it goes. */
+export interface SwapCapture {
+  from: Size;
+  outgoing: HTMLElement;
+  anchor?: SwapAnchor;
+  down: boolean;
+}
+
+/**
+ * Before new content replaces the pill's: a still copy of what's on screen,
+ * laid over it, to slide out once the new content is in. Null when there's
+ * nothing to animate (unstyled, reduced motion, no Web Animations API).
+ */
+export function captureSwap(element: HTMLElement | null): SwapCapture | null {
+  if (!element || element.hasAttribute("data-unstyled") || !element.animate || prefersReducedMotion()) return null;
+  const from = readExactSize(element);
+  const outgoing = document.createElement("div");
+  for (const child of element.children) {
+    if (child.getAttribute("data-mp") !== "outgoing") outgoing.append(child.cloneNode(true));
+  }
+  stopMorphs(element);
+  // For the eyes only: no ids or radio groups shared with the real content
+  for (const node of outgoing.querySelectorAll("[id], [name]")) {
+    node.removeAttribute("id");
+    node.removeAttribute("name");
+  }
+  outgoing.setAttribute("data-mp", "outgoing");
+  outgoing.setAttribute("aria-hidden", "true");
+  outgoing.setAttribute("inert", "");
+  // A row stays put on the side its placement pins; a column, where its items line up
+  const style = getComputedStyle(element);
+  const row = style.flexDirection.startsWith("row");
+  const placement = element.dataset.placement ?? "";
+  const side = row ? placement.replace("inline", "-start") : style.alignItems;
+  const anchor: SwapAnchor = /start$/.test(side) ? "start" : /end$/.test(side) ? "end" : "center";
+  // Laid out like the pill, at the size it had, on that side
+  outgoing.style.cssText = `position:absolute;inset-block:0;margin-block:auto;${
+    anchor === "center" ? "inset-inline:0;margin-inline:auto" : `inset-inline-${anchor}:0`
+  };box-sizing:border-box;width:${px(from.width)};height:${px(from.height)};display:flex;flex-direction:inherit;align-items:inherit;justify-content:inherit;gap:inherit;padding:inherit;pointer-events:none`;
+  element.append(outgoing);
+  // A pill at the top of the screen turns the other way: out through its bottom edge, in from the top
+  return { from, outgoing, anchor: row ? anchor : undefined, down: placement.startsWith("top") };
+}
+
+/** Once the new content is in: the swap prepared by `captureSwap`, played. */
+export function playSwap(element: HTMLElement, { from, outgoing, anchor, down }: SwapCapture) {
+  // Its natural size, free of an animation still running (e.g. the pill growing)
+  stopMorphs(element, outgoing);
+  const plan = planSwap(from, readExactSize(element), readMorphTimings(element), anchor, down);
+  const done = () => outgoing.remove();
+  if (!plan) return done();
+  const incoming = [...element.children].filter((child) => child !== outgoing);
+  const widths = incoming.map((child) => child.getBoundingClientRect().width);
+  element.animate(plan.pill.keyframes, plan.pill.options);
+  incoming.forEach((child, index) => {
+    const { keyframes, options } = plan.incoming(widths[index]);
+    child.animate(keyframes, options);
+  });
+  outgoing.animate(plan.outgoing.keyframes, plan.outgoing.options).finished.then(done, done);
+}
 
 function readMorphTimings(element: HTMLElement): MorphTimings {
   const style = getComputedStyle(element);
@@ -179,8 +330,10 @@ export function useSizeMorph(rootRef: RefObject<HTMLElement | null>, presence: P
       return;
     }
 
-    // Interrupted mid-way: start again from where it is now
-    const from = running.current.length > 0 ? readSize(element) : lastSize.current;
+    // Interrupted mid-way (by this or a swap): start again from where it is now
+    const current = readSize(element);
+    const interrupted = stopMorphs(element) || running.current.length > 0;
+    const from = interrupted ? current : lastSize.current;
     running.current.forEach((animation) => animation.cancel());
     running.current = [];
     const to = readSize(element);
@@ -192,18 +345,19 @@ export function useSizeMorph(rootRef: RefObject<HTMLElement | null>, presence: P
     const panelBox = previous === "panel" ? openPanel.current : panel?.box;
     const plan = planMorph(from, to, previous, presence, readMorphTimings(element), panelBox);
     if (!plan) return;
-    const animations = [element.animate(plan.pill, plan.options)];
+    const options = { ...plan.options, id: MORPH };
+    const animations = [element.animate(plan.pill, options)];
     if (plan.panel && panel) {
-      animations.push(panel.element.animate(plan.panel, plan.options));
+      animations.push(panel.element.animate(plan.panel, options));
       // The close button sticks to the bottom of a scrolling panel: while the
       // pill resizes, it stays with the content instead of riding the edge
       const footer = panel.element.querySelector<HTMLElement>('[data-mp="panel-footer"]');
-      if (footer) animations.push(footer.animate([{ position: "static" }, { position: "static" }], plan.options));
+      if (footer) animations.push(footer.animate([{ position: "static" }, { position: "static" }], options));
     }
     if (plan.content) {
       const { keyframes, options } = plan.content;
       for (const child of element.children) {
-        if (child !== panel?.element) animations.push(child.animate(keyframes, options));
+        if (child !== panel?.element) animations.push(child.animate(keyframes, { ...options, id: MORPH }));
       }
     }
     running.current = animations;

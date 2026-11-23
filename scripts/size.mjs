@@ -20,8 +20,9 @@ const PROBES = [
     name: "MagicPill + pill()",
     description: "the quick start: the host, the store and the notification template",
     code: 'export { MagicPill, pill } from "ENTRY";',
-    // Raised from 5.5 kB for the size animation (Pill/morph.ts): 6.36 kB
-    budget: 6.5 * KB, // 4.89 kB at 9.0.0-next.0
+    // Raised from 5.5 kB for the size animation (Pill/morph.ts): 6.36 kB,
+    // then from 6.5 kB for the queue's swap animation: 7.47 kB
+    budget: 7.5 * KB, // 4.89 kB at 9.0.0-next.0
   },
   {
     name: "Pill primitive",
@@ -34,8 +35,9 @@ const PROBES = [
     name: "Everything",
     description: "every export, icons included",
     code: 'export * from "ENTRY";',
-    // Raised from 10 kB for the size animation (Pill/morph.ts): 10.61 kB
-    budget: 11 * KB, // 9.07 kB at 9.0.0-next.0
+    // Raised from 10 kB for the size animation (Pill/morph.ts): 10.61 kB,
+    // then from 11 kB for the queue's swap animation: 11.74 kB
+    budget: 12 * KB, // 9.07 kB at 9.0.0-next.0
   },
 ];
 const CSS_BUDGET = 2.5 * KB; // 2.15 kB at 9.0.0-next.1 (3.89 kB with its comments, as shipped)

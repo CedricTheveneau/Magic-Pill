@@ -27,7 +27,7 @@ On top of it come ready-made **templates** (a notification, a navbar) and a **co
  - [X] Accessible: screen reader announcements, keyboard focus pauses the countdown, focus handling for panels and modals
  - [X] Works in any React 18+ app, including React Server Components (Next.js App Router), with any router
  - [X] Styles you can override without `!important`, design tokens, no fonts loaded behind your back
- - [X] Tiny: the quick start adds about **8.7 kB gzipped** to your app (6.4 kB of JavaScript + 2.3 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
+ - [X] Tiny: the quick start adds about **9.9 kB gzipped** to your app (7.5 kB of JavaScript + 2.4 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
  - [X] Written in TypeScript, zero runtime dependencies
 
 ## Installation
@@ -178,6 +178,7 @@ pill().notify({
 | `duration` | `5000` | Default display time for notifications. |
 | `idle` | `"hidden"` | With no base layer and nothing queued: `"hidden"`, or `"rest"` for a small resting circle showing `idleIcon`. |
 | `idleIcon` | none | The icon of the resting circle. |
+| `swap` | `"queue"` | Where new content slides into the open pill (out through the top, in from the bottom, the other way round for a top pill) instead of closing it to a circle and growing back: `"queue"` between notifications, `"always"` also between the base layer and notifications, `"never"` nowhere. |
 | `linkComponent` | `<a>` | Renders notification actions that have an `href`, e.g. Next's `Link`. |
 | `classNames` | none | Classes for the notification's parts: `icon`, `divider`, `message`, `actions`, `action`, `panel`. |
 | `placement` | `"bottom"` | See [placements](#the-primitive). |
