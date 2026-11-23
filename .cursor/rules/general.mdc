@@ -8,7 +8,7 @@ alwaysApply: true
 ## Project Context
 - **Language**: React with TypeScript (works with Next.js and any other React setup)
 - **Project Type**: npm package (component)
-- **Target Directories**: The npm package lives in `src/` (see `architecture.mdc`). The demo app lives in `magic-pill-demo/` and only consumes the published package
+- **Target Directories**: The npm package lives in `src/` (see `architecture.mdc`). The demo app lives in `magic-pill-demo/` and only consumes the published package (and renders `MIGRATING.md`)
 - **Role**: Senior Lead Tech NextJS, Software Architecture Master, Expert in Best Practices
 - **Guiding Principles**:
   - Clean Code by Robert C. Martin

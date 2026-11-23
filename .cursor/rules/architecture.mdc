@@ -22,7 +22,7 @@ We write the code dedicated to the npm package at the root and in the `src/` dir
 - We create and maintain a `README.md` file before doing any release
 - We create and update the `package.json` file's version before each release, following the [semver](mdc:https:/semver.org/lang/fr) model
 - We create and update the `CHANGELOG.md` file before each release, following the [keep a changelog](mdc:https:/keepachangelog.com/en/1.1.0) model
-- We keep `MIGRATING.md` up to date when a major version changes the API
+- We keep `MIGRATING.md` up to date when a major version changes the API, and at its path: the demo renders it at `/migrating-from-8/`, the page npm's deprecation message links to
 - We create and maintain a `.gitignore` file with at least `/dist` and `/node_modules` in it
 - `package.json` `files` is the allowlist of what's published (`dist` and the docs); there's no `.npmignore`. Check `npm pack --dry-run` when it changes
 - We create and maintain an `src/` directory containing all the code for our npm package - more info in "### src directory"
@@ -35,12 +35,13 @@ One folder per component, with its children, tests and local types next to it:
 src/
 ├── index.ts                  the public API: every export goes through here
 ├── Pill/                     layer 1, the primitive: Pill, parts, PillAction, PillPanel, usePill, types
+│                             (+ morph.ts, every script animation, and modal.ts, the overlay's <dialog>)
 ├── PillNotification/         layer 2, a template
 ├── PillNavbar/               layer 2, a template (+ matchPath.ts)
 ├── MagicPill/                layer 3, the host (+ choreography.ts, its pure animation planning)
 ├── store/                    layer 3, the named-pill store, pill() and usePillQueue
 ├── icons/                    one component per icon (PascalCase, e.g. CheckIcon.tsx)
-├── utils/                    shared helpers (url.ts, react.ts)
+├── utils/                    shared helpers (url.ts, react.ts, timing.ts, inputModality.ts)
 ├── styles.css                the only stylesheet, shipped as-is
 └── *.test.ts(x)              tests next to the code they test
 ```
@@ -65,7 +66,7 @@ src/
 
 ### "use client" and Server Components
 - The build keeps one output file per module, so each module keeps its own directive.
-- Put `"use client"` **only** on modules with state, effects, context or event wiring (`Pill.tsx`, `PillPanel.tsx`, `PillNavbar.tsx`, `MagicPill.tsx`, `usePillQueue.ts`…).
+- Put `"use client"` **only** on modules with state, effects, context or event wiring (`Pill.tsx`, `PillPanel.tsx`, `morph.ts`, `modal.ts`, `PillNavbar.tsx`, `MagicPill.tsx`, `usePillQueue.ts`…).
 - Stateless modules (parts, `PillAction`, `PillNotification`, icons, the store and `pill()`) must **not** have it, so Server Components can render or import them without client references. CI checks both lists: update `.github/workflows/ci.yml` when you add a module.
 - No compound statics (`Pill.Icon`): a Server Component can't dot into a client module. Export each part by name.
 
@@ -134,7 +135,8 @@ src/
   - Purpose: The test setup (jsdom, cleanup, real timers between tests)
 - **.github/workflows/**
   - `ci.yml`: typecheck, tests, build and output checks on every supported Node version, plus a dependency audit.
-  - `publish.yml`: releases through npm **staged publishing** (pre-releases under the `next` tag). Never publish directly with `npm publish`, and never rename this file: the npm trusted publisher is tied to it.
+  - `pages.yml`: lints, builds and deploys the demo.
+  - `publish.yml`: releases through npm **staged publishing** (pre-releases under the `next` tag: `next.N` while features are being built, `rc.N` once only fixes remain). Never publish directly with `npm publish`, and never rename this file: the npm trusted publisher is tied to it.
 - **README.md**
   - Purpose: Gives detailed information regarding the project, how to set it up and use it
   - Rules:
