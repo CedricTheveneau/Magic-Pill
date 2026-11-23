@@ -68,7 +68,7 @@ jobs:
         run: npm run size
 
   audit:
-    # Library only: the demo is rebuilt in Phase 2
+    # Library only: the demo is a static export, with no server running
     name: Audit dependencies
     runs-on: ubuntu-latest
     steps:

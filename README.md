@@ -3,6 +3,8 @@ Let it empower you.
 
 > **9.0.0 is the first stable release of Magic Pill**; earlier versions are deprecated. Upgrading from 8.x? Read the [migration guide](./MIGRATING.md). 8.x is documented in the [8.1.0 README](https://github.com/CedricTheveneau/Magic-Pill/tree/v8.1.0#readme).
 
+**[Try it on the live demo](https://cedrictheveneau.github.io/Magic-Pill/)**: the playground, the templates and the building blocks.
+
 #### Thank you !!
 Thank you for your patience and to all people who already have shown interest in Magic Pill, it's my very first npm package and I couldn't ask for a better reception of my package after only a few days after its initial release.
 
@@ -411,7 +413,8 @@ Magic Pill is distributed under the [MIT License](https://www.tldrlegal.com/lice
 ## What's next?
 | Coming next | Done in 9.0 |
 |-----------|-----------|
-| Toolbox and carousel indicator templates | Custom icons (any React content) |
-| Animated morphing between contents | Transitions between the navbar and notifications |
-| More built-in icons | Function triggers on actions (`onClick`) |
-| A documentation site with live examples | Responsive styles, full documentation, tests |
+| A documentation site with live examples | Custom icons (any React content) |
+| Pills that make room for each other in the same spot | Animated morphing between contents, panels and placements |
+| Themes (glass, custom) | Transitions between the navbar and notifications |
+| Forms, toolbox and carousel indicator templates | Function triggers on actions (`onClick`) |
+| More built-in icons | Responsive styles, full documentation, tests |

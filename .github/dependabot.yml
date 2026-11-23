@@ -20,7 +20,7 @@ updates:
         applies-to: version-updates
         update-types: [minor, patch]
 
-  # Demo app (static export on gh-pages)
+  # Demo app (static export on GitHub Pages)
   - package-ecosystem: npm
     directory: /magic-pill-demo
     schedule:
