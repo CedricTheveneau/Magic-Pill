@@ -7,7 +7,7 @@
 // distort the corners). The corners follow by themselves: the stylesheet gives
 // the pill a fixed radius, and the browser shrinks it to half the height while
 // the pill is smaller than that.
-import { useLayoutEffect, useRef, type RefObject } from "react";
+import { Component, useLayoutEffect, useRef, type RefObject } from "react";
 
 import type { PillPresence } from "./types";
 import { parseDuration, prefersReducedMotion } from "../utils/timing";
@@ -391,3 +391,51 @@ export function useSizeMorph(rootRef: RefObject<HTMLElement | null>, presence: P
   }, [rootRef, presence, enabled]);
 }
 
+/** Tags the placement animation, which runs alongside the size ones. */
+const MOVE = "mp-move";
+
+/**
+ * The pill moved to another placement (or orientation): it travels there
+ * from where it was (`from`), resizing on the way if its size changed.
+ */
+export function animateMove(element: HTMLElement, from: DOMRect) {
+  if (!from.width || element.hasAttribute("data-unstyled") || !element.animate || prefersReducedMotion()) return;
+  cancel(element, MOVE);
+  const to = readExactSize(element);
+  const resized = !sameSize(from, to);
+  // Where its new placement puts it at its former size: the move starts there
+  const style = element.style.cssText;
+  if (resized) Object.assign(element.style, sized(from));
+  const start = element.getBoundingClientRect();
+  element.style.cssText = style;
+  const shift = `${from.left - start.left}px ${from.top - start.top}px`;
+  const { fade, change } = readMorphTimings(element);
+  const options: KeyframeAnimationOptions = { id: MOVE, duration: fade + change, easing: EASING };
+  element.animate(
+    [
+      { translate: shift, ...(resized && sized(from)) },
+      { translate: "0px 0px", ...(resized && sized(to)) },
+    ],
+    options,
+  );
+  if (resized) holdMessages(element, options);
+}
+
+/**
+ * Remembers where the pill is just before its placement changes (React calls
+ * this before it updates the page), then moves it from there.
+ */
+export class PlacementWatch extends Component<{ placement: string; target: RefObject<HTMLElement | null> }> {
+  getSnapshotBeforeUpdate(previous: Readonly<{ placement: string }>): DOMRect | null {
+    return previous.placement !== this.props.placement ? (this.props.target.current?.getBoundingClientRect() ?? null) : null;
+  }
+
+  componentDidUpdate(_props: unknown, _state: unknown, from: DOMRect | null) {
+    const element = this.props.target.current;
+    if (from && element) animateMove(element, from);
+  }
+
+  render() {
+    return null;
+  }
+}

@@ -11,7 +11,7 @@ import {
   type SyntheticEvent,
 } from "react";
 
-import { useSizeMorph } from "./morph";
+import { PlacementWatch, useSizeMorph } from "./morph";
 import { PillContext, type InternalPillContextValue } from "./PillContext";
 import type { PillOrientation, PillPresence, PillProps } from "./types";
 import { inertProps, mergeRefs } from "../utils/react";
@@ -145,6 +145,8 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
         onKeyDown={handleKeyDown}
         {...(isOverlay ? { onCancel: handleCancel, onClose: handleClose } : {})}
       >
+        {/* Moves the pill to a new placement instead of jumping there */}
+        <PlacementWatch placement={`${placement} ${resolvedOrientation}`} target={rootRef} />
         {children}
       </Element>
     </PillContext.Provider>
