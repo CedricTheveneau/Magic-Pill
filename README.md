@@ -23,11 +23,11 @@ On top of it come ready-made **templates** (a notification, a navbar) and a **co
  - [X] A notification queue on top of a **base layer** (e.g. a navbar): notifications take the pill over, then hand it back
  - [X] Several named pills on one page, at any edge or corner, inline, or as a modal
  - [X] Anything inside: messages, icons and panels are React content; build your own templates from the same parts
- - [X] Shape-changing animations (circle ↔ pill ↔ panel) at the pill's real size, that respect reduced motion
+ - [X] Shape-changing animations (circle ↔ pill ↔ panel) at the pill's real size, notifications that slide into each other, a pill that travels when its placement changes, all respecting reduced motion
  - [X] Accessible: screen reader announcements, keyboard focus pauses the countdown, focus handling for panels and modals
  - [X] Works in any React 18+ app, including React Server Components (Next.js App Router), with any router
  - [X] Styles you can override without `!important`, design tokens, no fonts loaded behind your back
- - [X] Tiny: the quick start adds about **9.9 kB gzipped** to your app (7.5 kB of JavaScript + 2.4 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
+ - [X] Tiny: the quick start adds about **10.2 kB gzipped** to your app (7.8 kB of JavaScript + 2.4 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
  - [X] Written in TypeScript, zero runtime dependencies
 
 ## Installation
@@ -259,7 +259,7 @@ import { Pill, PillActions, PillAction, PhoneIcon, MailIcon, DocumentIcon } from
 
 | `<Pill>` prop | Values | Default |
 |---|---|---|
-| `placement` | `"inline"` (in the page flow), `"top"`, `"bottom"`, `"left"`, `"right"`, `"top-start"`, `"top-end"`, `"bottom-start"`, `"bottom-end"` (fixed; `start`/`end` follow the text direction), `"overlay"` (a modal `<dialog>`) | `"inline"` |
+| `placement` | `"inline"` (in the page flow), `"top"`, `"bottom"`, `"left"`, `"right"`, `"top-start"`, `"top-end"`, `"bottom-start"`, `"bottom-end"` (fixed; `start`/`end` follow the text direction), `"overlay"` (a modal `<dialog>`). Change it and the pill travels to its new place (e.g. with the scroll, or for a guided tour), except to or from `"overlay"`. | `"inline"` |
 | `presence` / `defaultPresence` / `onPresenceChange` | `"hidden"`, `"rest"` (a circle with the icon only), `"compact"`, `"expanded"` (every action label shown), `"panel"` | `"compact"` |
 | `orientation` | `"horizontal"`, `"vertical"` | `"vertical"` for `left`/`right` |
 | `variant` | `"neutral"`, `"success"`, `"danger"`, or any string (see [Styling](#styling)) | `"neutral"` |

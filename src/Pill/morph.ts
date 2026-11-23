@@ -7,7 +7,7 @@
 // distort the corners). The corners follow by themselves: the stylesheet gives
 // the pill a fixed radius, and the browser shrinks it to half the height while
 // the pill is smaller than that.
-import { useLayoutEffect, useRef, type RefObject } from "react";
+import { Component, useLayoutEffect, useRef, type RefObject } from "react";
 
 import type { PillPresence } from "./types";
 import { parseDuration, prefersReducedMotion } from "../utils/timing";
@@ -63,6 +63,22 @@ const sized = (size: Size): Keyframe => ({
   width: px(size.width),
   height: px(size.height),
 });
+/**
+ * A part held at its final width while the pill resizes, so a message doesn't
+ * rewrap at every frame. Rounded up: a hair narrower, and it would wrap.
+ */
+const held = (width: number): Keyframe => ({ flexShrink: 0, width: `${Math.ceil(width * 100) / 100}px` });
+
+/**
+ * Measures the pill's messages now (at their final width: before the pill's
+ * own animation starts), to hold them there during an animation.
+ */
+function holdMessages(element: HTMLElement): (options: KeyframeAnimationOptions) => Animation[] {
+  const messages = [...element.querySelectorAll<HTMLElement>(':scope > [data-mp="message"]')].map(
+    (message) => [message, held(message.getBoundingClientRect().width)] as const,
+  );
+  return (options) => messages.map(([message, frame]) => message.animate([frame, frame], options));
+}
 const sameSize = (a: Size, b: Size) => Math.abs(a.width - b.width) < 1 && Math.abs(a.height - b.height) < 1;
 
 /**
@@ -136,14 +152,19 @@ const readSize = (element: HTMLElement): Size => ({ width: element.offsetWidth, 
  * Stops the size animations running on the pill (and in it), and drops the
  * copy of the content a swap slides out (but `keep`). Returns whether anything ran.
  */
-function stopMorphs(element: HTMLElement, keep?: Element): boolean {
-  let stopped = false;
-  for (const animation of element.getAnimations?.({ subtree: true }) ?? []) {
-    if (animation.id === MORPH) {
+function cancel(element: HTMLElement, id: string, subtree?: boolean): boolean {
+  let cancelled = false;
+  for (const animation of element.getAnimations?.({ subtree }) ?? []) {
+    if (animation.id === id) {
       animation.cancel();
-      stopped = true;
+      cancelled = true;
     }
   }
+  return cancelled;
+}
+
+function stopMorphs(element: HTMLElement, keep?: Element): boolean {
+  let stopped = cancel(element, MORPH, true);
   for (const outgoing of element.querySelectorAll(':scope > [data-mp="outgoing"]')) {
     if (outgoing !== keep) {
       outgoing.remove();
@@ -191,9 +212,7 @@ export function planSwap(
   const out = down ? "" : "-";
   const into = down ? "-" : "";
   const justify = anchor && { justifyContent: anchor === "center" ? anchor : `flex-${anchor}` };
-  // Each content travels its own height. The new one is held at its final
-  // width, or a message would rewrap at every frame of the resize.
-  const held = (width: number) => ({ flexShrink: 0, width: px(width) });
+  // Each content travels its own height; the new one is held at its final width
   return {
     pill: {
       keyframes: [{ ...sized(from), ...justify }, { ...sized(to), ...justify }],
@@ -251,7 +270,7 @@ export function captureSwap(element: HTMLElement | null): SwapCapture | null {
   // Laid out like the pill, at the size it had, on that side
   outgoing.style.cssText = `position:absolute;inset-block:0;margin-block:auto;${
     anchor === "center" ? "inset-inline:0;margin-inline:auto" : `inset-inline-${anchor}:0`
-  };box-sizing:border-box;width:${px(from.width)};height:${px(from.height)};display:flex;flex-direction:inherit;align-items:inherit;justify-content:inherit;gap:inherit;padding:inherit;pointer-events:none`;
+  };box-sizing:border-box;width:${held(from.width).width};height:${px(from.height)};display:flex;flex-direction:inherit;align-items:inherit;justify-content:inherit;gap:inherit;padding:inherit;pointer-events:none`;
   element.append(outgoing);
   // A pill at the top of the screen turns the other way: out through its bottom edge, in from the top
   return { from, outgoing, anchor: row ? anchor : undefined, down: placement.startsWith("top") };
@@ -345,6 +364,7 @@ export function useSizeMorph(rootRef: RefObject<HTMLElement | null>, presence: P
     const panelBox = previous === "panel" ? openPanel.current : panel?.box;
     const plan = planMorph(from, to, previous, presence, readMorphTimings(element), panelBox);
     if (!plan) return;
+    const hold = holdMessages(element);
     const options = { ...plan.options, id: MORPH };
     const animations = [element.animate(plan.pill, options)];
     if (plan.panel && panel) {
@@ -354,6 +374,10 @@ export function useSizeMorph(rootRef: RefObject<HTMLElement | null>, presence: P
       const footer = panel.element.querySelector<HTMLElement>('[data-mp="panel-footer"]');
       if (footer) animations.push(footer.animate([{ position: "static" }, { position: "static" }], options));
     }
+    // Growing into an open pill: its message is laid out at its final width
+    // from the start (the pill clips it), instead of wrapping on many lines
+    // in the narrow pill and unwrapping just as it fades in
+    if (!CLOSED.has(presence) && presence !== "panel") animations.push(...hold(options));
     if (plan.content) {
       const { keyframes, options } = plan.content;
       for (const child of element.children) {
@@ -369,4 +393,54 @@ export function useSizeMorph(rootRef: RefObject<HTMLElement | null>, presence: P
         // Cancelled by the next change
       });
   }, [rootRef, presence, enabled]);
+}
+
+/** Tags the placement animation, which runs alongside the size ones. */
+const MOVE = "mp-move";
+
+/**
+ * The pill moved to another placement (or orientation): it travels there
+ * from where it was (`from`), resizing on the way if its size changed.
+ */
+export function animateMove(element: HTMLElement, from: DOMRect) {
+  if (!from.width || element.hasAttribute("data-unstyled") || !element.animate || prefersReducedMotion()) return;
+  cancel(element, MOVE);
+  const to = readExactSize(element);
+  const resized = !sameSize(from, to);
+  const hold = holdMessages(element);
+  // Where its new placement puts it at its former size: the move starts there
+  const style = element.style.cssText;
+  if (resized) Object.assign(element.style, sized(from));
+  const start = element.getBoundingClientRect();
+  element.style.cssText = style;
+  const shift = `${from.left - start.left}px ${from.top - start.top}px`;
+  const { fade, change } = readMorphTimings(element);
+  const options: KeyframeAnimationOptions = { id: MOVE, duration: fade + change, easing: EASING };
+  element.animate(
+    [
+      { translate: shift, ...(resized && sized(from)) },
+      { translate: "0px 0px", ...(resized && sized(to)) },
+    ],
+    options,
+  );
+  if (resized) hold(options);
+}
+
+/**
+ * Remembers where the pill is just before its placement changes (React calls
+ * this before it updates the page), then moves it from there.
+ */
+export class PlacementWatch extends Component<{ placement: string; target: RefObject<HTMLElement | null> }> {
+  getSnapshotBeforeUpdate(previous: Readonly<{ placement: string }>): DOMRect | null {
+    return previous.placement !== this.props.placement ? (this.props.target.current?.getBoundingClientRect() ?? null) : null;
+  }
+
+  componentDidUpdate(_props: unknown, _state: unknown, from: DOMRect | null) {
+    const element = this.props.target.current;
+    if (from && element) animateMove(element, from);
+  }
+
+  render() {
+    return null;
+  }
 }

@@ -186,6 +186,74 @@ describe("Pill", () => {
     });
   });
 
+  describe("placement changes", () => {
+    let animate: ReturnType<typeof vi.fn>;
+    // Where each placement puts the pill in this fake layout
+    const RECTS: Record<string, Partial<DOMRect>> = {
+      bottom: { left: 400, top: 700, width: 300, height: 72 },
+      "top-end": { left: 900, top: 24, width: 300, height: 72 },
+      left: { left: 24, top: 300, width: 72, height: 220 },
+    };
+
+    beforeEach(() => {
+      animate = vi.fn(() => ({ finished: new Promise(() => {}), cancel: vi.fn() }));
+      Object.defineProperty(HTMLElement.prototype, "animate", { value: animate, configurable: true });
+      vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+        const placement = this.closest<HTMLElement>('[data-mp="pill"]')?.dataset.placement ?? "bottom";
+        return { ...RECTS[placement], width: this.style.width ? 72 : RECTS[placement].width } as DOMRect;
+      });
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+      delete (HTMLElement.prototype as Partial<HTMLElement>).animate;
+    });
+
+    const moves = () => animate.mock.calls.filter(([, options]) => options?.id === "mp-move");
+
+    it("travels to the new placement from where it was", () => {
+      // Arrange
+      const { rerender } = render(<Pill placement="bottom">content</Pill>);
+
+      // Act
+      rerender(<Pill placement="top-end">content</Pill>);
+
+      // Assert: it starts where it was and ends at its new place
+      expect(moves()).toHaveLength(1);
+      const [[keyframes, options]] = moves();
+      expect(keyframes[0]).toMatchObject({ translate: "-500px 676px" });
+      expect(keyframes[1]).toMatchObject({ translate: "0px 0px" });
+      expect(keyframes[0].width).toBeUndefined();
+      expect(options).toMatchObject({ duration: 400 });
+    });
+
+    it("resizes on the way when the size changes (e.g. into a sidebar)", () => {
+      // Arrange
+      const { rerender } = render(<Pill placement="bottom">content</Pill>);
+
+      // Act
+      rerender(<Pill placement="left">content</Pill>);
+
+      // Assert
+      const [[keyframes]] = moves();
+      expect(keyframes[0]).toMatchObject({ width: "300px", height: "72px" });
+      expect(keyframes[1]).toMatchObject({ width: "72px", height: "220px", translate: "0px 0px" });
+    });
+
+    it("doesn't move on the first render, on other changes, or when unstyled", () => {
+      // Arrange
+      const { rerender } = render(<Pill placement="bottom">content</Pill>);
+
+      // Act
+      rerender(<Pill placement="bottom" variant="success">content</Pill>);
+      rerender(<Pill placement="bottom" unstyled>content</Pill>);
+      rerender(<Pill placement="top-end" unstyled>content</Pill>);
+
+      // Assert
+      expect(moves()).toHaveLength(0);
+    });
+  });
+
   describe("usePill()", () => {
     it("explains where it must be used", () => {
       // Arrange
