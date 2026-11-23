@@ -272,8 +272,16 @@ describe("useSizeMorph", () => {
   });
 
   it("holds the message at its final width while the pill grows, so it doesn't unwrap as it fades in", () => {
-    // Arrange
-    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({ width: 141.2 } as DOMRect);
+    // Arrange: once the pill's animation starts, it's back at the circle's size,
+    // and the message would measure squeezed
+    let pillAnimated = false;
+    animate.mockImplementation(function (this: HTMLElement) {
+      if (this.dataset.mp === "pill") pillAnimated = true;
+      return { finished: new Promise(() => {}), cancel: vi.fn() };
+    });
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
+      () => ({ width: pillAnimated ? 0 : 141.2 }) as DOMRect,
+    );
     const { rerender } = render(createElement(Probe, { presence: "rest" }));
     size = PILL;
 

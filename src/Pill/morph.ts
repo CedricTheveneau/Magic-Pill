@@ -69,12 +69,15 @@ const sized = (size: Size): Keyframe => ({
  */
 const held = (width: number): Keyframe => ({ flexShrink: 0, width: `${Math.ceil(width * 100) / 100}px` });
 
-/** Holds the pill's messages at the width they have now, during an animation. */
-function holdMessages(element: HTMLElement, options: KeyframeAnimationOptions): Animation[] {
-  return [...element.querySelectorAll<HTMLElement>(':scope > [data-mp="message"]')].map((message) => {
-    const frame = held(message.getBoundingClientRect().width);
-    return message.animate([frame, frame], options);
-  });
+/**
+ * Measures the pill's messages now (at their final width: before the pill's
+ * own animation starts), to hold them there during an animation.
+ */
+function holdMessages(element: HTMLElement): (options: KeyframeAnimationOptions) => Animation[] {
+  const messages = [...element.querySelectorAll<HTMLElement>(':scope > [data-mp="message"]')].map(
+    (message) => [message, held(message.getBoundingClientRect().width)] as const,
+  );
+  return (options) => messages.map(([message, frame]) => message.animate([frame, frame], options));
 }
 const sameSize = (a: Size, b: Size) => Math.abs(a.width - b.width) < 1 && Math.abs(a.height - b.height) < 1;
 
@@ -361,6 +364,7 @@ export function useSizeMorph(rootRef: RefObject<HTMLElement | null>, presence: P
     const panelBox = previous === "panel" ? openPanel.current : panel?.box;
     const plan = planMorph(from, to, previous, presence, readMorphTimings(element), panelBox);
     if (!plan) return;
+    const hold = holdMessages(element);
     const options = { ...plan.options, id: MORPH };
     const animations = [element.animate(plan.pill, options)];
     if (plan.panel && panel) {
@@ -373,7 +377,7 @@ export function useSizeMorph(rootRef: RefObject<HTMLElement | null>, presence: P
     // Growing into an open pill: its message is laid out at its final width
     // from the start (the pill clips it), instead of wrapping on many lines
     // in the narrow pill and unwrapping just as it fades in
-    if (!CLOSED.has(presence) && presence !== "panel") animations.push(...holdMessages(element, options));
+    if (!CLOSED.has(presence) && presence !== "panel") animations.push(...hold(options));
     if (plan.content) {
       const { keyframes, options } = plan.content;
       for (const child of element.children) {
@@ -403,6 +407,7 @@ export function animateMove(element: HTMLElement, from: DOMRect) {
   cancel(element, MOVE);
   const to = readExactSize(element);
   const resized = !sameSize(from, to);
+  const hold = holdMessages(element);
   // Where its new placement puts it at its former size: the move starts there
   const style = element.style.cssText;
   if (resized) Object.assign(element.style, sized(from));
@@ -418,7 +423,7 @@ export function animateMove(element: HTMLElement, from: DOMRect) {
     ],
     options,
   );
-  if (resized) holdMessages(element, options);
+  if (resized) hold(options);
 }
 
 /**
