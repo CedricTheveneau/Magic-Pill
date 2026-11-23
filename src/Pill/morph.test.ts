@@ -147,6 +147,14 @@ describe("planSwap", () => {
     expect(keyframes.every((frame) => frame.width === "314px" && frame.flexShrink === 0)).toBe(true);
   });
 
+  it("rounds the held width up, so the text never gets a hair too narrow", () => {
+    // Act
+    const { keyframes } = planSwap(PILL, TALL, TIMINGS, "center")!.incoming(140.123);
+
+    // Assert
+    expect(keyframes[0].width).toBe("140.13px");
+  });
+
   it.each([
     ["start", "flex-start"],
     ["center", "center"],
@@ -216,7 +224,7 @@ describe("useSizeMorph", () => {
   function Probe({ presence, enabled = true }: { presence: PillPresence; enabled?: boolean }) {
     const ref = useRef<HTMLDivElement | null>(null);
     useSizeMorph(ref, presence, enabled);
-    return createElement("div", { ref, "data-mp": "pill" });
+    return createElement("div", { ref, "data-mp": "pill" }, createElement("span", { "data-mp": "message" }, "Saved"));
   }
 
   beforeEach(() => {
@@ -252,14 +260,44 @@ describe("useSizeMorph", () => {
     // Act
     rerender(createElement(Probe, { presence: "compact" }));
 
-    // Assert
-    expect(animate).toHaveBeenCalledTimes(1);
-    const [keyframes, options] = animate.mock.calls[0];
+    // Assert: the pill's own animation (its message is held too, see below)
+    const pillCalls = animate.mock.calls.filter((_, index) => (animate.mock.contexts[index] as HTMLElement).dataset.mp === "pill");
+    expect(pillCalls).toHaveLength(1);
+    const [keyframes, options] = pillCalls[0];
     expect(keyframes).toEqual([
       expect.objectContaining({ width: "72px", height: "72px" }),
       expect.objectContaining({ width: "342px", height: "106px" }),
     ]);
     expect(options).toMatchObject({ duration: 250, delay: 0 });
+  });
+
+  it("holds the message at its final width while the pill grows, so it doesn't unwrap as it fades in", () => {
+    // Arrange
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({ width: 141.2 } as DOMRect);
+    const { rerender } = render(createElement(Probe, { presence: "rest" }));
+    size = PILL;
+
+    // Act
+    rerender(createElement(Probe, { presence: "compact" }));
+
+    // Assert
+    const call = animate.mock.calls.find((_, index) => (animate.mock.contexts[index] as HTMLElement).dataset.mp === "message");
+    expect(call?.[0]).toEqual([
+      { flexShrink: 0, width: "141.2px" },
+      { flexShrink: 0, width: "141.2px" },
+    ]);
+  });
+
+  it("lets the message go when the pill closes (it fades out first)", () => {
+    // Arrange
+    const { rerender } = render(createElement(Probe, { presence: "compact" }));
+    size = CIRCLE;
+
+    // Act
+    rerender(createElement(Probe, { presence: "rest" }));
+
+    // Assert
+    expect(animate.mock.contexts.some((element) => (element as HTMLElement).dataset.mp === "message")).toBe(false);
   });
 
   it("leaves re-renders at the same presence alone", () => {

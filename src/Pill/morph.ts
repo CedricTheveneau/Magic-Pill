@@ -63,6 +63,19 @@ const sized = (size: Size): Keyframe => ({
   width: px(size.width),
   height: px(size.height),
 });
+/**
+ * A part held at its final width while the pill resizes, so a message doesn't
+ * rewrap at every frame. Rounded up: a hair narrower, and it would wrap.
+ */
+const held = (width: number): Keyframe => ({ flexShrink: 0, width: `${Math.ceil(width * 100) / 100}px` });
+
+/** Holds the pill's messages at the width they have now, during an animation. */
+function holdMessages(element: HTMLElement, options: KeyframeAnimationOptions): Animation[] {
+  return [...element.querySelectorAll<HTMLElement>(':scope > [data-mp="message"]')].map((message) => {
+    const frame = held(message.getBoundingClientRect().width);
+    return message.animate([frame, frame], options);
+  });
+}
 const sameSize = (a: Size, b: Size) => Math.abs(a.width - b.width) < 1 && Math.abs(a.height - b.height) < 1;
 
 /**
@@ -136,14 +149,19 @@ const readSize = (element: HTMLElement): Size => ({ width: element.offsetWidth, 
  * Stops the size animations running on the pill (and in it), and drops the
  * copy of the content a swap slides out (but `keep`). Returns whether anything ran.
  */
-function stopMorphs(element: HTMLElement, keep?: Element): boolean {
-  let stopped = false;
-  for (const animation of element.getAnimations?.({ subtree: true }) ?? []) {
-    if (animation.id === MORPH) {
+function cancel(element: HTMLElement, id: string, subtree?: boolean): boolean {
+  let cancelled = false;
+  for (const animation of element.getAnimations?.({ subtree }) ?? []) {
+    if (animation.id === id) {
       animation.cancel();
-      stopped = true;
+      cancelled = true;
     }
   }
+  return cancelled;
+}
+
+function stopMorphs(element: HTMLElement, keep?: Element): boolean {
+  let stopped = cancel(element, MORPH, true);
   for (const outgoing of element.querySelectorAll(':scope > [data-mp="outgoing"]')) {
     if (outgoing !== keep) {
       outgoing.remove();
@@ -191,9 +209,7 @@ export function planSwap(
   const out = down ? "" : "-";
   const into = down ? "-" : "";
   const justify = anchor && { justifyContent: anchor === "center" ? anchor : `flex-${anchor}` };
-  // Each content travels its own height. The new one is held at its final
-  // width, or a message would rewrap at every frame of the resize.
-  const held = (width: number) => ({ flexShrink: 0, width: px(width) });
+  // Each content travels its own height; the new one is held at its final width
   return {
     pill: {
       keyframes: [{ ...sized(from), ...justify }, { ...sized(to), ...justify }],
@@ -251,7 +267,7 @@ export function captureSwap(element: HTMLElement | null): SwapCapture | null {
   // Laid out like the pill, at the size it had, on that side
   outgoing.style.cssText = `position:absolute;inset-block:0;margin-block:auto;${
     anchor === "center" ? "inset-inline:0;margin-inline:auto" : `inset-inline-${anchor}:0`
-  };box-sizing:border-box;width:${px(from.width)};height:${px(from.height)};display:flex;flex-direction:inherit;align-items:inherit;justify-content:inherit;gap:inherit;padding:inherit;pointer-events:none`;
+  };box-sizing:border-box;width:${held(from.width).width};height:${px(from.height)};display:flex;flex-direction:inherit;align-items:inherit;justify-content:inherit;gap:inherit;padding:inherit;pointer-events:none`;
   element.append(outgoing);
   // A pill at the top of the screen turns the other way: out through its bottom edge, in from the top
   return { from, outgoing, anchor: row ? anchor : undefined, down: placement.startsWith("top") };
@@ -354,6 +370,10 @@ export function useSizeMorph(rootRef: RefObject<HTMLElement | null>, presence: P
       const footer = panel.element.querySelector<HTMLElement>('[data-mp="panel-footer"]');
       if (footer) animations.push(footer.animate([{ position: "static" }, { position: "static" }], options));
     }
+    // Growing into an open pill: its message is laid out at its final width
+    // from the start (the pill clips it), instead of wrapping on many lines
+    // in the narrow pill and unwrapping just as it fades in
+    if (!CLOSED.has(presence) && presence !== "panel") animations.push(...holdMessages(element, options));
     if (plan.content) {
       const { keyframes, options } = plan.content;
       for (const child of element.children) {
@@ -370,3 +390,4 @@ export function useSizeMorph(rootRef: RefObject<HTMLElement | null>, presence: P
       });
   }, [rootRef, presence, enabled]);
 }
+
