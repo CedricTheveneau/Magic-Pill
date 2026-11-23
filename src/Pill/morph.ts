@@ -153,6 +153,15 @@ function stopMorphs(element: HTMLElement, keep?: Element): boolean {
   return stopped;
 }
 
+/**
+ * The size to the fraction of a pixel (offsetWidth rounds it): the copy of a
+ * message that just fits would wrap otherwise. An open pill isn't scaled.
+ */
+const readExactSize = (element: HTMLElement): Size => {
+  const { width, height } = element.getBoundingClientRect();
+  return { width, height };
+};
+
 /** Where the content sits along the pill's inline axis while it resizes: the side that stays put. */
 export type SwapAnchor = "start" | "center" | "end";
 
@@ -219,7 +228,7 @@ export interface SwapCapture {
  */
 export function captureSwap(element: HTMLElement | null): SwapCapture | null {
   if (!element || element.hasAttribute("data-unstyled") || !element.animate || prefersReducedMotion()) return null;
-  const from = readSize(element);
+  const from = readExactSize(element);
   const outgoing = document.createElement("div");
   for (const child of element.children) {
     if (child.getAttribute("data-mp") !== "outgoing") outgoing.append(child.cloneNode(true));
@@ -252,7 +261,7 @@ export function captureSwap(element: HTMLElement | null): SwapCapture | null {
 export function playSwap(element: HTMLElement, { from, outgoing, anchor, down }: SwapCapture) {
   // Its natural size, free of an animation still running (e.g. the pill growing)
   stopMorphs(element, outgoing);
-  const plan = planSwap(from, readSize(element), readMorphTimings(element), anchor, down);
+  const plan = planSwap(from, readExactSize(element), readMorphTimings(element), anchor, down);
   const done = () => outgoing.remove();
   if (!plan) return done();
   const incoming = [...element.children].filter((child) => child !== outgoing);
