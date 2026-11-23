@@ -22,16 +22,18 @@ const PROBES = [
     code: 'export { MagicPill, pill } from "ENTRY";',
     // Raised from 5.5 kB for the size animation (Pill/morph.ts): 6.36 kB,
     // then from 6.5 kB for the queue's swap animation: 7.47 kB,
-    // then from 7.5 kB for placement changes and held messages: 7.82 kB
-    budget: 8 * KB, // 4.89 kB at 9.0.0-next.0
+    // then from 7.5 kB for placement changes and held messages: 7.82 kB,
+    // then from 8 kB for the modal's entry and exit (Pill/modal.ts): 8.09 kB
+    budget: 8.25 * KB, // 4.89 kB at 9.0.0-next.0
   },
   {
     name: "Pill primitive",
     description: "a hand-written pill: Pill and its parts",
     code: 'export { Pill, PillIcon, PillDivider, PillMessage, PillActions, PillAction } from "ENTRY";',
     // Raised from 1.75 kB for the size animation (Pill/morph.ts): 2.76 kB,
-    // then from 3 kB for placement changes and held messages: 3.31 kB
-    budget: 3.5 * KB, // 1.44 kB at 9.0.0-next.0
+    // then from 3 kB for placement changes and held messages: 3.31 kB,
+    // then from 3.5 kB for the modal's entry and exit (Pill/modal.ts): 3.61 kB
+    budget: 3.75 * KB, // 1.44 kB at 9.0.0-next.0
   },
   {
     name: "Everything",
