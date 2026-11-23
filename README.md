@@ -1,7 +1,7 @@
 # Magic Pill
 Let it empower you.
 
-> **Status:** Magic Pill 9 is the first version with a **stable, documented API**. While it's in pre-release, install it with `npm install magic-pill@next`. The `latest` tag is still 8.1.0, documented in the [8.1.0 README](https://github.com/CedricTheveneau/Magic-Pill/tree/v8.1.0#readme). Coming from 8.x? Read the [migration guide](./MIGRATING.md).
+> **9.0.0 is the first stable release of Magic Pill**; earlier versions are deprecated. Upgrading from 8.x? Read the [migration guide](./MIGRATING.md). 8.x is documented in the [8.1.0 README](https://github.com/CedricTheveneau/Magic-Pill/tree/v8.1.0#readme).
 
 #### Thank you !!
 Thank you for your patience and to all people who already have shown interest in Magic Pill, it's my very first npm package and I couldn't ask for a better reception of my package after only a few days after its initial release.
@@ -32,7 +32,7 @@ On top of it come ready-made **templates** (a notification, a navbar) and a **co
 
 ## Installation
 ```bash
-npm install magic-pill@next
+npm install magic-pill
 ```
 
 ### Requirements

@@ -1,7 +1,7 @@
 # Changelog
 
-## [Unreleased]
-Work towards 9.0.0, the first release with a stable API. It's a breaking release: see [MIGRATING.md](./MIGRATING.md) to move from 8.x.
+## [9.0.0] - 2026-11-23
+9.0.0 is the first stable release of Magic Pill; earlier versions are deprecated (upgrading from 8.x: [MIGRATING.md](./MIGRATING.md)). It's a breaking release with a new API, but most apps get shorter.
 
 ### Added
 - The pill primitive: `Pill` with its parts `PillIcon`, `PillDivider`, `PillMessage`, `PillActions`, `PillAction`, `PillPanel` and `PillPanelTrigger`, plus the `usePill()` hook to write your own templates
@@ -10,7 +10,7 @@ Work towards 9.0.0, the first release with a stable API. It's a breaking release
   - Horizontal or vertical orientation, and `neutral`, `success`, `danger` or custom variants
   - Stateless parts and `PillAction` can be rendered by React Server Components without becoming client code
   - The pill animates its real size, width and height together: a message that wraps to several lines, a panel opening or closing, a sidebar's labels unfolding. Its corners stay right at every frame: half the one-line pill's height, so a taller pill is a rounded rectangle, up to `--mp-radius-panel` for a panel
-  - Vertical pills line their items up along the screen edge they sit on (`left` or `right`), and a right-hand sidebar opens its labels towards the middle of the screen, so the icons stay in line; mirrored in right-to-left pages. The new `--mp-align` token (`start`, `center`, `end`) changes the alignment; an inline vertical pill stays centred
+  - Vertical pills line their items up along the screen edge they sit on (`left` or `right`), and a right-hand sidebar opens its labels towards the middle of the screen, so the icons stay in line; mirrored in right-to-left pages. The `--mp-align` token (`start`, `center`, `end`) changes the alignment; an inline vertical pill stays centred
   - When its `placement` changes, the pill travels to its new place from where it was, resizing on the way (e.g. into a sidebar), instead of jumping there: handy for a pill that follows the scroll, or a guided tour
   - The overlay pops in and scales out like any other pill, and its backdrop fades in and out, in every browser. The dialog closes once its exit has played; its actions stop responding at once. With reduced motion, it all fades briefly
   - `closeOnBackdropClick` closes the overlay (or its panel first, like Escape) with a click outside it. Off by default
@@ -18,49 +18,34 @@ Work towards 9.0.0, the first release with a stable API. It's a breaking release
 - Link actions take a `linkComponent` (e.g. Next's `Link`) and only render relative, `http(s):`, `mailto:` and `tel:` URLs. Any other scheme, such as `javascript:`, renders no link
 - Templates built from those parts:
   - `PillNotification`: icon, message, an action (`onClick` or `href`) and an optional expandable panel. Every content is a React node, so nothing is parsed as HTML any more
-  - `PillNavbar`: a `<nav>` of icon links for any router (`pathname`, `linkComponent`). Items match whole path segments, the longest match wins, and the active link gets `aria-current="page"`
+  - `PillNavbar`: a `<nav>` of icon links for any router (`pathname`, `linkComponent`). Items match whole path segments (in linear time, whatever the URL), the longest match wins, and the active link gets `aria-current="page"`
 - `<MagicPill>` and `pill(name)`: mount the host once, then call `pill().notify({...})` from anywhere, including outside React. This replaces the 8.x Context, Provider and Initializer (about 135 lines of user code)
   - Notifications queue first in, first out, take the pill over, then hand it back to the host's **base layer** (its children, e.g. a `PillNavbar`), so navbar and notifications are no longer exclusive
   - `update(id, patch)`, `dismiss(id?)`, `clear()`, and `notify()` with an existing `id` to update in place
-  - `duration` per notification or on the host (`Infinity` keeps it). The countdown pauses on hover, keyboard focus, an open panel and a hidden browser tab
+  - `duration` per notification or on the host (`Infinity` keeps it). The countdown pauses while a mouse or pen hovers the pill, on keyboard focus, with an open panel and in a hidden browser tab. A tap doesn't pause it
   - Action clicks dismiss the notification unless the handler calls `event.preventDefault()`; `onDismiss(id, reason)` reports `timeout`, `action`, `dismissed` or `cleared`
   - `render` for your own template, which keeps the queue, timing and animation
   - `expanded: true` on a notification's action (or its panel trigger) keeps its label open, not only on hover and focus, so phones show it too
   - Several named hosts per page (`<MagicPill name="sidebar">`), and `idle="rest"` for a discreet resting circle
-  - Shape changes: the next notification in the queue replaces the current one in one movement, without closing the pill: the current one slides out through the top while the pill resizes, and the next one comes in from the bottom (the other way round for a pill at the top of the screen). Other changes (the navbar and a notification) collapse to a circle, swap the content there and grow back. `swap="always"` slides between the base layer and notifications too, so it all feels like one pill; `swap="never"` uses the circle everywhere. With reduced motion, the pill fades instead
+  - Shape changes: the next notification in the queue replaces the current one in one movement, without closing the pill: the current one slides out through the top while the pill resizes, and the next one comes in from the bottom (the other way round for a pill at the top of the screen). Other changes (the navbar and a notification) collapse to a circle, swap the content there and grow back: the content fades out before the pill shrinks, and in once it has grown, so text never rewraps or gets cut off along the way. `swap="always"` slides between the base layer and notifications too, so it all feels like one pill; `swap="never"` uses the circle everywhere. With reduced motion, the pill fades instead
   - Announcements go through a separate live region, so a hidden pill can leave the accessibility tree
   - On the server, `pill()` does nothing (it warns in development), so requests never share notifications
 - `usePillQueue(name)`: the queue as a hook, to build your own host
 - Twelve icons as components (`ArrowIcon`, `BoxIcon`, `CheckIcon`, `CloseIcon`, `CouponIcon`, `DocumentIcon`, `HelpIcon`, `InfoIcon`, `MailIcon`, `PhoneIcon`, `PlusIcon`, `UndoIcon`): drawn in `currentColor`, decorative by default
 - A new stylesheet, `magic-pill/styles.css`:
   - every rule sits in a `magic-pill` cascade layer and targets `data-mp` attributes, so your own CSS overrides it without `!important` and no class names collide;
+  - global resets on links and buttons, such as `a { color: inherit }` or `button { background: none }`, leave the actions alone: their look lives on an inner `[data-mp="action-body"]`;
   - it loads no fonts (it uses your page's fonts unless you set `--mp-font-text`/`--mp-font-accent`);
-  - it's sized in `rem`, fits phone screens and safe areas, and supports reduced motion and forced colours
+  - it's sized in `rem`, fits phone screens and safe areas, and supports reduced motion and forced colours;
+  - labels open on hover only on devices that can hover, so a tapped action doesn't stay open on touchscreens;
   - the pill pops in and scales out from its centre; `--mp-scale-origin` changes that (e.g. `bottom` to come out of the edge a bottom pill sits on)
-
 - A migration guide from 8.x, [MIGRATING.md](./MIGRATING.md), shipped in the package
 - The README is rewritten for v9: quick start, notifications, the host and its base layer, the primitive, React Server Components, styling and tokens, accessibility and security
 
 ### Changed
-- The published JavaScript is readable (not minified) and has no source maps. Your app bundles exactly the same amount of code (your bundler minifies it), and the package is about 40% smaller to install (196 kB unpacked instead of 331 kB in 9.0.0-next.0)
+- The published JavaScript is readable (not minified) and has no source maps: your bundler minifies it, so it doesn't change what your app ships. The package is about 253 kB unpacked (201 kB for 8.1.0, minified and with source maps)
+- The danger colour is darker (`#c2303e` instead of `#fc5d6a`), so the light text on it meets WCAG AA contrast
 - Size, measured and checked in CI: the quick start (`MagicPill` + `pill()`) adds about 8.25 kB of gzipped JavaScript and 2.45 kB of gzipped CSS to an app (both minified, as your bundler does); a hand-written `Pill` with its parts, about 3.8 kB of JavaScript, most of it the size animation
-
-### Fixed (since 9.0.0-next.0)
-- Global resets on links and buttons, such as `a { color: inherit }` or `button { background: none }`, no longer blank out the pill's actions: their look now lives on an inner `[data-mp="action-body"]`
-- In a narrow container, an inline pill wraps its message instead of cutting off its action
-- On touchscreens, a tapped action no longer stays open: labels open on hover only on devices that can really hover. Keyboard focus, an expanded panel and the current page still open them everywhere
-- When a notification takes the pill over (from the navbar, or the next one in the queue), its message no longer wraps one word per line while the pill grows: `<MagicPill>` shows new content closed first, then the pill opens around it
-- Long text no longer looks clipped while the pill changes size. When the pill closes, its content fades out first, then the pill shrinks; when it opens, the pill grows first, then the content fades in
-- When the app removes the host's base layer (e.g. `{showNavbar && <PillNavbar … />}`), the pill closes around it into a circle, then scales out, instead of losing its content at once and collapsing into a narrow oval
-- The pill scales from its centre instead of the edge it sits on (see `--mp-scale-origin`)
-- When the pill grows out of the circle (the navbar giving way to a notification, or the first notification), its message no longer shows on two lines for a moment before settling on one: it's laid out at its final width while the pill grows
-- When a pill closes, its message no longer wraps onto one more line as it fades out: the size it closes from is measured to the fraction of a pixel
-- A notification whose message wraps to two or three lines (e.g. on a phone) no longer jumps in height when it opens and closes: the pill animates to its measured size
-- A panel's corners no longer snap from fully round to their radius at the end of the opening animation
-- In a vertical pill, a label folds once the next one has unfolded, so the pill widens or narrows smoothly when the active item changes instead of narrowing in between. Labels now unfold at their real width
-- A sidebar's panel keeps the panel width cap (`--mp-panel-width`) instead of running to the edge of the screen
-- Security: `PillNavbar` matches paths in linear time. Stripping trailing slashes used a regular expression that could take seconds on a crafted URL made of many slashes (ReDoS)
-- On touchscreens, a notification whose panel was opened and closed no longer stays until the next tap elsewhere. The countdown pauses for keyboard focus and for a mouse or pen hovering, not for a tap, and after a tap the panel gives the focus back without showing it as keyboard focus
 
 ### Removed
 - The 8.x API: the `pillData` prop and `mode`, the types (`MagicPillType`, `Mode`, `NotificationIcon`, `CTAIcon`, `MagicPillNotification*`, `MagicPillNavbar*`), the 15 handlers (`updateMode` … `handleActiveNavItem`), `Icons`, `CTAIcons`, `getIconComponent` and `defaultPillData`
