@@ -95,6 +95,43 @@ describe("MagicPill", () => {
       expect(presence()).toBe("hidden");
     });
 
+    it("with swap=\"never\", goes through the circle between notifications", () => {
+      // Arrange
+      render(<MagicPill swap="never" />);
+      show({ message: "first" });
+      notify({ message: "second" });
+
+      // Act
+      advance(DURATION);
+
+      // Assert
+      expect(presence()).toBe("rest");
+      advance(FADE + CHANGE);
+      expect(message()).toBe("second");
+      expect(presence()).toBe("compact");
+      expect(root().hasAttribute("swap")).toBe(false);
+    });
+
+    it("with swap=\"always\", also swaps between the base layer and notifications", () => {
+      // Arrange
+      render(
+        <MagicPill swap="always">
+          <PillNavbar items={items} pathname="/" />
+        </MagicPill>,
+      );
+
+      // Act + Assert: in, without the circle
+      notify({ message: "Saved", duration: 1000 });
+      expect(presence()).toBe("compact");
+      expect(message()).toBe("Saved");
+
+      // Act + Assert: and back
+      advance(1000);
+      expect(presence()).toBe("compact");
+      expect(message()).toBeNull();
+      expect(screen.getByRole("navigation")).toBeTruthy();
+    });
+
     describe("the swap's animation", () => {
       let finish: () => void;
       const outgoing = () => root().querySelector<HTMLElement>('[data-mp="outgoing"]');

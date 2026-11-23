@@ -43,6 +43,39 @@ describe("planSteps", () => {
     expect(summary(steps)).toEqual([[0, "compact", "b"]]);
   });
 
+  it("with swap: always, also swaps between the base layer and notifications, both ways", () => {
+    // Act
+    const into = planSteps({ scene: BASE, presence: "compact" }, note("a"), timings, "always");
+    const back = planSteps({ scene: note("a"), presence: "compact" }, BASE, timings, "always");
+
+    // Assert
+    expect(summary(into)).toEqual([[0, "compact", "a"]]);
+    expect(summary(back)).toEqual([[0, "compact", "base"]]);
+  });
+
+  it("with swap: always, still rests as a circle when idle", () => {
+    // Act
+    const steps = planSteps({ scene: note("a"), presence: "compact" }, IDLE, timings, "always");
+
+    // Assert
+    expect(summary(steps)).toEqual([
+      [0, "rest", "a"],
+      [400, "rest", "idle"],
+    ]);
+  });
+
+  it("with swap: never, goes through the circle between notifications too", () => {
+    // Act
+    const steps = planSteps({ scene: note("a"), presence: "compact" }, note("b"), timings, "never");
+
+    // Assert
+    expect(summary(steps)).toEqual([
+      [0, "rest", "a"],
+      [400, "rest", "b"],
+      [0, "compact", "b"],
+    ]);
+  });
+
   it.each(["expanded", "panel"] as const)("still goes through the circle from the %s level", (level) => {
     // Act
     const steps = planSteps({ scene: note("a"), presence: level }, note("b"), timings);

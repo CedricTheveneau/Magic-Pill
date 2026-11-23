@@ -32,6 +32,7 @@ import {
   readTimings,
   type Displayed,
   type Scene,
+  type SwapMode,
 } from "./choreography";
 
 export interface MagicPillProps
@@ -49,6 +50,12 @@ export interface MagicPillProps
   idle?: "hidden" | "rest";
   /** The icon shown when `idle="rest"`. */
   idleIcon?: ReactNode;
+  /**
+   * Where new content slides into the open pill instead of closing it to a
+   * circle and growing back: between queued notifications (default), also
+   * between the base layer and notifications ("always"), or nowhere ("never").
+   */
+  swap?: SwapMode;
   /** Passed to notification actions that have an `href`. */
   linkComponent?: LinkComponent;
   classNames?: PillNotificationClassNames;
@@ -103,6 +110,7 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
     duration = DEFAULT_DURATION,
     idle = "hidden",
     idleIcon,
+    swap = "queue",
     linkComponent,
     classNames,
     placement = "bottom",
@@ -143,13 +151,16 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
   displayedRef.current = displayed;
   // States to show one render after another
   const followUps = useRef<Displayed[]>([]);
-  // The notification on screen as the next one replaces it, to slide it out
-  const swap = useRef<SwapCapture | null>(null);
+  // The content on screen as the next one replaces it, to slide it out
+  const capture = useRef<SwapCapture | null>(null);
+  // Read when planning, so changing it doesn't interrupt a change under way
+  const swapMode = useRef(swap);
+  swapMode.current = swap;
 
   useLayoutEffect(() => {
-    const capture = swap.current;
-    swap.current = null;
-    if (capture && rootRef.current) playSwap(rootRef.current, capture);
+    const swapped = capture.current;
+    capture.current = null;
+    if (swapped && rootRef.current) playSwap(rootRef.current, swapped);
   }, [displayed]);
 
   // New content is on the page in its closed state: have the browser style it
@@ -166,10 +177,10 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
 
   useEffect(() => {
     const current = displayedRef.current;
-    const batches = batchSteps(current, planSteps(current, target, readTimings(rootRef.current)));
+    const batches = batchSteps(current, planSteps(current, target, readTimings(rootRef.current), swapMode.current));
     const timers = batches.map(({ at, states }) => {
       const apply = () => {
-        if (isSwap(displayedRef.current, states[0])) swap.current = captureSwap(rootRef.current);
+        if (isSwap(displayedRef.current, states[0], swapMode.current)) capture.current = captureSwap(rootRef.current);
         followUps.current = states.slice(1);
         setDisplayed(states[0]);
       };

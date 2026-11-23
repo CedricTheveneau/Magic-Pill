@@ -42,18 +42,22 @@ export interface Step extends Displayed {
 const OPEN_LEVELS: ReadonlySet<PillPresence> = new Set(["compact", "expanded", "panel"]);
 export const isOpen = (presence: PillPresence) => OPEN_LEVELS.has(presence);
 
+const sceneKey = (scene: Scene) => (scene.kind === "notification" ? `notification:${scene.item.id}` : scene.kind);
+
 /**
- * One notification replacing another in the open pill: no circle in between,
- * the host slides the old one out and the new one in (the "rubik's cube").
+ * Where new content slides into the open pill (the "rubik's cube") instead of
+ * going through the circle: between queued notifications (`queue`), also
+ * between the base layer and notifications (`always`), or nowhere (`never`).
  */
-export const isSwap = (from: Displayed, to: Displayed) =>
+export type SwapMode = "queue" | "always" | "never";
+
+/** New content the host slides in, without closing the pill. */
+export const isSwap = (from: Displayed, to: Displayed, mode: SwapMode = "queue") =>
+  mode !== "never" &&
   from.presence === "compact" &&
   to.presence === "compact" &&
-  from.scene.kind === "notification" &&
-  to.scene.kind === "notification" &&
-  from.scene.item.id !== to.scene.item.id;
-
-const sceneKey = (scene: Scene) => (scene.kind === "notification" ? `notification:${scene.item.id}` : scene.kind);
+  sceneKey(from.scene) !== sceneKey(to.scene) &&
+  [from.scene.kind, to.scene.kind].every((kind) => kind === "notification" || (mode === "always" && kind === "base"));
 
 /** Where each scene settles: the base and notifications are pills, idle is a circle. */
 const settledPresence = (scene: Scene): PillPresence =>
@@ -61,13 +65,13 @@ const settledPresence = (scene: Scene): PillPresence =>
 
 /**
  * The steps from what's displayed to the target scene:
- * - the next notification in the queue: swap it in place (the host animates it);
+ * - the next notification in the queue (with `always`, the base layer too): swap it in place (the host animates it);
  * - other new content: fade it out, collapse to the circle, swap the content there, grow back;
  * - nothing left to show: hide (the stylesheet shrinks, then scales out), then drop the content;
  * - from hidden: pop in as a circle, then grow into the pill.
  * Open levels the user chose (expanded, panel) are kept while the scene stays the same.
  */
-export function planSteps(current: Displayed, target: Scene, timings: Timings): Step[] {
+export function planSteps(current: Displayed, target: Scene, timings: Timings, swap?: SwapMode): Step[] {
   const steps: Step[] = [];
   let { scene, presence } = current;
   const go = (delay: number, nextPresence: PillPresence, nextScene: Scene = scene) => {
@@ -83,7 +87,7 @@ export function planSteps(current: Displayed, target: Scene, timings: Timings): 
       go(timings.reduced ? timings.exit : timings.fade + timings.change + timings.exit, "hidden", target);
       return steps;
     }
-    if (!timings.reduced && isSwap({ scene, presence }, { scene: target, presence: "compact" })) {
+    if (!timings.reduced && isSwap({ scene, presence }, { scene: target, presence: "compact" }, swap)) {
       go(0, presence, target);
     } else if (isOpen(presence)) {
       if (timings.reduced) {
