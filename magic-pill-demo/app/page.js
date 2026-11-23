@@ -1,3 +1,6 @@
+import Link from "next/link";
+
+import { MIGRATION_PATH } from "./paths";
 import { Playground } from "./playground";
 
 export default function Home() {
@@ -19,7 +22,7 @@ export default function Home() {
         <p className="links">
           <a href="https://github.com/CedricTheveneau/Magic-Pill#readme">Documentation</a>
           <a href="https://www.npmjs.com/package/magic-pill">npm</a>
-          <a href="https://github.com/CedricTheveneau/Magic-Pill/blob/main/MIGRATING.md">Migrating from 8.x</a>
+          <Link href={MIGRATION_PATH}>Migrating from 8.x</Link>
         </p>
       </header>
       <Playground />
