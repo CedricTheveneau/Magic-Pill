@@ -27,7 +27,7 @@ On top of it come ready-made **templates** (a notification, a navbar) and a **co
  - [X] Accessible: screen reader announcements, keyboard focus pauses the countdown, focus handling for panels and modals
  - [X] Works in any React 18+ app, including React Server Components (Next.js App Router), with any router
  - [X] Styles you can override without `!important`, design tokens, no fonts loaded behind your back
- - [X] Tiny: the quick start adds about **10.2 kB gzipped** to your app (7.8 kB of JavaScript + 2.4 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
+ - [X] Tiny: the quick start adds about **10.5 kB gzipped** to your app (8.1 kB of JavaScript + 2.4 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
  - [X] Written in TypeScript, zero runtime dependencies
 
 ## Installation
@@ -274,7 +274,7 @@ Any other prop (`className`, `aria-label`, `ref`…) goes to the element.
 - `PillActions` and `PillAction`: round buttons. `label` is required: it's the accessible name, and it shows on hover, on focus, with `expanded`, or at the `expanded` level. A `PillAction` is a `<button>` with `onClick`, or a link with `href` (through `linkComponent` if you pass one).
 - `PillPanel` and `PillPanelTrigger`: content shown at the `panel` level, and the action that opens it. The panel takes the focus when it opens, closes on Escape or with its close button, and gives the focus back to the trigger. One panel per pill.
 
-**A modal:** `placement="overlay"` renders a native modal `<dialog>`, which brings a focus trap, Escape and an inert page with it.
+**A modal:** `placement="overlay"` renders a native modal `<dialog>`, which brings a focus trap, Escape and an inert page with it. It pops in and scales out like any other pill, while its backdrop fades in and out: the dialog closes, and gives the focus back, once the exit has played.
 ```tsx
 <Pill placement="overlay" variant="danger" presence={open ? "compact" : "hidden"} onPresenceChange={(p) => setOpen(p !== "hidden")}>
   <PillMessage>Delete this item?</PillMessage>
