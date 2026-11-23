@@ -178,6 +178,7 @@ pill().notify({
 | `duration` | `5000` | Default display time for notifications. |
 | `idle` | `"hidden"` | With no base layer and nothing queued: `"hidden"`, or `"rest"` for a small resting circle showing `idleIcon`. |
 | `idleIcon` | none | The icon of the resting circle. |
+| `swap` | `"queue"` | Where new content slides into the open pill (out through the top, in from the bottom, the other way round for a top pill) instead of closing it to a circle and growing back: `"queue"` between notifications, `"always"` also between the base layer and notifications, `"never"` nowhere. |
 | `linkComponent` | `<a>` | Renders notification actions that have an `href`, e.g. Next's `Link`. |
 | `classNames` | none | Classes for the notification's parts: `icon`, `divider`, `message`, `actions`, `action`, `panel`. |
 | `placement` | `"bottom"` | See [placements](#the-primitive). |

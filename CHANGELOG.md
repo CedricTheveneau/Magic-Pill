@@ -24,7 +24,7 @@ Work towards 9.0.0, the first release with a stable API. It's a breaking release
   - `render` for your own template, which keeps the queue, timing and animation
   - `expanded: true` on a notification's action (or its panel trigger) keeps its label open, not only on hover and focus, so phones show it too
   - Several named hosts per page (`<MagicPill name="sidebar">`), and `idle="rest"` for a discreet resting circle
-  - Shape changes: the next notification in the queue replaces the current one in one movement, without closing the pill: the current one slides out through the top while the pill resizes, and the next one comes in from the bottom (the other way round for a pill at the top of the screen). Other changes (the navbar and a notification) collapse to a circle, swap the content there and grow back. With reduced motion, the pill fades instead
+  - Shape changes: the next notification in the queue replaces the current one in one movement, without closing the pill: the current one slides out through the top while the pill resizes, and the next one comes in from the bottom (the other way round for a pill at the top of the screen). Other changes (the navbar and a notification) collapse to a circle, swap the content there and grow back. `swap="always"` slides between the base layer and notifications too, so it all feels like one pill; `swap="never"` uses the circle everywhere. With reduced motion, the pill fades instead
   - Announcements go through a separate live region, so a hidden pill can leave the accessibility tree
   - On the server, `pill()` does nothing (it warns in development), so requests never share notifications
 - `usePillQueue(name)`: the queue as a hook, to build your own host
