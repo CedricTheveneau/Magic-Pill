@@ -1,9 +1,12 @@
-import { createRef } from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { createRef, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
+import { createRoot } from "react-dom/client";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import Pill from "./Pill";
 import { usePill } from "./PillContext";
+import type { PillPresence } from "./types";
 
 const renderPill = (props: Parameters<typeof Pill>[0] = {}) => {
   const utils = render(<Pill {...props}>{props.children ?? "content"}</Pill>);
@@ -298,6 +301,8 @@ describe("Pill", () => {
     });
 
     beforeEach(() => {
+      showModal.mockClear();
+      close.mockClear();
       Object.assign(HTMLDialogElement.prototype, { showModal, close });
     });
 
@@ -323,9 +328,155 @@ describe("Pill", () => {
         </Pill>,
       );
 
-      // Assert: closed, and not made inert on top (a closed dialog already is)
+      // Assert: closed at once, with no exit animation to wait for
       expect(close).toHaveBeenCalledOnce();
-      expect(pill().hasAttribute("inert")).toBe(false);
+      expect(pill().hasAttribute("inert")).toBe(true);
+    });
+
+    it("shows the dialog in its closed state, so it transitions open", () => {
+      // Arrange
+      const shownAs: (string | undefined)[] = [];
+      showModal.mockImplementationOnce(function (this: HTMLDialogElement) {
+        shownAs.push(this.dataset.presence);
+        this.setAttribute("open", "");
+      });
+
+      // Act
+      const { pill } = renderPill({ placement: "overlay", presence: "compact" });
+
+      // Assert
+      expect(shownAs).toEqual(["hidden"]);
+      expect(pill().dataset.presence).toBe("compact");
+    });
+
+    it("focuses the dialog itself when it opens as a circle, whose content is hidden", () => {
+      // Arrange
+      const focus = vi.spyOn(HTMLDialogElement.prototype, "focus").mockImplementation(() => {});
+
+      // Act
+      renderPill({ placement: "overlay", presence: "rest" });
+
+      // Assert
+      expect(focus).toHaveBeenCalledOnce();
+    });
+
+    it("opens once on the page when its container is attached by a parent", () => {
+      // Arrange: attached in the parent's layout effect, after the pill's own
+      const container = document.createElement("div");
+      function Portal() {
+        useLayoutEffect(() => {
+          document.body.append(container);
+          return () => container.remove();
+        }, []);
+        return createPortal(<Pill placement="overlay">content</Pill>, container);
+      }
+
+      // Act
+      render(<Portal />);
+
+      // Assert
+      expect(showModal).toHaveBeenCalledOnce();
+    });
+
+    it("ignores a late close event once it's open again", () => {
+      // Arrange
+      const onPresenceChange = vi.fn();
+      const { pill } = renderPill({ placement: "overlay", presence: "compact", onPresenceChange });
+
+      // Act: the dialog is open
+      fireEvent(pill(), new Event("close"));
+
+      // Assert
+      expect(onPresenceChange).not.toHaveBeenCalled();
+    });
+
+    describe("with an exit animation", () => {
+      // Stand-ins for the exit's transitions, finished or cancelled by hand
+      let settle: { finish: () => void; cancel: () => void };
+      let endTime: number;
+      const overlay = (presence: PillPresence) => (
+        <Pill placement="overlay" presence={presence}>
+          content
+        </Pill>
+      );
+      const flush = () => act(async () => {});
+
+      beforeEach(() => {
+        endTime = 700;
+        const finished = new Promise<void>((resolve, reject) => {
+          settle = { finish: resolve, cancel: () => reject(new DOMException("Cancelled", "AbortError")) };
+        });
+        Object.defineProperty(HTMLDialogElement.prototype, "getAnimations", {
+          value: () => [{ finished, effect: { getComputedTiming: () => ({ endTime }) } }],
+          configurable: true,
+        });
+      });
+
+      afterEach(() => {
+        delete (HTMLDialogElement.prototype as Partial<HTMLDialogElement>).getAnimations;
+      });
+
+      it("stays open, but inert, until the exit has played", async () => {
+        // Arrange
+        const { pill, rerender } = renderPill({ placement: "overlay", presence: "compact" });
+
+        // Act
+        rerender(overlay("hidden"));
+        await flush();
+
+        // Assert: still on screen, its buttons out of reach
+        expect(close).not.toHaveBeenCalled();
+        expect(pill().hasAttribute("inert")).toBe(true);
+
+        // Act
+        settle.finish();
+        await flush();
+
+        // Assert
+        expect(close).toHaveBeenCalledOnce();
+      });
+
+      it("stays open when it's shown again before the exit is over, and takes the focus back", async () => {
+        // Arrange: without act(), whose flushes hide the real order: the exit's
+        // animations are cancelled while React commits, before passive effects
+        vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", false);
+        const focus = vi.spyOn(HTMLDialogElement.prototype, "focus").mockImplementation(() => {});
+        const container = document.body.appendChild(document.createElement("div"));
+        const root = createRoot(container);
+        const show = async (presence: PillPresence) => {
+          root.render(overlay(presence));
+          await vi.waitFor(() => expect(container.querySelector(`[data-presence="${presence}"]`)).not.toBeNull());
+          await new Promise((resolve) => setTimeout(resolve, 20));
+        };
+        await show("compact");
+        await show("hidden");
+        showModal.mockClear();
+        focus.mockClear();
+        focus.mockImplementation(() => settle.cancel());
+
+        // Act
+        await show("compact");
+
+        // Assert
+        expect(close).not.toHaveBeenCalled();
+        expect(showModal).not.toHaveBeenCalled();
+        expect(focus).toHaveBeenCalledOnce();
+        root.unmount();
+        container.remove();
+      });
+
+      it("doesn't wait for an endless animation", async () => {
+        // Arrange
+        endTime = Infinity;
+        const { rerender } = renderPill({ placement: "overlay", presence: "compact" });
+
+        // Act
+        rerender(overlay("hidden"));
+        await flush();
+
+        // Assert
+        expect(close).toHaveBeenCalledOnce();
+      });
     });
 
     it("turns the dialog's cancel (Escape) into a hidden presence", () => {
@@ -365,6 +516,7 @@ describe("Pill", () => {
       const { pill } = renderPill({ placement: "overlay", presence: "compact", onPresenceChange });
 
       // Act
+      pill().removeAttribute("open");
       fireEvent(pill(), new Event("close"));
 
       // Assert

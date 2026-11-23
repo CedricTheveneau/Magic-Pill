@@ -23,8 +23,9 @@
   @layer behaviour {
     /* ─── Behaviour: kept by `unstyled` pills ──────────────────────────────── */
 
-    /* Hidden: invisible once the exit transition is over. React also makes it inert. */
-    [data-mp="pill"][data-presence="hidden"] {
+    /* Hidden: invisible once the exit transition is over. React also makes it
+       inert. Not a <dialog>, which takes the focus as it starts to open */
+    [data-mp="pill"][data-presence="hidden"]:not(dialog) {
       visibility: hidden;
     }
 
@@ -226,11 +227,22 @@
         inset: 0;
         margin: auto;
         block-size: fit-content;
-        max-block-size: calc(100dvh - 2 * var(--_mp-offset));
 
-        &::backdrop {
-          background: var(--mp-backdrop, rgb(20 20 20 / 0.4));
+        &:not([data-presence="rest"], [data-presence="hidden"]) {
+          max-block-size: calc(100dvh - 2 * var(--_mp-offset));
         }
+      }
+
+      /* The overlay's backdrop fades in as the pill pops in, and out once
+         the content has faded out */
+      &::backdrop {
+        background: var(--mp-backdrop, rgb(20 20 20 / 0.4));
+        transition: opacity var(--_mp-change) ease-out;
+      }
+
+      &[data-presence="hidden"]::backdrop {
+        opacity: 0;
+        transition: opacity calc(var(--_mp-change) + var(--_mp-exit)) ease-in-out var(--_mp-fade);
       }
 
       /* Vertical pills (sidebars). Their items line up along the screen
@@ -533,6 +545,11 @@
           transition:
             opacity 150ms linear,
             visibility 0s;
+        }
+
+        &::backdrop,
+        &[data-presence="hidden"]::backdrop {
+          transition: opacity 150ms linear;
         }
 
         /* Nothing resizes, so the content doesn't wait: it fades with the

@@ -316,9 +316,13 @@ function readPanel(pill: HTMLElement): { element: HTMLElement; box: PanelBox } |
  * Animates the pill's size on each presence change. Off for `unstyled` pills,
  * with reduced motion, and where the Web Animations API is missing.
  */
-export function useSizeMorph(rootRef: RefObject<HTMLElement | null>, presence: PillPresence, enabled: boolean) {
-  // The size on screen, kept up to date between changes
-  const lastSize = useRef<Size | null>(null);
+export function useSizeMorph(
+  rootRef: RefObject<HTMLElement | null>,
+  presence: PillPresence,
+  enabled: boolean,
+  /** The size on screen, kept up to date between changes */
+  lastSize: RefObject<Size | null>,
+) {
   const lastPresence = useRef(presence);
   const running = useRef<Animation[]>([]);
   // The open panel's box: once it closes, it's out of the flow and can't be measured as it was
@@ -336,7 +340,7 @@ export function useSizeMorph(rootRef: RefObject<HTMLElement | null>, presence: P
       observer.disconnect();
       running.current.forEach((animation) => animation.cancel());
     };
-  }, [rootRef]);
+  }, [rootRef, lastSize]);
 
   useLayoutEffect(() => {
     const element = rootRef.current;
@@ -392,7 +396,7 @@ export function useSizeMorph(rootRef: RefObject<HTMLElement | null>, presence: P
       .catch(() => {
         // Cancelled by the next change
       });
-  }, [rootRef, presence, enabled]);
+  }, [rootRef, presence, enabled, lastSize]);
 }
 
 /** Tags the placement animation, which runs alongside the size ones. */

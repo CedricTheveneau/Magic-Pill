@@ -223,7 +223,7 @@ describe("useSizeMorph", () => {
 
   function Probe({ presence, enabled = true }: { presence: PillPresence; enabled?: boolean }) {
     const ref = useRef<HTMLDivElement | null>(null);
-    useSizeMorph(ref, presence, enabled);
+    useSizeMorph(ref, presence, enabled, useRef<Size | null>(null));
     return createElement("div", { ref, "data-mp": "pill" }, createElement("span", { "data-mp": "message" }, "Saved"));
   }
 

@@ -11,7 +11,8 @@ import {
   type SyntheticEvent,
 } from "react";
 
-import { PlacementWatch, useSizeMorph } from "./morph";
+import { useModal } from "./modal";
+import { PlacementWatch, useSizeMorph, type Size } from "./morph";
 import { PillContext, type InternalPillContextValue } from "./PillContext";
 import type { PillOrientation, PillPresence, PillProps } from "./types";
 import { inertProps, mergeRefs } from "../utils/react";
@@ -49,7 +50,11 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
   const ref = useMemo(() => mergeRefs(rootRef, forwardedRef), [forwardedRef]);
   const panelTriggerRef = useRef<HTMLElement | null>(null);
   const panelId = useId();
-  useSizeMorph(rootRef, presence, !unstyled);
+  // The size on screen, kept up to date between changes
+  const lastSize = useRef<Size | null>(null);
+  // The overlay is a native modal <dialog>: focus trap, Escape and inert page for free
+  useModal(rootRef, isOverlay, presence, lastSize);
+  useSizeMorph(rootRef, presence, !unstyled, lastSize);
 
   // Where closing the panel goes back to: the last visible level other than the panel
   const returnPresenceRef = useRef<PillPresence>("compact");
@@ -71,17 +76,6 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
   const closePanel = useCallback(() => {
     if (presence === "panel") setPresence(returnPresenceRef.current);
   }, [presence, setPresence]);
-
-  // The overlay is a native modal <dialog>: focus trap, Escape and inert page for free
-  useEffect(() => {
-    const dialog = rootRef.current as HTMLDialogElement | null;
-    if (!isOverlay || !dialog || typeof dialog.showModal !== "function") return;
-    if (isVisible && !dialog.open) {
-      dialog.showModal();
-    } else if (!isVisible && dialog.open) {
-      dialog.close();
-    }
-  }, [isOverlay, isVisible]);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     onKeyDown?.(event);
@@ -105,9 +99,10 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
     }
   };
 
-  // The browser may still close the dialog itself (e.g. a repeated Escape)
-  const handleClose = () => {
-    if (presence !== "hidden") setPresence("hidden");
+  // The browser may still close the dialog itself (e.g. a repeated Escape).
+  // The event comes late: the dialog may be open again by then
+  const handleClose = (event: SyntheticEvent<HTMLDivElement>) => {
+    if (!(event.currentTarget as HTMLElement as HTMLDialogElement).open) setPresence("hidden");
   };
 
   const context = useMemo<InternalPillContextValue>(
@@ -140,8 +135,8 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
         data-variant={variant}
         data-unstyled={unstyled ? "" : undefined}
         // Hidden: out of the focus order and the accessibility tree at once,
-        // while the exit animation plays (Y5). A closed <dialog> already is.
-        {...inertProps(!isVisible && !isOverlay)}
+        // while the exit animation plays (Y5)
+        {...inertProps(!isVisible)}
         onKeyDown={handleKeyDown}
         {...(isOverlay ? { onCancel: handleCancel, onClose: handleClose } : {})}
       >
