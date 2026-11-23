@@ -57,10 +57,15 @@ export interface PillProps extends Omit<ComponentPropsWithoutRef<"div">, "childr
   presence?: PillPresence;
   /** Uncontrolled initial presence. Default `compact`. */
   defaultPresence?: PillPresence;
-  /** Called when the pill asks to change level (panel trigger, close button, Escape). */
+  /** Called when the pill asks to change level (panel trigger, close button, Escape, backdrop click). */
   onPresenceChange?: (presence: PillPresence) => void;
   /** Default `inline`. */
   placement?: PillPlacement;
+  /**
+   * `overlay` only: a click outside the modal does what Escape does (closes
+   * the panel if it's open, the modal otherwise). Default `false`.
+   */
+  closeOnBackdropClick?: boolean;
   orientation?: PillOrientation;
   /** Default `neutral`. */
   variant?: PillVariant;

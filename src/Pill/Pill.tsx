@@ -8,10 +8,12 @@ import {
   useRef,
   useState,
   type KeyboardEvent,
+  type MouseEvent,
+  type PointerEvent,
   type SyntheticEvent,
 } from "react";
 
-import { useModal } from "./modal";
+import { isOnBackdrop, useModal } from "./modal";
 import { PlacementWatch, useSizeMorph, type Size } from "./morph";
 import { PillContext, type InternalPillContextValue } from "./PillContext";
 import type { PillOrientation, PillPresence, PillProps } from "./types";
@@ -30,6 +32,7 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
     defaultPresence = "compact",
     onPresenceChange,
     placement = "inline",
+    closeOnBackdropClick = false,
     orientation,
     variant = "neutral",
     unstyled = false,
@@ -88,8 +91,9 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
     }
   };
 
-  // Escape on the modal: close the panel first, then the overlay. The state
-  // stays the source of truth, so the browser's own closing is prevented.
+  // Escape on the modal (or a click on its backdrop, if asked for): close the
+  // panel first, then the overlay. The state stays the source of truth, so the
+  // browser's own closing is prevented.
   const handleCancel = (event: SyntheticEvent<HTMLDivElement>) => {
     event.preventDefault();
     if (presence === "panel") {
@@ -103,6 +107,21 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
   // The event comes late: the dialog may be open again by then
   const handleClose = (event: SyntheticEvent<HTMLDivElement>) => {
     if (!(event.currentTarget as HTMLElement as HTMLDialogElement).open) setPresence("hidden");
+  };
+
+  // A press that starts and ends on the backdrop: not a text selection dragged
+  // out of the modal, nor the end of the press that opened it. Nor the second
+  // click of a double-click on what opened it
+  const pressedBackdrop = useRef(false);
+  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    rest.onPointerDown?.(event);
+    pressedBackdrop.current = isOnBackdrop(event);
+  };
+  const handleClick = (event: MouseEvent<HTMLDivElement>) => {
+    rest.onClick?.(event);
+    const pressed = pressedBackdrop.current;
+    pressedBackdrop.current = false;
+    if (pressed && event.detail < 2 && !event.defaultPrevented && isOnBackdrop(event)) handleCancel(event);
   };
 
   const context = useMemo<InternalPillContextValue>(
@@ -138,7 +157,11 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
         // while the exit animation plays (Y5)
         {...inertProps(!isVisible)}
         onKeyDown={handleKeyDown}
-        {...(isOverlay ? { onCancel: handleCancel, onClose: handleClose } : {})}
+        {...(isOverlay && {
+          onCancel: handleCancel,
+          onClose: handleClose,
+          ...(closeOnBackdropClick && { onPointerDown: handlePointerDown, onClick: handleClick }),
+        })}
       >
         {/* Moves the pill to a new placement instead of jumping there */}
         <PlacementWatch placement={`${placement} ${resolvedOrientation}`} target={rootRef} />

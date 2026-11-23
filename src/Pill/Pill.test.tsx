@@ -390,6 +390,110 @@ describe("Pill", () => {
       expect(onPresenceChange).not.toHaveBeenCalled();
     });
 
+    describe("closeOnBackdropClick", () => {
+      const INSIDE = { clientX: 150, clientY: 110 };
+      const OUTSIDE = { clientX: 10, clientY: 10 };
+      const renderModal = (props: Parameters<typeof Pill>[0] = {}) => {
+        const onPresenceChange = vi.fn();
+        const { pill } = renderPill({
+          placement: "overlay",
+          presence: "compact",
+          closeOnBackdropClick: true,
+          onPresenceChange,
+          children: <span>content</span>,
+          ...props,
+        });
+        vi.spyOn(pill(), "getBoundingClientRect").mockReturnValue(new DOMRect(100, 100, 200, 72));
+        return { pill: pill(), onPresenceChange };
+      };
+      // A backdrop's events target its dialog
+      const press = (pill: HTMLElement, from: object, to: object, click: object = {}) => {
+        fireEvent(pill, new MouseEvent("pointerdown", { bubbles: true, ...from }));
+        fireEvent.click(pill, { detail: 1, ...to, ...click });
+      };
+
+      it("closes the modal on a click on the backdrop", () => {
+        // Arrange
+        const { pill, onPresenceChange } = renderModal();
+
+        // Act
+        press(pill, OUTSIDE, OUTSIDE);
+
+        // Assert
+        expect(onPresenceChange).toHaveBeenCalledExactlyOnceWith("hidden");
+      });
+
+      it("closes the panel first, like Escape", () => {
+        // Arrange
+        const { pill, onPresenceChange } = renderModal({ presence: "panel" });
+
+        // Act
+        press(pill, OUTSIDE, OUTSIDE);
+
+        // Assert
+        expect(onPresenceChange).toHaveBeenCalledExactlyOnceWith("compact");
+      });
+
+      it.each([
+        ["on the pill's own padding", INSIDE, INSIDE, {}],
+        ["dragged out of the modal", INSIDE, OUTSIDE, {}],
+        ["dragged into the modal", OUTSIDE, INSIDE, {}],
+        ["that ends a double-click on the opener", OUTSIDE, OUTSIDE, { detail: 2 }],
+      ])("ignores a press %s", (_, from, to, click) => {
+        // Arrange
+        const { pill, onPresenceChange } = renderModal();
+
+        // Act
+        press(pill, from, to, click);
+
+        // Assert
+        expect(onPresenceChange).not.toHaveBeenCalled();
+      });
+
+      it("ignores a click whose press didn't start on the modal (e.g. the one that opened it)", () => {
+        // Arrange
+        const { pill, onPresenceChange } = renderModal();
+
+        // Act: a full press on the pill first, then a click on its own
+        press(pill, OUTSIDE, INSIDE);
+        fireEvent.click(pill, { detail: 1, ...OUTSIDE });
+
+        // Assert
+        expect(onPresenceChange).not.toHaveBeenCalled();
+      });
+
+      it("calls the app's own handlers, and leaves the modal open if they prevent the default", () => {
+        // Arrange
+        const onPointerDown = vi.fn();
+        const onClick = vi.fn((event: { preventDefault: () => void }) => event.preventDefault());
+        const { pill, onPresenceChange } = renderModal({ onPointerDown, onClick });
+
+        // Act
+        press(pill, OUTSIDE, OUTSIDE);
+
+        // Assert
+        expect(onPointerDown).toHaveBeenCalledOnce();
+        expect(onClick).toHaveBeenCalledOnce();
+        expect(onPresenceChange).not.toHaveBeenCalled();
+      });
+
+      it.each([
+        ["by default", { closeOnBackdropClick: undefined }],
+        ["outside the overlay placement", { placement: "bottom" as const }],
+      ])("does nothing %s, but the app's handlers still run", (_, props) => {
+        // Arrange
+        const onClick = vi.fn();
+        const { pill, onPresenceChange } = renderModal({ ...props, onClick });
+
+        // Act
+        press(pill, OUTSIDE, OUTSIDE);
+
+        // Assert
+        expect(onClick).toHaveBeenCalledOnce();
+        expect(onPresenceChange).not.toHaveBeenCalled();
+      });
+    });
+
     describe("with an exit animation", () => {
       // Stand-ins for the exit's transitions, finished or cancelled by hand
       let settle: { finish: () => void; cancel: () => void };

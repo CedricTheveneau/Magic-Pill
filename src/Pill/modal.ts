@@ -3,10 +3,19 @@
 // animations. Browsers show and remove a dialog at once: it's shown in its
 // closed state first, then opened, and it only closes once its exit has
 // played (CSS alone can't keep it in the top layer outside Chromium).
-import { useEffect, useLayoutEffect, type RefObject } from "react";
+import { useEffect, useLayoutEffect, type MouseEvent, type RefObject } from "react";
 
 import type { Size } from "./morph";
 import type { PillPresence } from "./types";
+
+/**
+ * Whether the pointer is on the backdrop: its events target the <dialog>, as
+ * those on the pill's own padding do, but fall outside its box.
+ */
+export function isOnBackdrop({ target, currentTarget, clientX, clientY }: MouseEvent): boolean {
+  const { left, right, top, bottom } = currentTarget.getBoundingClientRect();
+  return target === currentTarget && (clientX < left || clientX > right || clientY < top || clientY > bottom);
+}
 
 /**
  * Keeps the overlay's <dialog> in step with the presence. Call it before
