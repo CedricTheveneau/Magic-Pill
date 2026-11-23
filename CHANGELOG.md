@@ -43,7 +43,7 @@ Work towards 9.0.0, the first release with a stable API. It's a breaking release
 
 ### Changed
 - The published JavaScript is readable (not minified) and has no source maps. Your app bundles exactly the same amount of code (your bundler minifies it), and the package is about 40% smaller to install (196 kB unpacked instead of 331 kB in 9.0.0-next.0)
-- Size, measured and checked in CI: the quick start (`MagicPill` + `pill()`) adds about 8.3 kB of gzipped JavaScript and 2.4 kB of gzipped CSS to an app (both minified, as your bundler does); a hand-written `Pill` with its parts, about 3.8 kB of JavaScript, most of it the size animation
+- Size, measured and checked in CI: the quick start (`MagicPill` + `pill()`) adds about 8.25 kB of gzipped JavaScript and 2.45 kB of gzipped CSS to an app (both minified, as your bundler does); a hand-written `Pill` with its parts, about 3.8 kB of JavaScript, most of it the size animation
 
 ### Fixed (since 9.0.0-next.0)
 - Global resets on links and buttons, such as `a { color: inherit }` or `button { background: none }`, no longer blank out the pill's actions: their look now lives on an inner `[data-mp="action-body"]`
