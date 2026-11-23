@@ -223,7 +223,7 @@ describe("useSizeMorph", () => {
 
   function Probe({ presence, enabled = true }: { presence: PillPresence; enabled?: boolean }) {
     const ref = useRef<HTMLDivElement | null>(null);
-    useSizeMorph(ref, presence, enabled);
+    useSizeMorph(ref, presence, enabled, useRef<Size | null>(null));
     return createElement("div", { ref, "data-mp": "pill" }, createElement("span", { "data-mp": "message" }, "Saved"));
   }
 
@@ -250,6 +250,29 @@ describe("useSizeMorph", () => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
     delete (HTMLElement.prototype as Partial<HTMLElement>).animate;
+  });
+
+  it("starts from the observed size to the fraction of a pixel, rounded up, so a closing message doesn't wrap", () => {
+    // Arrange: 327.404px on screen, which offsetWidth rounds down
+    size = { width: 327, height: 72 };
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        constructor(private callback: (entries: unknown[]) => void) {}
+        observe() {
+          this.callback([{ borderBoxSize: [{ inlineSize: 327.404, blockSize: 72 }] }]);
+        }
+        disconnect() {}
+      },
+    );
+    const { rerender } = render(createElement(Probe, { presence: "compact" }));
+    size = CIRCLE;
+
+    // Act
+    rerender(createElement(Probe, { presence: "hidden" }));
+
+    // Assert
+    expect(animate.mock.calls[0][0][0]).toMatchObject({ width: "327.41px", height: "72px" });
   });
 
   it("animates from the size on screen to the new one when the presence changes", () => {

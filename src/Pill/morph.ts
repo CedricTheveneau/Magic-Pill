@@ -49,7 +49,8 @@ const MORPH = "mp-morph";
 const EDGE = 48;
 const EASING = "ease-in-out";
 
-const px = (value: number) => `${Math.max(0, Math.round(value * 100) / 100)}px`;
+/** Rounded up: a hair narrower, and a message that just fits would wrap. */
+const px = (value: number) => `${Math.max(0, Math.ceil(value * 100) / 100)}px`;
 /**
  * The pill at a size. Nothing in the stylesheet may cap it meanwhile (the
  * circle clamps both axes, a panel scrolls past a maximum height).
@@ -65,9 +66,9 @@ const sized = (size: Size): Keyframe => ({
 });
 /**
  * A part held at its final width while the pill resizes, so a message doesn't
- * rewrap at every frame. Rounded up: a hair narrower, and it would wrap.
+ * rewrap at every frame.
  */
-const held = (width: number): Keyframe => ({ flexShrink: 0, width: `${Math.ceil(width * 100) / 100}px` });
+const held = (width: number): Keyframe => ({ flexShrink: 0, width: px(width) });
 
 /**
  * Measures the pill's messages now (at their final width: before the pill's
@@ -316,9 +317,13 @@ function readPanel(pill: HTMLElement): { element: HTMLElement; box: PanelBox } |
  * Animates the pill's size on each presence change. Off for `unstyled` pills,
  * with reduced motion, and where the Web Animations API is missing.
  */
-export function useSizeMorph(rootRef: RefObject<HTMLElement | null>, presence: PillPresence, enabled: boolean) {
-  // The size on screen, kept up to date between changes
-  const lastSize = useRef<Size | null>(null);
+export function useSizeMorph(
+  rootRef: RefObject<HTMLElement | null>,
+  presence: PillPresence,
+  enabled: boolean,
+  /** The size on screen, kept up to date between changes */
+  lastSize: RefObject<Size | null>,
+) {
   const lastPresence = useRef(presence);
   const running = useRef<Animation[]>([]);
   // The open panel's box: once it closes, it's out of the flow and can't be measured as it was
@@ -327,8 +332,13 @@ export function useSizeMorph(rootRef: RefObject<HTMLElement | null>, presence: P
   useLayoutEffect(() => {
     const element = rootRef.current;
     if (!element || typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(() => {
-      lastSize.current = readSize(element);
+    const observer = new ResizeObserver((entries) => {
+      // To the fraction of a pixel: rounded down, a closing pill would wrap
+      // the message it still shows (not in vertical writing, whose box is turned)
+      const size = readSize(element);
+      const box = entries?.[0]?.borderBoxSize?.[0];
+      const exact = box && { width: box.inlineSize, height: box.blockSize };
+      lastSize.current = exact && sameSize(exact, size) ? exact : size;
       if (lastPresence.current === "panel" && running.current.length === 0) openPanel.current = readPanel(element)?.box;
     });
     observer.observe(element);
@@ -336,7 +346,7 @@ export function useSizeMorph(rootRef: RefObject<HTMLElement | null>, presence: P
       observer.disconnect();
       running.current.forEach((animation) => animation.cancel());
     };
-  }, [rootRef]);
+  }, [rootRef, lastSize]);
 
   useLayoutEffect(() => {
     const element = rootRef.current;
@@ -392,7 +402,7 @@ export function useSizeMorph(rootRef: RefObject<HTMLElement | null>, presence: P
       .catch(() => {
         // Cancelled by the next change
       });
-  }, [rootRef, presence, enabled]);
+  }, [rootRef, presence, enabled, lastSize]);
 }
 
 /** Tags the placement animation, which runs alongside the size ones. */
