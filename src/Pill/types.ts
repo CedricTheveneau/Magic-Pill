@@ -62,6 +62,12 @@ export interface PillProps extends Omit<ComponentPropsWithoutRef<"div">, "childr
   /** Default `inline`. */
   placement?: PillPlacement;
   /**
+   * Fixed placements only: pills with the same placement line up one after
+   * the other, the first one set up keeping its spot. `false` leaves this
+   * pill out: it stays in its spot and the others ignore it. Default `true`.
+   */
+  stack?: boolean;
+  /**
    * `overlay` only: a click outside the modal does what Escape does (closes
    * the panel if it's open, the modal otherwise). Default `false`.
    */

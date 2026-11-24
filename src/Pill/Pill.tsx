@@ -17,6 +17,7 @@ import { isOnBackdrop, useModal } from "./modal";
 import { PlacementWatch, useSizeMorph, type Size } from "./morph";
 import { PillContext, type InternalPillContextValue } from "./PillContext";
 import type { PillOrientation, PillPresence, PillProps } from "./types";
+import { useZone } from "./zone";
 import { inertProps, mergeRefs } from "../utils/react";
 
 const defaultOrientation = (placement: PillProps["placement"]): PillOrientation =>
@@ -32,6 +33,7 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
     defaultPresence = "compact",
     onPresenceChange,
     placement = "inline",
+    stack = true,
     closeOnBackdropClick = false,
     orientation,
     variant = "neutral",
@@ -58,6 +60,8 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
   // The overlay is a native modal <dialog>: focus trap, Escape and inert page for free
   useModal(rootRef, isOverlay, presence, lastSize);
   useSizeMorph(rootRef, presence, !unstyled, lastSize);
+  // Pills with the same fixed placement make room for each other
+  useZone(rootRef, stack && !unstyled && !isOverlay && placement !== "inline" ? placement : undefined, presence);
 
   // Where closing the panel goes back to: the last visible level other than the panel
   const returnPresenceRef = useRef<PillPresence>("compact");

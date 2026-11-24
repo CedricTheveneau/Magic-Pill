@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+### Added
+- Pills with the same fixed placement make room for each other instead of overlapping: the first one set up keeps its spot, the next ones line up after it (below it at the top of the screen, above it at the bottom, further in from the edge on the sides), and take its place when it hides or unmounts. An open panel covers the others. On by default, for `<MagicPill>` hosts too; `stack={false}` leaves a pill out
+
+### Changed
+- A pill's open panel sits one level above the other pills (`--mp-z-index` + 1) until it has closed
+
 ## [9.0.0] - 2026-11-23
 9.0.0 is the first stable release of Magic Pill; earlier versions are deprecated (upgrading from 8.x: [MIGRATING.md](./MIGRATING.md)). It's a breaking release with a new API, but most apps get shorter.
 

@@ -24,8 +24,9 @@ const PROBES = [
     // then from 6.5 kB for the queue's swap animation: 7.47 kB,
     // then from 7.5 kB for placement changes and held messages: 7.82 kB,
     // then from 8 kB for the modal's entry and exit (Pill/modal.ts): 8.09 kB,
-    // then from 8.25 kB for closeOnBackdropClick: 8.25 kB
-    budget: 8.5 * KB, // 4.89 kB at 9.0.0-next.0
+    // then from 8.25 kB for closeOnBackdropClick: 8.25 kB,
+    // then from 8.5 kB for pills sharing a placement (Pill/zone.ts): 9.14 kB
+    budget: 9.25 * KB, // 4.89 kB at 9.0.0-next.0
   },
   {
     name: "Pill primitive",
@@ -34,8 +35,9 @@ const PROBES = [
     // Raised from 1.75 kB for the size animation (Pill/morph.ts): 2.76 kB,
     // then from 3 kB for placement changes and held messages: 3.31 kB,
     // then from 3.5 kB for the modal's entry and exit (Pill/modal.ts): 3.61 kB,
-    // then from 3.75 kB for closeOnBackdropClick: 3.78 kB
-    budget: 4 * KB, // 1.44 kB at 9.0.0-next.0
+    // then from 3.75 kB for closeOnBackdropClick: 3.78 kB,
+    // then from 4 kB for pills sharing a placement (Pill/zone.ts): 4.69 kB
+    budget: 4.75 * KB, // 1.44 kB at 9.0.0-next.0
   },
   {
     name: "Everything",
@@ -44,11 +46,13 @@ const PROBES = [
     // Raised from 10 kB for the size animation (Pill/morph.ts): 10.61 kB,
     // then from 11 kB for the queue's swap animation: 11.74 kB,
     // then from 12 kB for placement changes and held messages: 12.09 kB,
-    // then from 12.5 kB for the modal's entry and exit and closeOnBackdropClick: 12.54 kB
-    budget: 12.75 * KB, // 9.07 kB at 9.0.0-next.0
+    // then from 12.5 kB for the modal's entry and exit and closeOnBackdropClick: 12.54 kB,
+    // then from 12.75 kB for pills sharing a placement (Pill/zone.ts): 13.42 kB
+    budget: 13.5 * KB, // 9.07 kB at 9.0.0-next.0
   },
 ];
-const CSS_BUDGET = 2.5 * KB; // 2.15 kB at 9.0.0-next.1 (3.89 kB with its comments, as shipped)
+// Raised from 2.5 kB for pills sharing a placement: 2.51 kB
+const CSS_BUDGET = 2.6 * KB; // 2.15 kB at 9.0.0-next.1 (3.89 kB with its comments, as shipped)
 
 const root = resolve(import.meta.dirname, "..");
 const entry = join(root, "dist", "index.mjs");

@@ -65,6 +65,8 @@
       --_mp-change: var(--mp-duration-change, 250ms);
       /* The content fades out before the pill shrinks, and in once it has grown */
       --_mp-fade: 150ms;
+      /* A panel stays above the other pills until it has closed back */
+      --_mp-lower: calc(var(--_mp-fade) + var(--_mp-change));
       /* The entry overshoot from the mockups' "pop" */
       --_mp-ease-enter: cubic-bezier(0.34, 1.56, 0.64, 1);
 
@@ -101,6 +103,7 @@
         scale var(--_mp-enter) var(--_mp-ease-enter),
         border-radius var(--_mp-change) ease-in-out,
         background-color var(--_mp-change) ease-in-out,
+        z-index 0s var(--_mp-lower),
         visibility 0s;
 
       & *,
@@ -130,6 +133,7 @@
           scale var(--_mp-exit) ease-in calc(var(--_mp-fade) + var(--_mp-change)),
           border-radius var(--_mp-change) ease-in-out var(--_mp-fade),
           background-color var(--_mp-change) ease-in-out var(--_mp-fade),
+          z-index 0s var(--_mp-lower),
           visibility 0s linear calc(var(--_mp-fade) + var(--_mp-change) + var(--_mp-exit));
       }
 
@@ -143,6 +147,7 @@
           scale var(--_mp-enter) var(--_mp-ease-enter),
           border-radius var(--_mp-change) ease-in-out var(--_mp-fade),
           background-color var(--_mp-change) ease-in-out var(--_mp-fade),
+          z-index 0s var(--_mp-lower),
           visibility 0s;
       }
 
@@ -167,29 +172,32 @@
       &[data-presence="panel"] {
         --_mp-max-size: min(var(--mp-panel-width, 32rem), 100%);
         display: block;
-        max-block-size: calc(100dvh - 2 * var(--_mp-offset));
+        max-block-size: calc(100dvh - 2 * var(--_mp-offset) - var(--_mp-shift-y, 0px));
         padding: calc(var(--_mp-padding) * 2.5);
         overflow-y: auto;
         border-radius: var(--mp-radius-panel, 2.5rem);
       }
 
-      /* Placements: fixed ones stay inside the viewport and its safe areas */
+      /* Placements: fixed ones stay inside the viewport and its safe areas.
+         Pills that share one are shifted by script (zone.ts) to line up */
       &:not([data-placement="inline"]) {
-        --_mp-max-size: min(var(--mp-max-width, 48rem), 100vw - 2 * var(--_mp-offset));
+        --_mp-max-size: min(var(--mp-max-width, 48rem), 100vw - 2 * var(--_mp-offset) - var(--_mp-shift-x, 0px));
         position: fixed;
         z-index: var(--mp-z-index, 50);
       }
 
       &[data-presence="panel"]:not([data-placement="inline"]) {
-        --_mp-max-size: min(var(--mp-panel-width, 32rem), 100vw - 2 * var(--_mp-offset));
+        --_mp-max-size: min(var(--mp-panel-width, 32rem), 100vw - 2 * var(--_mp-offset) - var(--_mp-shift-x, 0px));
+        --_mp-lower: 0s;
+        z-index: calc(var(--mp-z-index, 50) + 1);
       }
 
       &[data-placement^="top"] {
-        inset-block-start: calc(var(--_mp-offset) + env(safe-area-inset-top, 0px));
+        inset-block-start: calc(var(--_mp-offset) + env(safe-area-inset-top, 0px) + var(--_mp-shift-y, 0px));
       }
 
       &[data-placement^="bottom"] {
-        inset-block-end: calc(var(--_mp-offset) + env(safe-area-inset-bottom, 0px));
+        inset-block-end: calc(var(--_mp-offset) + env(safe-area-inset-bottom, 0px) + var(--_mp-shift-y, 0px));
       }
 
       /* Centred with auto margins, not left: 50% + translate, which would
@@ -216,11 +224,11 @@
       }
 
       &[data-placement="left"] {
-        left: calc(var(--_mp-offset) + env(safe-area-inset-left, 0px));
+        left: calc(var(--_mp-offset) + env(safe-area-inset-left, 0px) + var(--_mp-shift-x, 0px));
       }
 
       &[data-placement="right"] {
-        right: calc(var(--_mp-offset) + env(safe-area-inset-right, 0px));
+        right: calc(var(--_mp-offset) + env(safe-area-inset-right, 0px) + var(--_mp-shift-x, 0px));
       }
 
       &[data-placement="overlay"] {
@@ -258,7 +266,7 @@
       }
 
       &[data-orientation="vertical"]:not([data-presence="rest"], [data-presence="hidden"]) {
-        max-block-size: calc(100dvh - 2 * var(--_mp-offset));
+        max-block-size: calc(100dvh - 2 * var(--_mp-offset) - var(--_mp-shift-y, 0px));
       }
 
       /* A sidebar's panel keeps the panel's width cap, like any other */
