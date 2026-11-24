@@ -44,10 +44,10 @@ export interface MorphPlan {
 
 const CLOSED: ReadonlySet<PillPresence> = new Set(["rest", "hidden"]);
 /** Tags this module's animations, so a size change can stop the one before it. */
-const MORPH = "mp-morph";
+export const MORPH = "mp-morph";
 /** The length of the fading edge over the panel's clipped content. */
 const EDGE = 48;
-const EASING = "ease-in-out";
+export const EASING = "ease-in-out";
 
 /** Rounded up: a hair narrower, and a message that just fits would wrap. */
 const px = (value: number) => `${Math.max(0, Math.ceil(value * 100) / 100)}px`;
@@ -149,11 +149,8 @@ export function planMorph(
 
 const readSize = (element: HTMLElement): Size => ({ width: element.offsetWidth, height: element.offsetHeight });
 
-/**
- * Stops the size animations running on the pill (and in it), and drops the
- * copy of the content a swap slides out (but `keep`). Returns whether anything ran.
- */
-function cancel(element: HTMLElement, id: string, subtree?: boolean): boolean {
+/** Stops the pill's animations with this id (and the ones in it). Returns whether anything ran. */
+export function cancel(element: HTMLElement, id: string, subtree?: boolean): boolean {
   let cancelled = false;
   for (const animation of element.getAnimations?.({ subtree }) ?? []) {
     if (animation.id === id) {
@@ -164,6 +161,10 @@ function cancel(element: HTMLElement, id: string, subtree?: boolean): boolean {
   return cancelled;
 }
 
+/**
+ * Stops the size animations running on the pill (and in it), and drops the
+ * copy of the content a swap slides out (but `keep`). Returns whether anything ran.
+ */
 function stopMorphs(element: HTMLElement, keep?: Element): boolean {
   let stopped = cancel(element, MORPH, true);
   for (const outgoing of element.querySelectorAll(':scope > [data-mp="outgoing"]')) {
@@ -294,7 +295,7 @@ export function playSwap(element: HTMLElement, { from, outgoing, anchor, down }:
   outgoing.animate(plan.outgoing.keyframes, plan.outgoing.options).finished.then(done, done);
 }
 
-function readMorphTimings(element: HTMLElement): MorphTimings {
+export function readMorphTimings(element: HTMLElement): MorphTimings {
   const style = getComputedStyle(element);
   return {
     fade: parseDuration(style.getPropertyValue("--_mp-fade"), 150),
