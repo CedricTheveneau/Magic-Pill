@@ -23,13 +23,13 @@ On top of it come ready-made **templates** (a notification, a navbar) and a **co
 ## Features
  - [X] Two lines to get started: mount `<MagicPill />`, then call `pill().notify(...)` from anywhere, even outside React
  - [X] A notification queue on top of a **base layer** (e.g. a navbar): notifications take the pill over, then hand it back
- - [X] Several named pills on one page, at any edge or corner, inline, or as a modal
+ - [X] Several named pills on one page, at any edge or corner, inline, or as a modal; pills that share a spot line up instead of overlapping
  - [X] Anything inside: messages, icons and panels are React content; build your own templates from the same parts
  - [X] Shape-changing animations (circle ↔ pill ↔ panel) at the pill's real size, notifications that slide into each other, a pill that travels when its placement changes, all respecting reduced motion
  - [X] Accessible: screen reader announcements, keyboard focus pauses the countdown, focus handling for panels and modals
  - [X] Works in any React 18+ app, including React Server Components (Next.js App Router), with any router
  - [X] Styles you can override without `!important`, design tokens, no fonts loaded behind your back
- - [X] Tiny: the quick start adds about **10.7 kB gzipped** to your app (8.25 kB of JavaScript + 2.45 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
+ - [X] Tiny: the quick start adds about **11.7 kB gzipped** to your app (9.1 kB of JavaScript + 2.5 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
  - [X] Written in TypeScript, zero runtime dependencies
 
 ## Installation
@@ -264,6 +264,7 @@ import { Pill, PillActions, PillAction, PhoneIcon, MailIcon, DocumentIcon } from
 | `placement` | `"inline"` (in the page flow), `"top"`, `"bottom"`, `"left"`, `"right"`, `"top-start"`, `"top-end"`, `"bottom-start"`, `"bottom-end"` (fixed; `start`/`end` follow the text direction), `"overlay"` (a modal `<dialog>`). Change it and the pill travels to its new place (e.g. with the scroll, or for a guided tour), except to or from `"overlay"`. | `"inline"` |
 | `presence` / `defaultPresence` / `onPresenceChange` | `"hidden"`, `"rest"` (a circle with the icon only), `"compact"`, `"expanded"` (every action label shown), `"panel"` | `"compact"` |
 | `closeOnBackdropClick` | `boolean`, for the `"overlay"` placement: a click outside the modal does what Escape does (closes its panel if it's open, the modal otherwise). Call `event.preventDefault()` in your `onClick` to keep it open | `false` |
+| `stack` | `boolean`, for the fixed placements: pills with the same placement line up (see below). `false` leaves this one out: it stays in its spot and the others ignore it | `true` |
 | `orientation` | `"horizontal"`, `"vertical"` | `"vertical"` for `left`/`right` |
 | `variant` | `"neutral"`, `"success"`, `"danger"`, or any string (see [Styling](#styling)) | `"neutral"` |
 | `unstyled` | `boolean`: keep the behaviour, drop the look | `false` |
@@ -276,6 +277,11 @@ Any other prop (`className`, `aria-label`, `ref`…) goes to the element.
 - `PillMessage`: the message, in the italic serif.
 - `PillActions` and `PillAction`: round buttons. `label` is required: it's the accessible name, and it shows on hover, on focus, with `expanded`, or at the `expanded` level. A `PillAction` is a `<button>` with `onClick`, or a link with `href` (through `linkComponent` if you pass one).
 - `PillPanel` and `PillPanelTrigger`: content shown at the `panel` level, and the action that opens it. The panel takes the focus when it opens, closes on Escape or with its close button, and gives the focus back to the trigger. One panel per pill.
+
+**Pills in the same spot:** pills with the same fixed `placement` make room for each other, `<MagicPill>` hosts included. The first one set up keeps its spot, and the next ones line up after it: below it at the top of the screen, above it at the bottom, further in from the edge on the `left` and `right`. Each one keeps its own `--mp-gap` from the one before it.
+- When a pill hides or unmounts, the ones after it take its place. A hidden pill keeps its turn, and takes its spot back when it shows again; one that unmounts comes back last.
+- An open panel covers the other pills instead of pushing them.
+- The order is the one the pills mount in. For a layout's pill to stay ahead of its pages' pills, render it before them.
 
 **A modal:** `placement="overlay"` renders a native modal `<dialog>`, which brings a focus trap, Escape and an inert page with it. It pops in and scales out like any other pill, while its backdrop fades in and out: the dialog closes, and gives the focus back, once the exit has played. Add `closeOnBackdropClick` to also close it with a click outside (off by default, so a confirmation isn't dismissed by accident).
 ```tsx
@@ -414,7 +420,7 @@ Magic Pill is distributed under the [MIT License](https://www.tldrlegal.com/lice
 | Coming next | Done in 9.0 |
 |-----------|-----------|
 | A documentation site with live examples | Custom icons (any React content) |
-| Pills that make room for each other in the same spot | Animated morphing between contents, panels and placements |
-| Themes (glass, custom) | Transitions between the navbar and notifications |
-| Forms, toolbox and carousel indicator templates | Function triggers on actions (`onClick`) |
-| More built-in icons | Responsive styles, full documentation, tests |
+| Themes (glass, custom) | Animated morphing between contents, panels and placements |
+| Forms, toolbox and carousel indicator templates | Transitions between the navbar and notifications |
+| More built-in icons | Function triggers on actions (`onClick`) |
+| | Responsive styles, full documentation, tests |
