@@ -264,7 +264,7 @@ import { Pill, PillActions, PillAction, PhoneIcon, MailIcon, DocumentIcon } from
 | `placement` | `"inline"` (in the page flow), `"top"`, `"bottom"`, `"left"`, `"right"`, `"top-start"`, `"top-end"`, `"bottom-start"`, `"bottom-end"` (fixed; `start`/`end` follow the text direction), `"overlay"` (a modal `<dialog>`). Change it and the pill travels to its new place (e.g. with the scroll, or for a guided tour), except to or from `"overlay"`. | `"inline"` |
 | `presence` / `defaultPresence` / `onPresenceChange` | `"hidden"`, `"rest"` (a circle with the icon only), `"compact"`, `"expanded"` (every action label shown), `"panel"` | `"compact"` |
 | `closeOnBackdropClick` | `boolean`, for the `"overlay"` placement: a click outside the modal does what Escape does (closes its panel if it's open, the modal otherwise). Call `event.preventDefault()` in your `onClick` to keep it open | `false` |
-| `stack` | `boolean`, for the fixed placements: pills with the same placement line up (see below). `false` leaves this one out: it stays in its spot and the others ignore it | `true` |
+| `ladder` | `boolean`, for the fixed placements: pills with the same placement line up like the rungs of a ladder (see below). `false` leaves this one out: it stays in its spot and the others ignore it | `true` |
 | `orientation` | `"horizontal"`, `"vertical"` | `"vertical"` for `left`/`right` |
 | `variant` | `"neutral"`, `"success"`, `"danger"`, or any string (see [Styling](#styling)) | `"neutral"` |
 | `unstyled` | `boolean`: keep the behaviour, drop the look | `false` |

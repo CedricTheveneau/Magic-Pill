@@ -33,7 +33,7 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
     defaultPresence = "compact",
     onPresenceChange,
     placement = "inline",
-    stack = true,
+    ladder = true,
     closeOnBackdropClick = false,
     orientation,
     variant = "neutral",
@@ -61,7 +61,7 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
   useModal(rootRef, isOverlay, presence, lastSize);
   useSizeMorph(rootRef, presence, !unstyled, lastSize);
   // Pills with the same fixed placement make room for each other
-  useZone(rootRef, stack && !unstyled && !isOverlay && placement !== "inline" ? placement : undefined, presence);
+  useZone(rootRef, ladder && !unstyled && !isOverlay && placement !== "inline" ? placement : undefined, presence);
 
   // Where closing the panel goes back to: the last visible level other than the panel
   const returnPresenceRef = useRef<PillPresence>("compact");

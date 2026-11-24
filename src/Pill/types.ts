@@ -66,7 +66,7 @@ export interface PillProps extends Omit<ComponentPropsWithoutRef<"div">, "childr
    * the other, the first one set up keeping its spot. `false` leaves this
    * pill out: it stays in its spot and the others ignore it. Default `true`.
    */
-  stack?: boolean;
+  ladder?: boolean;
   /**
    * `overlay` only: a click outside the modal does what Escape does (closes
    * the panel if it's open, the modal otherwise). Default `false`.

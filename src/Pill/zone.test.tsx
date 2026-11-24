@@ -147,10 +147,10 @@ describe("zones", () => {
     expect(shift("b")).toBe("106px");
   });
 
-  it("leaves out a pill with stack={false}, unstyled, inline or an overlay", () => {
+  it("leaves out a pill with ladder={false}, unstyled, inline or an overlay", () => {
     render([
       pill("a"),
-      pill("b", { stack: false }),
+      pill("b", { ladder: false }),
       pill("c", { unstyled: true }),
       pill("d", { placement: "inline" }),
       pill("e", { placement: "inline" }),
@@ -160,9 +160,9 @@ describe("zones", () => {
     expect(shift("f")).toBe("88px");
   });
 
-  it("leaves and joins as `stack` changes", () => {
+  it("leaves and joins as `ladder` changes", () => {
     const { rerender } = render([pill("a"), pill("b")]);
-    rerender([pill("a"), pill("b", { stack: false })]);
+    rerender([pill("a"), pill("b", { ladder: false })]);
     expect(shift("b")).toBe("0px");
     rerender([pill("a"), pill("b")]);
     expect(shift("b")).toBe("88px");
@@ -174,16 +174,16 @@ describe("zones", () => {
     expect(shift("b")).toBe("0px");
   });
 
-  it("doesn't pass `stack` to the page", () => {
-    render(pill("a", { stack: false }));
-    expect(document.getElementById("a")?.hasAttribute("stack")).toBe(false);
+  it("doesn't pass `ladder` to the page", () => {
+    render(pill("a", { ladder: false }));
+    expect(document.getElementById("a")?.hasAttribute("ladder")).toBe(false);
   });
 
   it("works on <MagicPill> hosts", () => {
     render([
       pill("a"),
       <MagicPill key="b" id="b" name="zone-b" placement="top-end" />,
-      <MagicPill key="c" id="c" name="zone-c" placement="top-end" stack={false}>
+      <MagicPill key="c" id="c" name="zone-c" placement="top-end" ladder={false}>
         Base
       </MagicPill>,
       pill("d"),
