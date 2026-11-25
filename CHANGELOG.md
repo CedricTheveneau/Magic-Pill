@@ -12,6 +12,9 @@
 - The modal's backdrop: `--mp-backdrop-blur` blurs the page behind it, and `backdrop="glow"` (with `magic-pill/themes.css`) adds two soft lights drifting over it (`--mp-glow-1`, `--mp-glow-2`, `--mp-glow-duration`), still with reduced motion. Any other `backdrop` is written to `data-backdrop`, for one of your own
 - `--mp-action-rim`, `--mp-action-current` and `--mp-on-action-current`: an outline for the actions, and the current page's own colours. Together with `--mp-action`, they make actions solid or see-through on any theme
 - Text and action colours for each variant: `--mp-on-neutral`, `--mp-on-success`, `--mp-on-danger` (the text), `--mp-neutral-action`, `--mp-success-action`, `--mp-danger-action` (the actions) and `--mp-on-neutral-action`, `--mp-on-success-action`, `--mp-on-danger-action` (the actions' text), on every theme. They default to `--mp-on-surface`, `--mp-action` and `--mp-on-action`, so nothing changes without them
+- Panels: `titleAction`, an action at the end of the title's row, and `footer`, actions before the close button, which is then an outline. In notifications' `panel` too. Tokens: `--mp-accent`, `--mp-on-accent`, `--mp-close`, `--mp-on-close`, `--mp-close-rim`
+- Several panels in one pill: a `name` on `<PillPanel>`, the same `panel` on `<PillPanelTrigger>`, and `openPanel(name?)` and `closePanel()` from `usePill()`
+- Navbar items that are actions (`{ onClick, label }`) or that open a panel (`{ panel, label }`), next to links. `NavItem` is now one of `NavLinkItem`, `NavActionItem` and `NavPanelItem`
 
 ### Changed
 - A pill's open panel sits one level above the other pills (`--mp-z-index` + 1) until it has closed
@@ -21,6 +24,7 @@
 ### Fixed
 - A notification triggered with the keyboard from inside the pill (an action of the base layer, for instance) never timed out: the pill thought it still had the focus
 - A panel's footer changed colour at once when the variant changed, ahead of the pill
+- An action with no icon had more space after its label than before it
 - A scrolled panel's text showed again under its close button
 - A navbar too wide for its pill (a narrow screen, a long label) pushed its last items out of it: the open label folds while another item is pointed at or focused with the keyboard, and a label that still has no room ends with an ellipsis
 
