@@ -267,6 +267,7 @@ import { Pill, PillActions, PillAction, PhoneIcon, MailIcon, DocumentIcon } from
 | `ladder` | `boolean`, for the fixed placements: pills with the same placement line up like the rungs of a ladder (see below). `false` leaves this one out: it stays in its spot and the others ignore it | `true` |
 | `orientation` | `"horizontal"`, `"vertical"` | `"vertical"` for `left`/`right` |
 | `variant` | `"neutral"`, `"success"`, `"danger"`, or any string (see [Styling](#styling)) | `"neutral"` |
+| `theme` | `"plain"`, `"glass"`, `"liquid"`, or any string (see [Themes](#themes)). The variant picks the colour, the theme the material | `"plain"` |
 | `unstyled` | `boolean`: keep the behaviour, drop the look | `false` |
 
 Any other prop (`className`, `aria-label`, `ref`…) goes to the element.
@@ -330,7 +331,7 @@ Twelve built-in icons, drawn in `currentColor` and decorative by default (`aria-
 
 ## Styling
 - **Easy to override:** every rule sits in a `magic-pill` cascade layer. Any CSS of yours that isn't in a layer wins, whatever its specificity, with no `!important`.
-- **No collisions:** parts are selected by `data-mp` attributes (`[data-mp="pill"]`, `"icon"`, `"divider"`, `"message"`, `"actions"`, `"action"`, `"action-body"`, `"action-icon"`, `"label"`, `"panel"`, `"panel-title"`, `"panel-body"`, `"panel-footer"`, `"navbar"`), and states by `data-presence`, `data-placement`, `data-orientation` and `data-variant`. There are no class names of ours to clash with yours.
+- **No collisions:** parts are selected by `data-mp` attributes (`[data-mp="pill"]`, `"icon"`, `"divider"`, `"message"`, `"actions"`, `"action"`, `"action-body"`, `"action-icon"`, `"label"`, `"panel"`, `"panel-title"`, `"panel-body"`, `"panel-footer"`, `"navbar"`), and states by `data-presence`, `data-placement`, `data-orientation`, `data-variant` and `data-theme`. There are no class names of ours to clash with yours.
 - **Classes:** every part takes a `className`; templates and `<MagicPill>` take `classNames`.
 - **Global resets are safe:** an action's look lives on its inner `[data-mp="action-body"]`, so app-wide rules such as `a { color: inherit }` or `button { background: none }` don't break it. To restyle an action, target `[data-mp="action-body"]`.
 - **Tailwind CSS v4:** declare the layer order once, before your imports, so utilities win: `@layer theme, base, magic-pill, components, utilities;`.
@@ -342,6 +343,8 @@ Twelve built-in icons, drawn in `currentColor` and decorative by default (`aria-
 |---|---|
 | `--mp-surface` / `--mp-on-surface` | `#141414` / `#f9f9f9` |
 | `--mp-action` / `--mp-on-action` | `#f9f9f9` / `#141414` |
+| `--mp-action-rim` | `transparent`: a thin outline on the actions |
+| `--mp-action-current` / `--mp-on-action-current` | the action's own colours: the action with `aria-current` (a navbar's current page) |
 | `--mp-success` / `--mp-danger` | `#3f7253` / `#c2303e` |
 | `--mp-font-text` / `--mp-font-accent` | `inherit` (see [Fonts](#fonts)) |
 | `--mp-text-size` / `--mp-title-size` | fluid, about 1rem / 1.5–2rem |
@@ -360,19 +363,65 @@ The pill fits small screens: sizes are in `rem`, fixed pills stay inside the vie
 
 **Shape and motion:** the pill animates its real size whenever its presence changes (a script measures it; with `unstyled` or reduced motion it doesn't). Its corners are half the one-line pill's height, so a taller pill, such as a wrapped message, is a rounded rectangle; a panel's corners are `--mp-radius-panel`.
 
+### Themes
+A theme is the pill's material. `glass` (frosted glass) and `liquid` (clearer, thicker Liquid Glass) come in a second stylesheet, so plain pills don't load them. Import it once, before or after `styles.css`:
+
+```tsx
+import "magic-pill/styles.css";
+import "magic-pill/themes.css";
+
+<MagicPill theme="glass" />
+```
+
+Set these tokens like the others, on `:root`, on one pill, or anywhere in between. Booleans are `1` and `0`.
+
+| Token | What it does | `glass` | `liquid` |
+|---|---|---|---|
+| `--mp-tint` | How much of the surface's colour stays, from 0 (clear) to 1 (solid) | `0.35` | `0.18` |
+| `--mp-status-tint` | The least a `success` or `danger` pill keeps, so it still reads as one | `0.75` | `0.75` |
+| `--mp-frost` | The blur of what's behind | `14px` | `3px` |
+| `--mp-panel-frost` | The least blur behind an open panel (more text, more frosting) | `12px` | `12px` |
+| `--mp-rays` | Ray casting: `0` turns the light and the vibrancy off | `1` | `1` |
+| `--mp-light` | The strength of the light on the edges, 0 to 1 | `0.7` | `0.7` |
+| `--mp-light-angle` / `--mp-light-color` | Where the light comes from, and its colour | `235deg` (top left) / `#fff` | same |
+| `--mp-vibrancy` | How much the page's colours glow through (`1` is off) | `1.9` | `1.9` |
+| `--mp-readable` | Keeps the text readable over any page: see below | `1` | `1` |
+
+- **Readable by default:** a veil, worked out in CSS from the surface's colour and tint, keeps Magic Pill's colours at 4.5:1 or more over any page, and panels are frosted more. `--mp-readable: 0` turns both off; the contrast is then yours to check, as it is for your own `--mp-action` colours.
+- **Actions** are see-through on `glass` and `liquid`, solid on the others. Any action works on any theme:
+
+```css
+/* Solid actions on glass */
+.my-pill { --mp-action: #f4c542; --mp-on-action: #141414; }
+
+/* See-through actions on a plain pill, with less white on the status colours to keep 4.5:1 */
+.my-pill { --mp-action: rgb(249 249 249 / 0.12); --mp-on-action: #f9f9f9; --mp-action-rim: rgb(249 249 249 / 0.2); }
+.my-pill:is([data-variant="success"], [data-variant="danger"]) { --mp-action: rgb(249 249 249 / 0.06); }
+```
+
+- **Your own theme:** any other name. With colours only, `themes.css` isn't needed. With `--mp-tint` below 1, it's built on the same glass:
+
+```css
+[data-mp="pill"][data-theme="paper"] { --mp-tint: 0.8; --mp-frost: 24px; --mp-light: 0; }
+/* --mp-on-surface is the text of every variant: keep dark text for the neutral one */
+[data-mp="pill"][data-theme="paper"][data-variant="neutral"] { --mp-surface: #fffaf0; --mp-on-surface: #2b2118; }
+```
+
+- **Where it can't be drawn** (a browser without relative colours or `pow()` in CSS, less transparency, more contrast, forced colours), the pill has its plain look.
+
 ## Accessibility
 - **Announcements:** each `<MagicPill>` has a polite live region that reads notifications out (or your `announce` text). A hidden pill leaves the accessibility tree.
 - **Time to act:** the countdown pauses while a mouse hovers the pill, on keyboard focus, and while a panel is open. A tap doesn't pause it.
 - **Panels and modals:** they take and give back the focus, and close on Escape. The overlay is a native modal `<dialog>`.
 - **Accessible names:** every action has one (`label` is required), and icons are hidden from assistive technology.
-- **Motion and contrast:** with `prefers-reduced-motion`, shape changes become short fades. In forced-colours mode, the shapes keep visible outlines.
+- **Motion and contrast:** with `prefers-reduced-motion`, shape changes become short fades. In forced-colours mode, the shapes keep visible outlines. The glass [themes](#themes) keep text at 4.5:1 or more by default, and become solid when the system asks for less transparency or more contrast.
 
 ## Security
 - **No HTML strings:** contents are React nodes and never parsed as HTML, so text from your users can't inject markup.
 - **Safe links:** links only render relative, `http(s):`, `mailto:` and `tel:` URLs. Anything else, such as `javascript:`, renders without a link (with a warning in development). React 18 doesn't block those URLs by itself.
 
 ## TypeScript
-Everything is typed. The main types are `NotifyOptions`, `NotifyInput`, `PillController`, `MagicPillProps`, `PillProps`, `PillPresence`, `PillPlacement`, `PillVariant`, `NavItem` and `LinkComponent`.
+Everything is typed. The main types are `NotifyOptions`, `NotifyInput`, `PillController`, `MagicPillProps`, `PillProps`, `PillPresence`, `PillPlacement`, `PillVariant`, `PillTheme`, `NavItem` and `LinkComponent`.
 
 ## Build your own
 Maybe what I brought to the table wasn't enough but you like the idea behind it, that's why Magic Pill is under [MIT License](https://www.tldrlegal.com/license/mit-license), which means you can pretty much do whatever you want and build upon my own version of Magic Pill to bring it to new heights or just make it your own.

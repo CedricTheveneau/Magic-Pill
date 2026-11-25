@@ -1,6 +1,6 @@
 # Themes: API proposal
 
-> **Status: approved by the maintainer on 2026-11-25** (§11), not implemented yet. The looks were tried in a throwaway prototype, the **Glass lab**, which the maintainer validated. The three action tokens marked *added* in §4 came after that OK, to make any action work on any theme: merging this file approves them.
+> **Status: approved by the maintainer on 2026-11-25** (§11). **Implementation:** the material (§10, 1). The looks were tried in a throwaway prototype, the **Glass lab**, which the maintainer validated. The three action tokens marked *added* in §4 came after that OK, to make any action work on any theme: merging this file approves them.
 
 ## 1. What was decided
 
@@ -63,7 +63,7 @@ Set on `:root`, on one pill, or anywhere in between, like the existing ones. Boo
 |---|---|---|---|---|
 | Frosting | `--mp-frost` | length | `14px` | `3px` |
 | Surface colour | `--mp-tint` | 0 to 1 | `0.35` | `0.18` |
-| (a status colour stays recognisable) | `--mp-status-tint` | 0 to 1, the least a status keeps | `0.55` | `0.55` |
+| (a status colour stays recognisable) | `--mp-status-tint` | 0 to 1, the least a status keeps | `0.75` (*was 0.55: `danger` read as mauve over light pages*) | same |
 | **Ray casting** | `--mp-rays` | 1 / 0 | `1` | `1` |
 | Refraction | `--mp-refraction` | 0 to 1 | `0.16` | `0.55` |
 | Edge width | `--mp-edge` | length | `10px` | `22px` |
@@ -76,8 +76,8 @@ Set on `:root`, on one pill, or anywhere in between, like the existing ones. Boo
 | Dynamic tinting: adaptive | `--mp-adaptive` | 1 / 0 | `0` | `0` |
 | (adaptive's light pill) | `--mp-adaptive-surface` / `--mp-adaptive-on-surface` | colours | `#f9f9f9` / `#141414` | same |
 | Actions | `--mp-action` / `--mp-on-action` (existing) | colours | see-through / the pill's text | same |
-| (their outline) | `--mp-action-rim` (*added*) | colour | the pill's text at 20% | same |
-| (the current page's action) | `--mp-action-current` / `--mp-on-action-current` (*added*) | colours | the pill's text / its opposite | same |
+| (their outline) | `--mp-action-rim` (*added*) | colour | the pill's text at 20% (the action's colour if it's set) | same |
+| (the current page's action) | `--mp-action-current` / `--mp-on-action-current` (*added*) | colours | the pill's text / its surface (the action's colours if they're set) | same |
 | Keep text readable | `--mp-readable` | 1 / 0 | `1` | `1` |
 | (more text, more frosting) | `--mp-panel-frost` | length, the least a panel has | `12px` | `12px` |
 | Modal backdrop: colour | `--mp-backdrop` (existing) | any background | a dark veil | same |
@@ -94,8 +94,7 @@ The theme only sets the actions' defaults. Both swaps were rendered on the real 
 
 ```css
 /* Solid actions on glass: any colour */
-.my-pill { --mp-action: #f4c542; --mp-on-action: #141414; --mp-action-rim: transparent;
-  --mp-action-current: #f4c542; --mp-on-action-current: #141414 }
+.my-pill { --mp-action: #f4c542; --mp-on-action: #141414 }
 
 /* Glass actions on a plain pill */
 .my-pill { --mp-action: rgb(249 249 249 / 0.12); --mp-on-action: #f9f9f9; --mp-action-rim: rgb(249 249 249 / 0.2) }
@@ -113,7 +112,7 @@ On a plain pill, 12% white gives 12.6:1 on neutral, but 4.2:1 on success and 4.4
 [data-mp="pill"][data-theme="paper"] { --mp-surface: #fffaf0; --mp-on-surface: #2b2118; --mp-tint: 0.8; --mp-frost: 24px; --mp-light: 0 }
 ```
 
-A custom theme that sets `--mp-tint` gets the whole material from `themes.css`. One that only sets colours doesn't need that file.
+A custom theme that sets `--mp-tint` gets the whole material from `themes.css` (its actions stay solid). One that only sets colours doesn't need that file.
 
 ## 5. `<PillOptics />`
 
@@ -153,7 +152,7 @@ Measured in Chromium, on 8 extreme backdrops (white, black, pure colours, grey) 
 | `#f9f9f9` (adaptive) | 4.60:1 | 1.05:1 |
 | Random colours | 99.4% of 5,760 cases at 4.5:1 or more; the worst, a vivid magenta, 3.56:1 | 63% |
 
-**One change from the lab:** its glass actions put white text on a lighter patch of glass, about 3.4:1 at worst. They'll be a little less light (12% instead of 16%) and count in the veil, so their labels reach 4.5:1 too. Glass gets slightly darker over light pages.
+**One change from the lab:** its glass actions put white text on a lighter patch of glass, about 3.4:1 at worst. *As built:* they're filled with the lightest grey the text can sit on, at 30%, instead of white (first proposed: 12% white and a stronger veil, which made all the glass darker). They stand out over dark pages and are drawn by their rim over light ones, and the glass keeps the lab's brightness. Checked on the built pills, action included: 640 cases, the worst at 4.80:1.
 
 ## 8. What it degrades to
 
