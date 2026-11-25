@@ -26,7 +26,7 @@ const PROBES = [
     // then from 8 kB for the modal's entry and exit (Pill/modal.ts): 8.09 kB,
     // then from 8.25 kB for closeOnBackdropClick: 8.25 kB,
     // then from 8.5 kB for pills sharing a placement (Pill/zone.ts): 9.14 kB,
-    // then from 9.25 kB for the themes (Pill/themed.ts): 9.24 kB
+    // then from 9.25 kB for the themes (Pill/themed.ts): 9.24 kB, the focus lost with its content: 9.30 kB
     budget: 9.4 * KB, // 4.89 kB at 9.0.0-next.0
   },
   {

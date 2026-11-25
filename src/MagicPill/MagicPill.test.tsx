@@ -497,6 +497,29 @@ describe("MagicPill", () => {
       expect(presence()).toBe("hidden");
     });
 
+    it("doesn't stay paused when the content that had the focus leaves with it (L29)", async () => {
+      // Arrange: the keyboard focus is on the base layer's link
+      render(
+        <MagicPill>
+          <PillNavbar items={items} pathname="/" />
+        </MagicPill>,
+      );
+      fireEvent.keyDown(document.body, { key: "Tab" });
+      act(() => screen.getByRole("link", { name: "Home" }).focus());
+
+      // Act: a notification replaces it, and the link goes
+      notify({ message: "Saved" });
+      for (const ms of [FADE, CHANGE, CHANGE, FADE, ENTER]) advance(ms);
+      expect(message()).toBe("Saved");
+      expect(document.activeElement).toBe(document.body);
+      await act(async () => {}); // mutations are observed asynchronously
+      for (const ms of [DURATION, FADE, CHANGE, EXIT, ENTER]) advance(ms);
+
+      // Assert
+      expect(message()).toBeNull();
+      expect(screen.getByRole("link", { name: "Home" })).toBeDefined();
+    });
+
     it("doesn't pause for focus that follows a tap, e.g. the panel giving it back (L22)", () => {
       // Arrange
       render(<MagicPill />);

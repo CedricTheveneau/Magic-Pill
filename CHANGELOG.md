@@ -16,6 +16,9 @@
 ### Changed
 - A pill's open panel sits one level above the other pills (`--mp-z-index` + 1) until it has closed
 
+### Fixed
+- A notification triggered with the keyboard from inside the pill (an action of the base layer, for instance) never timed out: the pill thought it still had the focus
+
 ## [9.0.0] - 2026-11-23
 9.0.0 is the first stable release of Magic Pill; earlier versions are deprecated (upgrading from 8.x: [MIGRATING.md](./MIGRATING.md)). It's a breaking release with a new API, but most apps get shorter.
 
