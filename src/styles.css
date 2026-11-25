@@ -113,6 +113,7 @@
         scale var(--_mp-enter) var(--_mp-ease-enter),
         border-radius var(--_mp-change) ease-in-out,
         background-color var(--_mp-change) ease-in-out,
+        color var(--_mp-change) ease-in-out,
         z-index 0s var(--_mp-lower),
         var(--_mp-also, visibility 0s),
         visibility 0s;
@@ -156,6 +157,7 @@
           scale var(--_mp-exit) ease-in calc(var(--_mp-fade) + var(--_mp-change)),
           border-radius var(--_mp-change) ease-in-out var(--_mp-fade),
           background-color var(--_mp-change) ease-in-out var(--_mp-fade),
+          color var(--_mp-change) ease-in-out var(--_mp-fade),
           z-index 0s var(--_mp-lower),
           var(--_mp-also, visibility 0s),
           visibility 0s linear calc(var(--_mp-fade) + var(--_mp-change) + var(--_mp-exit));
@@ -171,6 +173,7 @@
           scale var(--_mp-enter) var(--_mp-ease-enter),
           border-radius var(--_mp-change) ease-in-out var(--_mp-fade),
           background-color var(--_mp-change) ease-in-out var(--_mp-fade),
+          color var(--_mp-change) ease-in-out var(--_mp-fade),
           z-index 0s var(--_mp-lower),
           var(--_mp-also, visibility 0s),
           visibility 0s;
@@ -420,7 +423,10 @@
         font-style: normal;
         font-weight: 700;
         white-space: nowrap;
-        transition: padding var(--_mp-change) ease-in-out;
+        transition:
+          padding var(--_mp-change) ease-in-out,
+          background-color var(--_mp-change) ease-in-out,
+          color var(--_mp-change) ease-in-out;
       }
 
       & [data-mp="action"]:focus-visible {
@@ -466,6 +472,7 @@
           opacity var(--_mp-change) ease-in-out,
           margin var(--_mp-change) ease-in-out;
 
+        /* Cut short, it says so; not while it unfolds */
         & > * {
           min-inline-size: 0;
           overflow: hidden;
@@ -477,7 +484,7 @@
       /* In a column, the pill is as wide as its widest item: a label folds
          only once the next one has unfolded, so the pill never narrows in
          between (and moving the pointer from item to item keeps it steady) */
-      &[data-orientation="vertical"] :is([data-mp="label"], [data-mp="action-body"]) {
+      &[data-orientation="vertical"] [data-mp="label"] {
         transition-delay: var(--_mp-change);
       }
 
@@ -612,7 +619,19 @@
         display: flex;
         justify-content: center;
         padding-block-start: var(--_mp-gap);
-        background: linear-gradient(transparent, var(--_mp-surface) 50%);
+        isolation: isolate;
+
+        /* Fades the text out under it. A masked colour, which can be
+           transitioned like the pill's own: a gradient would jump */
+        &::before {
+          content: "";
+          position: absolute;
+          z-index: -1;
+          inset: 0;
+          background: var(--_mp-surface);
+          mask: linear-gradient(transparent, #000 50%);
+          transition: background-color var(--_mp-change) ease-in-out;
+        }
       }
     }
 
@@ -662,7 +681,8 @@
         & [data-mp="label"],
         & [data-mp="action-body"],
         & [data-mp="message"],
-        & [data-mp="panel"] {
+        & [data-mp="panel"],
+        & [data-mp="panel-footer"]::before {
           transition: none;
         }
       }

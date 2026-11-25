@@ -363,8 +363,8 @@
       /* The panel's text can't fade into a see-through surface. It's masked
          instead, down to the footer, as it scrolls */
       @supports (animation-timeline: view()) {
-        & [data-mp="panel-footer"] {
-          background: none;
+        & [data-mp="panel-footer"]::before {
+          content: none;
         }
 
         & [data-mp="panel-body"] {
@@ -378,13 +378,7 @@
       /* Elsewhere, the footer covers it */
       @supports not (animation-timeline: view()) {
         & [data-mp="panel-footer"] {
-          isolation: isolate;
-          background: none;
-
           &::before {
-            content: "";
-            position: absolute;
-            z-index: -1;
             inset: 0 calc(var(--_mp-padding) * -2.5) calc(var(--_mp-padding) * -2.5);
             background: color-mix(in srgb, var(--_mp-surface) calc(max(0.5, var(--_mp-tint)) * 100%), transparent);
             -webkit-backdrop-filter: blur(8px);
