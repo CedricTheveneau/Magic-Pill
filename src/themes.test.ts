@@ -36,6 +36,14 @@ describe("themes.css", () => {
     expect(css).toMatch(new RegExp(`--_mp-also:[^;]*--_mp-${name} 1ms`));
   });
 
+  it("masks a panel's text as it scrolls, where the browser can, and covers it elsewhere", () => {
+    // Assert
+    expect(css).toMatch(/@supports \(animation-timeline: view\(\)\) {[\s\S]*animation: mp-seen linear both;/);
+    expect(css).toContain("@supports not (animation-timeline: view())");
+    // A text that doesn't scroll is all there
+    expect(css).toMatch(/@property --_mp-seen {[^}]*initial-value: 100%;/);
+  });
+
   it("puts the lens last in the filters, and Safari's prefixed one has none", () => {
     // Assert
     expect(css).toMatch(

@@ -65,6 +65,20 @@
   initial-value: white;
 }
 
+/* How much of a panel's text has scrolled into view, and how softly it ends:
+   all of it, for a text that doesn't scroll */
+@property --_mp-seen {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+
+@property --_mp-soft {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 @property --_mp-drift {
   syntax: "<angle>";
   inherits: false;
@@ -96,6 +110,22 @@
     @media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
       background: var(--mp-backdrop, rgb(20 20 20 / 0.4));
       animation: none;
+    }
+  }
+
+  @keyframes mp-seen {
+    from {
+      --_mp-seen: 0%;
+      --_mp-soft: 4rem;
+    }
+
+    90% {
+      --_mp-soft: 4rem;
+    }
+
+    to {
+      --_mp-seen: 100%;
+      --_mp-soft: 0rem;
     }
   }
 
@@ -244,27 +274,43 @@
         --_mp-frost: max(var(--_mp-own-frost), var(--mp-panel-frost, 12px));
       }
 
-      /* It can't fade the text into a see-through surface: it frosts it */
-      & [data-mp="panel-footer"] {
-        isolation: isolate;
-        background: none;
-
-        &::before {
-          content: "";
-          position: absolute;
-          z-index: -1;
-          inset: 0 calc(var(--_mp-padding) * -2.5) calc(var(--_mp-padding) * -2.5);
-          background: color-mix(in srgb, var(--_mp-surface) calc(max(0.5, var(--_mp-tint)) * 100%), transparent);
-          -webkit-backdrop-filter: blur(8px);
-          backdrop-filter: blur(8px);
-          -webkit-mask: linear-gradient(transparent, #000 40%);
-          mask: linear-gradient(transparent, #000 40%);
+      /* The panel's text can't fade into a see-through surface. It's masked
+         instead, down to the footer, as it scrolls */
+      @supports (animation-timeline: view()) {
+        & [data-mp="panel-footer"] {
+          background: none;
         }
 
-        /* Nor may the text read through its see-through action */
-        & [data-mp="action-body"] {
-          -webkit-backdrop-filter: blur(8px);
-          backdrop-filter: blur(8px);
+        & [data-mp="panel-body"] {
+          mask-image: linear-gradient(#000 calc(var(--_mp-seen) - var(--_mp-soft)), transparent var(--_mp-seen));
+          animation: mp-seen linear both;
+          animation-timeline: view(block 0px calc(var(--_mp-action-size) + var(--_mp-gap)));
+          animation-range: entry-crossing 0% entry-crossing 100%;
+        }
+      }
+
+      /* Elsewhere, the footer covers it */
+      @supports not (animation-timeline: view()) {
+        & [data-mp="panel-footer"] {
+          isolation: isolate;
+          background: none;
+
+          &::before {
+            content: "";
+            position: absolute;
+            z-index: -1;
+            inset: 0 calc(var(--_mp-padding) * -2.5) calc(var(--_mp-padding) * -2.5);
+            background: color-mix(in srgb, var(--_mp-surface) calc(max(0.5, var(--_mp-tint)) * 100%), transparent);
+            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+            -webkit-mask: linear-gradient(transparent, #000 40%);
+            mask: linear-gradient(transparent, #000 40%);
+          }
+
+          & [data-mp="action-body"] {
+            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+          }
         }
       }
     }
