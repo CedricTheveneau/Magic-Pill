@@ -94,8 +94,8 @@ const STYLESHEETS = [
   {
     name: "forms.css",
     description: "the fields, only for apps that import it",
-    // 4.99 kB, then 5.34 kB for the looks of every field
-    budget: 5.5 * KB,
+    // 4.99 kB, then 5.49 kB for the looks of every field, lists and calendars
+    budget: 5.75 * KB,
   },
   {
     name: "calendar.css",

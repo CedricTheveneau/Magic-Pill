@@ -102,6 +102,17 @@ describe("forms.css, by itself", () => {
     expect(css).toMatch(new RegExp(`var\\(\\s*--mp-${token},`));
   });
 
+  it("draws open lists and calendars from the same values, which the looks change", () => {
+    // Assert
+    const look = css.slice(css.indexOf('& [data-mp="form"]:is([data-look="soft"], [data-look="outline"])\n'));
+    for (const value of ["paper", "ink", "chosen", "on-chosen", "chosen-rim"]) {
+      expect(look).toContain(`--_mp-${value}:`);
+      expect(css).toContain(`var(--_mp-${value})`);
+      expect(withoutComments(calendar)).toContain(`var(--_mp-${value})`);
+    }
+    expect(withoutComments(calendar)).not.toContain("--mp-list");
+  });
+
   it("gives every look to every kind of field, through the same values", () => {
     // Arrange: everything that's on, off, or a bar
     const values = ["on-fill", "on-rim", "mark", "mark-text", "off-fill", "off-rim", "track-fill", "track-rim", "switch-fill", "switch-rim", "bar-fill", "bar-rim"];

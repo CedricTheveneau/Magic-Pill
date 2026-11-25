@@ -471,7 +471,7 @@ import "magic-pill/calendar.css";
 | `locale` / `firstDay` / `format` | The reader's by default: the language, the first day of the week, how the value is written (`Intl.DateTimeFormat` options) |
 | `labels` / `placeholder` | Its own words (`today`, `now`, `clear`, `done`, `previous`, `next`, `hours`, `minutes`…) |
 
-With the keyboard: the arrows, Home and End (the week), Page Up and Page Down (the month; the year with Shift), Enter, and Escape, which closes it alone. The title goes up to the months, then to the years. Its colours are those of open lists (`--mp-list`, `--mp-on-list`), the pill's own when it's `inline`; `--mp-calendar-cell` (`2.25rem`) is its days' size. Weeks start on Monday.
+With the keyboard: the arrows, Home and End (the week), Page Up and Page Down (the month; the year with Shift), Enter, and Escape, which closes it alone. The title goes up to the months, then to the years. Its colours are those of open lists (`--mp-list`, `--mp-on-list`, or the form's `look`), the pill's own when it's `inline`; `--mp-calendar-cell` (`2.25rem`) is its days' size. Weeks start on Monday.
 
 > **Your app's resets:** CSS like `input { border: 1px solid }` that isn't in a layer also reaches the pill's fields. Their look is on what surrounds the controls, so they only need to stay bare: scope such rules, or put them in a layer.
 

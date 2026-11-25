@@ -128,6 +128,35 @@
       --_mp-look-bar-rim: var(--_mp-look-rim);
     }
 
+    /* What opens over the page: a list, a calendar. Light by default; with a
+       look, it's made of the pill itself, so it stays one thing */
+    & :is([data-mp="field-box"][data-type="select"], [data-mp="calendar"]) {
+      --_mp-paper: var(--mp-list, #f9f9f9);
+      --_mp-ink: var(--mp-on-list, #141414);
+      --_mp-chosen: var(--_mp-ink);
+      --_mp-on-chosen: var(--_mp-paper);
+      --_mp-chosen-rim: transparent;
+      --_mp-paper-rim: transparent;
+      --_mp-hover: color-mix(in srgb, var(--_mp-ink) 10%, transparent);
+    }
+
+    & [data-mp="form"]:is([data-look="soft"], [data-look="outline"])
+      :is([data-mp="field-box"][data-type="select"], [data-mp="calendar"]) {
+      --_mp-paper: var(
+        --mp-list,
+        color-mix(in oklab, var(--_mp-on-surface) var(--_mp-paper-strength, var(--_mp-soft-field)), var(--_mp-surface))
+      );
+      --_mp-ink: var(--mp-on-list, var(--_mp-on-surface));
+      --_mp-chosen: var(--_mp-on-fill);
+      --_mp-on-chosen: var(--_mp-ink);
+      --_mp-chosen-rim: var(--_mp-on-rim);
+    }
+
+    & [data-mp="form"][data-look="outline"] :is([data-mp="field-box"][data-type="select"], [data-mp="calendar"]) {
+      --_mp-paper-strength: 0%;
+      --_mp-paper-rim: color-mix(in srgb, var(--_mp-ink) 55%, transparent);
+    }
+
     /* ─── Form ─────────────────────────────────────────────────────────────── */
 
     & :is([data-mp="form"], [data-mp="form-body"]) {
@@ -535,8 +564,8 @@
       }
 
       & :is(option, optgroup) {
-        background: var(--mp-list, #f9f9f9);
-        color: var(--mp-on-list, #141414);
+        background: var(--_mp-paper);
+        color: var(--_mp-ink);
       }
     }
 
@@ -583,9 +612,11 @@
           padding: 0.4rem;
           border: 0;
           border-radius: 1.25rem;
-          background: var(--mp-list, #f9f9f9);
-          box-shadow: 0 0.5rem 1.5rem rgb(20 20 20 / 0.35);
-          color: var(--mp-on-list, #141414);
+          background: var(--_mp-paper);
+          box-shadow:
+            0 0.5rem 1.5rem rgb(20 20 20 / 0.35),
+            inset 0 0 0 1px var(--_mp-paper-rim);
+          color: var(--_mp-ink);
           font: 400 1rem / 1.3 var(--_mp-label-font);
           opacity: 0;
           scale: 0.96;
@@ -625,12 +656,13 @@
         }
 
         & option:is(:hover, :focus-visible) {
-          background: color-mix(in srgb, currentColor 10%, transparent);
+          background: var(--_mp-hover);
         }
 
         & option:checked {
-          background: var(--mp-on-list, #141414);
-          color: var(--mp-list, #f9f9f9);
+          background: var(--_mp-chosen);
+          box-shadow: inset 0 0 0 1.5px var(--_mp-chosen-rim);
+          color: var(--_mp-on-chosen);
         }
 
         & option::checkmark {
