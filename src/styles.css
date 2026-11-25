@@ -51,9 +51,15 @@
 
     [data-mp="pill"]:not([data-unstyled]) {
       --_mp-surface: var(--mp-surface, #141414);
-      --_mp-on-surface: var(--mp-on-surface, #f9f9f9);
-      --_mp-action: var(--mp-action, #f9f9f9);
-      --_mp-on-action: var(--mp-on-action, #141414);
+      /* The colours the app set, if any: the variant's own ones (below), or
+         the overall ones. Not set, these aren't valid, so whoever reads them
+         gets its fallback: the plain look's here, a theme's in themes.css */
+      --_mp-own-on-surface: var(--mp-on-surface);
+      --_mp-own-action: var(--mp-action);
+      --_mp-own-on-action: var(--mp-on-action);
+      --_mp-on-surface: var(--_mp-own-on-surface, #f9f9f9);
+      --_mp-action: var(--_mp-own-action, #f9f9f9);
+      --_mp-on-action: var(--_mp-own-on-action, #141414);
       --_mp-action-rim: var(--mp-action-rim, transparent);
       --_mp-action-current: var(--mp-action-current, var(--_mp-action));
       --_mp-on-action-current: var(--mp-on-action-current, var(--_mp-on-action));
@@ -118,13 +124,25 @@
       }
 
       /* Variants */
+      &[data-variant="neutral"] {
+        --_mp-own-on-surface: var(--mp-on-neutral, var(--mp-on-surface));
+        --_mp-own-action: var(--mp-neutral-action, var(--mp-action));
+        --_mp-own-on-action: var(--mp-on-neutral-action, var(--mp-on-action));
+      }
+
       &[data-variant="success"] {
         --_mp-surface: var(--mp-success, #3f7253);
+        --_mp-own-on-surface: var(--mp-on-success, var(--mp-on-surface));
+        --_mp-own-action: var(--mp-success-action, var(--mp-action));
+        --_mp-own-on-action: var(--mp-on-success-action, var(--mp-on-action));
       }
 
       /* Darker than 8.x's #fc5d6a, which had a 2.9:1 contrast with the light text */
       &[data-variant="danger"] {
         --_mp-surface: var(--mp-danger, #c2303e);
+        --_mp-own-on-surface: var(--mp-on-danger, var(--mp-on-surface));
+        --_mp-own-action: var(--mp-danger-action, var(--mp-action));
+        --_mp-own-on-action: var(--mp-on-danger-action, var(--mp-on-action));
       }
 
       /* Presence levels */

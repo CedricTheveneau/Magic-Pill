@@ -260,13 +260,13 @@
            with the lightest (under dark text, the darkest) grey the text can
            sit on, so they stand out without taking its contrast away */
         --_mp-action: var(
-          --mp-action,
+          --_mp-own-action,
           oklch(from var(--_mp-on-surface) clamp(0.548, 0.548 + (0.62 - l) * 1000, 0.628) 0 0 / 0.3)
         );
-        --_mp-on-action: var(--mp-on-action, var(--_mp-on-surface));
-        --_mp-action-rim: var(--mp-action-rim, var(--mp-action, rgb(from var(--_mp-on-surface) r g b / 0.2)));
-        --_mp-action-current: var(--mp-action-current, var(--mp-action, var(--_mp-on-surface)));
-        --_mp-on-action-current: var(--mp-on-action-current, var(--mp-on-action, var(--_mp-surface)));
+        --_mp-on-action: var(--_mp-own-on-action, var(--_mp-on-surface));
+        --_mp-action-rim: var(--mp-action-rim, var(--_mp-own-action, rgb(from var(--_mp-on-surface) r g b / 0.2)));
+        --_mp-action-current: var(--mp-action-current, var(--_mp-own-action, var(--_mp-on-surface)));
+        --_mp-on-action-current: var(--mp-on-action-current, var(--_mp-own-on-action, var(--_mp-surface)));
       }
 
       &[data-theme="liquid"] {
@@ -294,8 +294,8 @@
         --_mp-on-surface: var(--mp-adaptive-on-surface, #141414);
 
         &:not([data-theme="glass"], [data-theme="liquid"]) {
-          --_mp-action: var(--mp-action, var(--_mp-on-surface));
-          --_mp-on-action: var(--mp-on-action, var(--_mp-surface));
+          --_mp-action: var(--_mp-own-action, var(--_mp-on-surface));
+          --_mp-on-action: var(--_mp-own-on-action, var(--_mp-surface));
         }
       }
 
@@ -421,8 +421,8 @@
         }
 
         &:is([data-theme="glass"], [data-theme="liquid"]) {
-          --_mp-action: var(--mp-action, #f9f9f9);
-          --_mp-on-action: var(--mp-on-action, #141414);
+          --_mp-action: var(--_mp-own-action, #f9f9f9);
+          --_mp-on-action: var(--_mp-own-on-action, #141414);
           --_mp-action-rim: var(--mp-action-rim, transparent);
           --_mp-action-current: var(--mp-action-current, var(--_mp-action));
           --_mp-on-action-current: var(--mp-on-action-current, var(--_mp-on-action));
