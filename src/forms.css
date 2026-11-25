@@ -1,0 +1,672 @@
+/*
+ * Magic Pill v9 forms: the fields' look. Optional: import it next to
+ * styles.css, in any order, for pills with a <PillForm>. Others don't use it.
+ *
+ * - Same rules as styles.css: everything is in the magic-pill layer (your
+ *   unlayered CSS wins), public tokens (--mp-*) are only read, and nothing is
+ *   loaded from the network.
+ * - The look is on what surrounds the native controls, and switches, ticks,
+ *   sliders… are drawn next to a transparent one: an app's resets
+ *   (input { border: … }) are unlayered, so they'd win on the control itself.
+ *   Text controls only need to stay bare.
+ */
+
+/* After the themes, whose actions the fields look like, even when this file is imported first */
+@layer magic-pill.look, magic-pill.theme, magic-pill.forms, magic-pill.behaviour;
+
+@layer magic-pill.forms {
+  [data-mp="pill"]:not([data-unstyled]) {
+    /* ─── Values ───────────────────────────────────────────────────────────── */
+
+    --_mp-track: var(--mp-track, color-mix(in srgb, var(--_mp-on-surface) 48%, transparent));
+    --_mp-outline: var(--mp-track, color-mix(in srgb, var(--_mp-on-surface) 60%, transparent));
+    --_mp-faint: color-mix(in srgb, var(--_mp-on-surface) 22%, transparent);
+    --_mp-quiet: 0.72;
+    --_mp-hint-strength: 70%;
+    --_mp-thumb: var(--mp-thumb, 1.25rem);
+    --_mp-error: var(--mp-error, color-mix(in oklab, var(--mp-danger, #c2303e) 38%, var(--_mp-on-surface)));
+    --_mp-label-font: var(--mp-label-font, var(--mp-font-accent, inherit));
+
+    /* Less contrast to spend: on the status colours, and on glass, whose veil
+       leaves 4.5:1 to the plain text */
+    &:is([data-variant="success"], [data-variant="danger"], [data-theme="glass"], [data-theme="liquid"]) {
+      --_mp-outline: var(--mp-track, color-mix(in srgb, var(--_mp-on-surface) 85%, transparent));
+      --_mp-faint: color-mix(in srgb, var(--_mp-on-surface) 8%, transparent);
+      --_mp-quiet: 0.92;
+    }
+
+    &:is([data-theme="glass"], [data-theme="liquid"]) {
+      --_mp-hint-strength: 88%;
+      --_mp-own-scheme: dark;
+    }
+
+    &[data-scheme="light"] {
+      --_mp-own-scheme: light;
+    }
+
+    &:is([data-variant="success"], [data-variant="danger"]) {
+      --_mp-error: var(--mp-error, var(--_mp-on-surface));
+    }
+
+    /* A field looks like the actions, unless its form's look says otherwise */
+    & :is([data-mp="field"], [data-mp="form"]) {
+      --_mp-field: var(--mp-field, var(--_mp-look-field, var(--_mp-action)));
+      --_mp-on-field: var(--mp-on-field, var(--_mp-look-on-field, var(--_mp-on-action)));
+      --_mp-field-rim: var(--mp-field-rim, var(--_mp-look-rim, var(--_mp-action-rim)));
+      --_mp-field-scheme: var(--mp-field-scheme, var(--_mp-own-scheme, var(--_mp-look-scheme, light)));
+      --_mp-field-size: var(--mp-field-size, var(--_mp-action-size));
+      --_mp-field-radius: var(--mp-field-radius, calc(var(--_mp-field-size) / 2));
+      --_mp-field-gap: var(--mp-field-gap, calc(var(--_mp-gap) * 1.25));
+      --_mp-placeholder: var(
+        --mp-placeholder,
+        color-mix(in srgb, var(--_mp-on-field) var(--_mp-hint-strength), transparent)
+      );
+    }
+
+    & [data-mp="form"]:is([data-look="soft"], [data-look="outline"]) {
+      --_mp-look-field: color-mix(in srgb, var(--_mp-on-surface) 13%, transparent);
+      --_mp-look-on-field: var(--_mp-on-surface);
+      --_mp-look-rim: transparent;
+      --_mp-look-scheme: dark;
+    }
+
+    & [data-mp="form"][data-look="outline"] {
+      --_mp-look-field: transparent;
+      --_mp-look-rim: color-mix(in srgb, var(--_mp-on-surface) 55%, transparent);
+    }
+
+    /* ─── Form ─────────────────────────────────────────────────────────────── */
+
+    & :is([data-mp="form"], [data-mp="form-body"]) {
+      min-inline-size: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    & [data-mp="form-body"] {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--_mp-field-gap);
+    }
+
+    /* A panel of fields takes the panel's width, rather than its labels' */
+    & [data-mp="panel"] [data-mp="form"] {
+      inline-size: var(--mp-panel-width, 32rem);
+      max-inline-size: 100%;
+      font-style: normal;
+    }
+
+    /* Room for the focus rings, which a glass panel's mask would cut */
+    & [data-mp="panel-body"]:has(> [data-mp="form"]) {
+      margin-inline: -6px;
+      padding: 4px 6px;
+    }
+
+    & [data-mp="form"][aria-busy="true"] {
+      opacity: 0.6;
+    }
+
+    /* What the form is for */
+    & [data-mp="action"][type="submit"] {
+      --_mp-action: var(--_mp-accent);
+      --_mp-on-action: var(--_mp-on-accent);
+      --_mp-action-rim: transparent;
+    }
+
+    & [data-mp="form-error"]:not(:empty) {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--_mp-error);
+      font-family: var(--_mp-label-font);
+      font-size: 0.875rem;
+      line-height: 1.4;
+    }
+
+    /* Its gap too, while there's nothing to say */
+    & [data-mp="form-error"]:empty {
+      display: none;
+    }
+
+    /* In the pill itself: a row */
+    & > [data-mp="form"] {
+      flex: 0 1 auto;
+
+      & > [data-mp="form-body"] {
+        display: flex;
+        align-items: center;
+        gap: calc(var(--_mp-gap) * 0.75);
+      }
+
+      & [data-mp="field"] {
+        flex: 0 1 auto;
+        inline-size: 15rem;
+      }
+
+      /* No room for it: the outline tells, and it's still read out */
+      & [data-mp="field-error"] {
+        position: absolute;
+        inline-size: 1px;
+        block-size: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+      }
+    }
+
+    /* ─── Field ────────────────────────────────────────────────────────────── */
+
+    & [data-mp="field"] {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      column-gap: var(--_mp-gap);
+      min-inline-size: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      font-family: var(--_mp-label-font);
+      font-size: 1rem;
+      font-style: var(--mp-label-style, normal);
+      text-align: start;
+
+      & > * {
+        grid-column: 1 / -1;
+      }
+    }
+
+    & [data-mp="field-label"],
+    & [data-mp="field-aside"] {
+      padding: 0 0 0.45rem;
+      font-size: 0.9375rem;
+      line-height: 1.3;
+    }
+
+    & [data-mp="field"] > [data-mp="field-label"] {
+      grid-column: 1;
+      font-weight: var(--mp-label-weight, 400);
+
+      &[data-hidden] {
+        position: absolute;
+        inline-size: 1px;
+        block-size: 1px;
+        padding: 0;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+    }
+
+    & [data-mp="field"] > [data-mp="field-aside"] {
+      grid-column: 2;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* A legend ignores its fieldset's grid, unless it floats */
+    & legend[data-mp="field-label"] {
+      float: inline-start;
+      inline-size: 100%;
+    }
+
+    & :is([data-mp="field-optional"], [data-mp="field-hint"]) {
+      font-size: 0.8125rem;
+      opacity: var(--_mp-quiet);
+    }
+
+    & [data-mp="field-hint"] {
+      padding-block-start: 0.4rem;
+      line-height: 1.35;
+    }
+
+    /* It unfolds, so the panel grows with it */
+    & [data-mp="field-error"] {
+      display: grid;
+      grid-template-rows: 0fr;
+      color: var(--_mp-error);
+      font-size: 0.8125rem;
+      line-height: 1.35;
+      transition: grid-template-rows var(--_mp-change) ease-in-out;
+
+      & > div {
+        min-block-size: 0;
+        overflow: hidden;
+      }
+
+      & span {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.4rem;
+        padding-block-start: 0.4rem;
+      }
+    }
+
+    & :is([data-mp="field-error"], [data-mp="form-error"]) i {
+      flex: none;
+      display: grid;
+      place-items: center;
+      inline-size: 1rem;
+      block-size: 1rem;
+      margin-block-start: 0.05rem;
+      border-radius: 50%;
+      background: var(--_mp-error);
+      color: var(--_mp-surface);
+      font-size: 0.75rem;
+    }
+
+    & [data-mp="field"][data-invalid] > [data-mp="field-error"] {
+      grid-template-rows: 1fr;
+    }
+
+    /* The label beside the control */
+    & [data-mp="field"][data-layout="inline"] {
+      min-block-size: 2rem;
+
+      & > [data-mp="field-label"] {
+        padding: 0;
+      }
+
+      & > :is([data-mp="field-box"], [data-mp="field-control"]) {
+        grid-column: 2;
+        justify-self: end;
+      }
+
+      &[data-kind="text"] {
+        grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+
+        & > :is([data-mp="field-box"], [data-mp="field-hint"], [data-mp="field-error"]) {
+          grid-column: 2;
+          justify-self: stretch;
+        }
+      }
+    }
+
+    /* ─── Text, numbers, dates ─────────────────────────────────────────────── */
+
+    & [data-mp="field-box"] {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-inline-size: 0;
+      min-block-size: var(--_mp-field-size);
+      padding-inline: 1.1rem;
+      border-radius: var(--_mp-field-radius);
+      background: var(--_mp-field);
+      box-shadow: inset 0 0 0 1px var(--_mp-field-rim);
+      color: var(--_mp-on-field);
+      color-scheme: var(--_mp-field-scheme);
+      cursor: text;
+      transition:
+        background-color var(--_mp-change) ease-in-out,
+        box-shadow var(--_mp-change) ease-in-out,
+        color var(--_mp-change) ease-in-out;
+
+      & :is(input, textarea, select) {
+        appearance: none;
+        flex: 1 1 auto;
+        inline-size: 100%;
+        min-inline-size: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        outline: 0;
+        background: transparent;
+        box-shadow: none;
+        color: inherit;
+        font: inherit;
+        /* Under 16px, iOS zooms the page in */
+        font-size: max(1rem, 16px);
+        font-style: normal;
+        line-height: 1.3;
+        text-align: start;
+      }
+
+      & input {
+        block-size: var(--_mp-field-size);
+      }
+
+      & ::placeholder {
+        color: var(--_mp-placeholder);
+        opacity: 1;
+      }
+
+      & input[type="number"] {
+        font-variant-numeric: tabular-nums;
+        -moz-appearance: textfield;
+      }
+
+      & ::-webkit-inner-spin-button,
+      & ::-webkit-outer-spin-button {
+        appearance: none;
+        margin: 0;
+      }
+
+      & ::-webkit-search-cancel-button {
+        appearance: none;
+        inline-size: 0.75rem;
+        block-size: 0.75rem;
+        background: currentColor;
+        clip-path: polygon(
+          14% 0,
+          50% 36%,
+          86% 0,
+          100% 14%,
+          64% 50%,
+          100% 86%,
+          86% 100%,
+          50% 64%,
+          14% 100%,
+          0 86%,
+          36% 50%,
+          0 14%
+        );
+        cursor: pointer;
+        opacity: 0.7;
+      }
+
+      /* The whole field opens the browser's picker, under a sign of ours */
+      & ::-webkit-calendar-picker-indicator {
+        position: absolute;
+        inset: 0;
+        inline-size: auto;
+        block-size: auto;
+        cursor: pointer;
+        opacity: 0;
+      }
+
+      & ::-webkit-date-and-time-value {
+        margin: 0;
+        text-align: start;
+      }
+
+      /* Suggestions come as you type: no arrow over the text */
+      & input[list]::-webkit-calendar-picker-indicator {
+        display: none !important;
+      }
+
+      /* Autofill's own background can only be put off */
+      & :autofill {
+        -webkit-text-fill-color: var(--_mp-on-field);
+        transition: background-color 99999s 99999s;
+      }
+    }
+
+    & [data-mp="field-box"][data-type="textarea"] {
+      padding: 0.75rem 1.1rem;
+      border-radius: min(var(--_mp-field-radius), 1.375rem);
+
+      & textarea {
+        field-sizing: content;
+        min-block-size: 4lh;
+        max-block-size: 10lh;
+        line-height: 1.4;
+        resize: none;
+      }
+    }
+
+    & [data-mp="field-icon"] {
+      flex: none;
+      display: grid;
+      place-items: center;
+      font-size: 1.15rem;
+      pointer-events: none;
+
+      & > svg {
+        inline-size: 1em;
+        block-size: 1em;
+      }
+    }
+
+    & [data-mp="field-box"] > :is([data-mp="field-icon"], [data-mp="field-suffix"]) {
+      opacity: 0.75;
+      pointer-events: none;
+    }
+
+    & [data-mp="field-suffix"] {
+      flex: none;
+      font-size: 0.9375rem;
+    }
+
+    & [data-mp="field-button"] {
+      appearance: none;
+      flex: none;
+      display: grid;
+      place-items: center;
+      inline-size: 2.25rem;
+      block-size: 2.25rem;
+      margin: 0;
+      margin-inline-end: -0.6rem;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: inherit;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    /* ─── Lists ────────────────────────────────────────────────────────────── */
+
+    & [data-mp="field-box"][data-type="select"] {
+      padding: 0;
+      cursor: pointer;
+
+      & select {
+        block-size: var(--_mp-field-size);
+        padding-inline: 1.1rem 2.75rem;
+        cursor: pointer;
+        text-overflow: ellipsis;
+      }
+
+      & [data-mp="field-icon"] {
+        position: absolute;
+        inset-inline-start: 1.1rem;
+
+        & + select {
+          padding-inline-start: 2.8rem;
+        }
+      }
+
+      & [data-mp="field-chevron"] {
+        position: absolute;
+        inset-inline-end: 1rem;
+        display: grid;
+        font-size: 1.1rem;
+        pointer-events: none;
+        transition: rotate var(--_mp-change) ease-in-out;
+      }
+
+      & select:open ~ [data-mp="field-chevron"] {
+        rotate: 180deg;
+      }
+
+      & :is(option, optgroup) {
+        background: var(--mp-list, #f9f9f9);
+        color: var(--mp-on-list, #141414);
+      }
+    }
+
+    /* A chip, at the end of a row */
+    & [data-mp="field"][data-layout="inline"] > [data-mp="field-box"][data-type="select"] {
+      --_mp-field-size: 2.25rem;
+      max-inline-size: 12rem;
+      background: var(--_mp-faint);
+      box-shadow: none;
+      color: var(--_mp-on-surface);
+
+      & select {
+        field-sizing: content;
+        padding-inline: 0.9rem 2.2rem;
+      }
+
+      & [data-mp="field-chevron"] {
+        inset-inline-end: 0.75rem;
+      }
+    }
+
+    /* The open list in the pill's language, where the browser lets us draw it.
+       --mp-picker: none keeps the system's */
+    @supports (appearance: base-select) {
+      & [data-mp="field-box"][data-type="select"] {
+        & select,
+        & select::picker(select) {
+          appearance: var(--mp-picker, base-select);
+        }
+
+        & select {
+          display: flex;
+          align-items: center;
+        }
+
+        & select::picker-icon {
+          display: none;
+        }
+
+        & select::picker(select) {
+          min-inline-size: anchor-size(width);
+          max-block-size: 18rem;
+          margin-block: 0.4rem;
+          padding: 0.4rem;
+          border: 0;
+          border-radius: 1.25rem;
+          background: var(--mp-list, #f9f9f9);
+          box-shadow: 0 0.5rem 1.5rem rgb(20 20 20 / 0.35);
+          color: var(--mp-on-list, #141414);
+          font: 400 1rem / 1.3 var(--_mp-label-font);
+          opacity: 0;
+          scale: 0.96;
+          transform-origin: top;
+          transition:
+            opacity 150ms,
+            scale 150ms,
+            overlay 150ms allow-discrete,
+            display 150ms allow-discrete;
+        }
+
+        & select::picker(select):popover-open {
+          opacity: 1;
+          scale: 1;
+
+          @starting-style {
+            opacity: 0;
+            scale: 0.96;
+          }
+        }
+
+        & option {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.6rem 0.8rem;
+          border-radius: 0.9rem;
+          outline: 0;
+          background: transparent;
+          color: inherit;
+          font-weight: 400;
+          font-size: 1rem;
+        }
+
+        & option[hidden] {
+          display: none;
+        }
+
+        & option:is(:hover, :focus-visible) {
+          background: color-mix(in srgb, currentColor 10%, transparent);
+        }
+
+        & option:checked {
+          background: var(--mp-on-list, #141414);
+          color: var(--mp-list, #f9f9f9);
+        }
+
+        & option::checkmark {
+          display: none;
+        }
+
+        & optgroup {
+          padding-block-start: 0.4rem;
+          background: transparent;
+          font-weight: 700;
+          font-size: 0.8125rem;
+        }
+      }
+    }
+
+    /* ─── States ───────────────────────────────────────────────────────────── */
+
+    & [data-mp="field-box"]:has(> :is(input, textarea, select):focus-visible) {
+      outline: 2px solid var(--_mp-on-surface);
+      outline-offset: 2px;
+    }
+
+    @supports not selector(:has(*)) {
+      & [data-mp="field-box"]:focus-within {
+        outline: 2px solid var(--_mp-on-surface);
+        outline-offset: 2px;
+      }
+    }
+
+    & [data-mp="field-button"]:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: -4px;
+    }
+
+    & [data-mp="field"][data-invalid] [data-mp="field-box"] {
+      box-shadow:
+        inset 0 0 0 2px var(--mp-danger, #c2303e),
+        0 0 0 1px var(--_mp-error);
+    }
+
+    /* Read only: still there to be read, not to be filled in */
+    & [data-mp="field-box"]:has(> :is(input, textarea)[readonly]) {
+      background: transparent;
+      box-shadow: inset 0 0 0 1px var(--_mp-outline);
+      color: var(--_mp-on-surface);
+    }
+
+    & [data-mp="field"]:has(> [data-mp="field-box"] > :is(input, textarea, select):disabled) {
+      opacity: 0.5;
+
+      & :disabled {
+        cursor: not-allowed;
+      }
+    }
+
+    /* While it's sent, the form fades as one */
+    & [data-mp="form"][aria-busy="true"] [data-mp="field"] {
+      opacity: 1;
+    }
+
+    /* ─── Above the on-screen keyboard (PillForm/keyboard.ts) ──────────────── */
+
+    &[data-placement^="bottom"] {
+      margin-block-end: var(--_mp-keyboard, 0px);
+    }
+
+    &:is([data-placement="overlay"], [data-placement="left"], [data-placement="right"]) {
+      inset-block-end: var(--_mp-keyboard, 0px);
+    }
+
+    &[data-presence="panel"]:not([data-placement="inline"]) {
+      max-block-size: calc(
+        100dvh - 2 * var(--_mp-offset) - var(--_mp-shift-y, 0px) - var(--_mp-keyboard, 0px)
+      );
+    }
+
+    /* ─── Preferences ──────────────────────────────────────────────────────── */
+
+    @media (prefers-reduced-motion: reduce) {
+      & :is([data-mp^="field"], [data-mp="form"]),
+      & [data-mp="field-box"] ::picker(select) {
+        transition: none;
+      }
+    }
+
+    @media (forced-colors: active) {
+      & [data-mp="field-box"] {
+        border: 1px solid CanvasText;
+      }
+    }
+  }
+}

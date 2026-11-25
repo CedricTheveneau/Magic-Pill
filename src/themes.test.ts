@@ -74,8 +74,8 @@ describe("themes.css", () => {
 
   it("sits between the look and the behaviour, whichever stylesheet is imported first", () => {
     // Assert
-    expect(css.trim().startsWith("@layer magic-pill.look, magic-pill.theme, magic-pill.behaviour;")).toBe(true);
-    expect(withoutComments(styles)).toMatch(/@layer magic-pill\s*{\s*@layer look, theme, behaviour;/);
+    expect(css.trim().startsWith("@layer magic-pill.look, magic-pill.theme, magic-pill.forms, magic-pill.behaviour;")).toBe(true);
+    expect(withoutComments(styles)).toMatch(/@layer magic-pill\s*{\s*@layer look, theme, forms, behaviour;/);
   });
 
   it("only reads the public tokens: they can be set anywhere", () => {

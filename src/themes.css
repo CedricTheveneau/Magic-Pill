@@ -12,7 +12,7 @@
  */
 
 /* Between the look and the behaviour, even when this file is imported first */
-@layer magic-pill.look, magic-pill.theme, magic-pill.behaviour;
+@layer magic-pill.look, magic-pill.theme, magic-pill.forms, magic-pill.behaviour;
 
 /* Registered so they can be transitioned */
 @property --_mp-veil {
