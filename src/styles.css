@@ -621,15 +621,16 @@
         padding-block-start: var(--_mp-gap);
         isolation: isolate;
 
-        /* Fades the text out under it. A masked colour, which can be
-           transitioned like the pill's own: a gradient would jump */
+        /* Fades the text out under it, down to the pill's edge. A masked
+           colour, which can be transitioned like the pill's own: a gradient
+           would jump */
         &::before {
           content: "";
           position: absolute;
           z-index: -1;
-          inset: 0;
+          inset: 0 0 calc(var(--_mp-padding) * -2.5);
           background: var(--_mp-surface);
-          mask: linear-gradient(transparent, #000 50%);
+          mask: linear-gradient(transparent, #000 calc(var(--_mp-gap) + var(--_mp-action-size) / 4));
           transition: background-color var(--_mp-change) ease-in-out;
         }
       }

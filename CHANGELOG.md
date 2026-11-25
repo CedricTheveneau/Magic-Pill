@@ -21,6 +21,7 @@
 ### Fixed
 - A notification triggered with the keyboard from inside the pill (an action of the base layer, for instance) never timed out: the pill thought it still had the focus
 - A panel's footer changed colour at once when the variant changed, ahead of the pill
+- A scrolled panel's text showed again under its close button
 - A navbar too wide for its pill (a narrow screen, a long label) pushed its last items out of it: the open label folds while another item is pointed at or focused with the keyboard, and a label that still has no room ends with an ellipsis
 
 ## [9.0.0] - 2026-11-23
