@@ -102,6 +102,26 @@ describe("forms.css, by itself", () => {
     expect(css).toMatch(new RegExp(`var\\(\\s*--mp-${token},`));
   });
 
+  it("draws open lists and calendars from the same values, which the palette, the looks and the glass change", () => {
+    // Arrange
+    const look = css.slice(css.indexOf('& [data-mp="form"]:is([data-look="soft"], [data-look="outline"])\n'));
+    const drawn = withoutComments(calendar);
+
+    // Assert: what's drawn
+    for (const value of ["sheet", "ink", "chosen", "on-chosen", "chosen-rim", "list-filter", "list-lens", "list-rim"]) {
+      expect(css).toMatch(new RegExp(`var\\(--_mp-${value}[,)]`));
+      expect(drawn).toMatch(new RegExp(`var\\(--_mp-${value}[,)]`));
+    }
+    expect(drawn).not.toContain("--mp-list");
+    // Assert: solid is made of the fields, the looks of the pill, the glass themes of their glass
+    expect(css).toContain("--_mp-paper: var(--mp-list, var(--_mp-list-color, var(--_mp-field)));");
+    expect(css).toContain("--_mp-ink: var(--mp-on-list, var(--_mp-list-ink, var(--_mp-on-field)));");
+    for (const value of ["paper", "sheet", "ink", "chosen", "on-chosen", "chosen-rim"]) expect(look).toContain(`--_mp-${value}:`);
+    for (const value of ["color", "ink", "glass", "filter", "rim"]) {
+      expect(withoutComments(themes)).toContain(`--_mp-list-${value}:`);
+    }
+  });
+
   it("gives every look to every kind of field, through the same values", () => {
     // Arrange: everything that's on, off, or a bar
     const values = ["on-fill", "on-rim", "mark", "mark-text", "off-fill", "off-rim", "track-fill", "track-rim", "switch-fill", "switch-rim", "bar-fill", "bar-rim"];

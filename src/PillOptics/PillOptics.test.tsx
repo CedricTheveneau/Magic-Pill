@@ -181,6 +181,29 @@ describe("PillOptics", () => {
     });
   });
 
+  describe("what a pill opens", () => {
+    const listLens = () => pill().style.getPropertyValue("--_mp-list-lens");
+
+    it("gets the same glass at its scale, once forms.css gives it corners", async () => {
+      // Act
+      await renderAll(<><PillOptics />{show({ style: { ...GLASS, "--_mp-list-radius": "18px" } as CSSProperties })}</>);
+
+      // Assert
+      expect(lensOf()).toBe("url(#mp-lens-36-20-45-0)");
+      expect(listLens()).toBe("url(#mp-lens-18-10-22_5-0)");
+      expect(pill().dataset.actions).toBeUndefined();
+    });
+
+    it("has none otherwise", async () => {
+      // Act
+      await renderAll(<><PillOptics />{show()}</>);
+
+      // Assert
+      expect(listLens()).toBe("");
+      expect(filters()).toHaveLength(1);
+    });
+  });
+
   describe("glass actions", () => {
     const asking = { ...GLASS, "--_mp-action-layer": "1", "--_mp-action-radius": "18px" } as CSSProperties;
     const actionLens = () => pill().style.getPropertyValue("--_mp-action-lens");

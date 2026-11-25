@@ -32,6 +32,10 @@
     --_mp-thumb: var(--mp-thumb, 1.25rem);
     --_mp-error: var(--mp-error, color-mix(in oklab, var(--mp-danger, #c2303e) 38%, var(--_mp-on-surface)));
     --_mp-label-font: var(--mp-label-font, var(--mp-font-accent, inherit));
+    /* Only if the app has an accent: not valid otherwise, so fallbacks apply */
+    --_mp-own-on-accent: color-mix(in srgb, var(--_mp-on-accent) 100%, var(--mp-accent));
+    /* The corners of what opens, for <PillOptics> (registered in themes.css) */
+    --_mp-list-radius: 1.5rem;
     /* A hint of the pop: more would leave the bar */
     --_mp-ease-slide: cubic-bezier(0.3, 1.2, 0.5, 1);
 
@@ -48,8 +52,8 @@
     }
 
     &:is([data-theme="glass"], [data-theme="liquid"]) {
-      --_mp-hint-strength: 88%;
-      --_mp-look-hint-strength: 88%;
+      --_mp-hint-strength: 92%;
+      --_mp-look-hint-strength: 100%;
       --_mp-own-scheme: dark;
     }
 
@@ -57,8 +61,11 @@
       --_mp-own-scheme: light;
     }
 
-    &:is([data-variant="success"], [data-variant="danger"]) {
+    &:is([data-variant="success"], [data-variant="danger"], [data-theme="glass"], [data-theme="liquid"]) {
       --_mp-error: var(--mp-error, var(--_mp-on-surface));
+    }
+
+    &:is([data-variant="success"], [data-variant="danger"]) {
       --_mp-own-switch: color-mix(in srgb, var(--_mp-on-surface) 20%, transparent);
       --_mp-own-switch-rim: var(--_mp-outline);
       --_mp-look-hint-strength: 100%;
@@ -123,6 +130,51 @@
       --_mp-look-chip-rim: var(--_mp-outline);
       --_mp-look-track-rim: var(--_mp-outline);
       --_mp-look-bar-rim: var(--_mp-look-rim);
+    }
+
+    /* What opens over the page: a list, a calendar. It's made of what the
+       fields are made of, and on a glass theme, of the same glass (themes.css
+       gives it: --_mp-list-*) */
+    & :is([data-mp="field-box"][data-type="select"], [data-mp="calendar"]) {
+      --_mp-paper: var(--mp-list, var(--_mp-list-color, var(--_mp-field)));
+      --_mp-ink: var(--mp-on-list, var(--_mp-list-ink, var(--_mp-on-field)));
+      /* A see-through field is laid on the pill's own colour */
+      --_mp-sheet: var(
+        --mp-list,
+        var(--_mp-list-glass, linear-gradient(var(--_mp-paper), var(--_mp-paper)) var(--_mp-surface))
+      );
+      --_mp-paper-rim: transparent;
+      /* The app's accent, if it has one; with an edge, as it may be close to the paper */
+      --_mp-chosen: var(--mp-accent, var(--_mp-ink));
+      --_mp-on-chosen: var(--_mp-own-on-accent, var(--_mp-off-ink, var(--_mp-paper)));
+      --_mp-chosen-rim: var(--_mp-own-chosen-rim, transparent);
+      /* (mixed with none of it: not valid without an accent, like the above) */
+      --_mp-own-chosen-rim: color-mix(in srgb, color-mix(in srgb, var(--_mp-ink) 100%, var(--mp-accent)) 55%, transparent);
+      --_mp-hover: color-mix(in srgb, var(--_mp-ink) var(--_mp-list-hover, 10%), transparent);
+      --_mp-dim: var(--_mp-list-dim, 0.62);
+
+      /* What reads on the ink, whatever the paper (it may be see-through) */
+      @supports (color: oklch(from red l c h)) {
+        --_mp-off-ink: oklch(from var(--_mp-ink) clamp(0.19, (0.62 - l) * 1000, 0.98) 0 0);
+      }
+    }
+
+    & [data-mp="form"]:is([data-look="soft"], [data-look="outline"])
+      :is([data-mp="field-box"][data-type="select"], [data-mp="calendar"]) {
+      --_mp-paper: var(
+        --mp-list,
+        color-mix(in oklab, var(--_mp-on-surface) var(--_mp-paper-strength, var(--_mp-soft-field)), var(--_mp-surface))
+      );
+      --_mp-sheet: var(--mp-list, var(--_mp-list-glass, var(--_mp-paper)));
+      --_mp-ink: var(--mp-on-list, var(--_mp-on-surface));
+      --_mp-chosen: var(--_mp-on-fill);
+      --_mp-on-chosen: var(--_mp-ink);
+      --_mp-chosen-rim: var(--_mp-on-rim);
+    }
+
+    & [data-mp="form"][data-look="outline"] :is([data-mp="field-box"][data-type="select"], [data-mp="calendar"]) {
+      --_mp-paper-strength: 0%;
+      --_mp-paper-rim: color-mix(in srgb, var(--_mp-ink) 55%, transparent);
     }
 
     /* ─── Form ─────────────────────────────────────────────────────────────── */
@@ -532,8 +584,8 @@
       }
 
       & :is(option, optgroup) {
-        background: var(--mp-list, #f9f9f9);
-        color: var(--mp-on-list, #141414);
+        background: var(--_mp-paper);
+        color: var(--_mp-ink);
       }
     }
 
@@ -579,10 +631,15 @@
           margin-block: 0.4rem;
           padding: 0.4rem;
           border: 0;
-          border-radius: 1.25rem;
-          background: var(--mp-list, #f9f9f9);
-          box-shadow: 0 0.5rem 1.5rem rgb(20 20 20 / 0.35);
-          color: var(--mp-on-list, #141414);
+          border-radius: var(--_mp-list-radius);
+          background: var(--_mp-sheet);
+          -webkit-backdrop-filter: var(--_mp-list-filter, none);
+          backdrop-filter: var(--_mp-list-filter, none) var(--_mp-list-lens,);
+          box-shadow:
+            0 0.5rem 1.5rem rgb(20 20 20 / 0.35),
+            inset 0 0 0 1px var(--_mp-paper-rim),
+            var(--_mp-list-rim, 0 0 transparent);
+          color: var(--_mp-ink);
           font: 400 1rem / 1.3 var(--_mp-label-font);
           opacity: 0;
           scale: 0.96;
@@ -609,7 +666,7 @@
           align-items: center;
           gap: 0.5rem;
           padding: 0.6rem 0.8rem;
-          border-radius: 0.9rem;
+          border-radius: 1.1rem;
           outline: 0;
           background: transparent;
           color: inherit;
@@ -622,12 +679,13 @@
         }
 
         & option:is(:hover, :focus-visible) {
-          background: color-mix(in srgb, currentColor 10%, transparent);
+          background: var(--_mp-hover);
         }
 
         & option:checked {
-          background: var(--mp-on-list, #141414);
-          color: var(--mp-list, #f9f9f9);
+          background: var(--_mp-chosen);
+          box-shadow: inset 0 0 0 1.5px var(--_mp-chosen-rim);
+          color: var(--_mp-on-chosen);
         }
 
         & option::checkmark {

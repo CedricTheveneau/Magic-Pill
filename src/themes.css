@@ -71,6 +71,13 @@
   initial-value: 0;
 }
 
+/* The corners of what opens over the page: forms.css sets them */
+@property --_mp-list-radius {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
 @property --_mp-action-radius {
   syntax: "<length>";
   inherits: false;
@@ -245,6 +252,20 @@
         inset calc(var(--_mp-light-x) * -6px) calc(var(--_mp-light-y) * -6px) 10px -6px
           rgb(from var(--_mp-light-color) r g b / calc(0.4 * var(--_mp-light) * var(--_mp-edge-light))),
         inset 0 0 14px rgb(from var(--_mp-light-color) r g b / calc(0.16 * var(--_mp-light) * var(--_mp-thick)));
+      /* What opens over the page (a list, a calendar: forms.css), of the same
+         glass: frosted nearly as a panel is, and with a little more of the
+         veil, as it's all text and may lie over the pill's own */
+      --_mp-list-color: var(--_mp-surface);
+      --_mp-list-ink: var(--_mp-on-surface);
+      --_mp-list-veil: oklch(
+        from var(--_mp-surface) clamp(0, (l - 0.62) * 1000, 1) 0 0 / calc(0.08 * var(--mp-readable, 1) * var(--_mp-clear))
+      );
+      --_mp-list-glass: linear-gradient(var(--_mp-list-veil), var(--_mp-list-veil)), var(--_mp-image), var(--_mp-fill);
+      --_mp-list-filter: blur(max(var(--_mp-own-frost), calc(var(--mp-panel-frost, 12px) * 0.67)))
+        saturate(calc(1 + var(--_mp-rays) * (var(--mp-vibrancy, 1.9) - 1)));
+      --_mp-list-rim: var(--_mp-rim);
+      --_mp-list-hover: 6%;
+      --_mp-list-dim: 0.86;
       background: var(--_mp-image), var(--_mp-fill);
       -webkit-backdrop-filter: var(--_mp-filter);
       /* The lens comes last: blurring after it would blur its edge */
@@ -412,6 +433,7 @@
           --_mp-tint: 1;
           --_mp-rays: 0;
           --_mp-filter: none;
+          --_mp-list-filter: none;
         }
 
         &:is([data-theme="glass"], [data-theme="liquid"]) {
