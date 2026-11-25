@@ -27,8 +27,9 @@ const PROBES = [
     // then from 8.25 kB for closeOnBackdropClick: 8.25 kB,
     // then from 8.5 kB for pills sharing a placement (Pill/zone.ts): 9.14 kB,
     // then from 9.25 kB for the themes (Pill/themed.ts): 9.24 kB, the focus lost with its content: 9.30 kB,
-    // then from 9.4 kB for several panels and their slots: 9.48 kB
-    budget: 9.75 * KB, // 4.89 kB at 9.0.0-next.0
+    // then from 9.4 kB for several panels and their slots: 9.48 kB,
+    // then from 9.75 kB for scenes (Pill/scene.ts): 10.22 kB
+    budget: 10.5 * KB, // 4.89 kB at 9.0.0-next.0
   },
   {
     name: "Pill primitive",
@@ -40,15 +41,16 @@ const PROBES = [
     // then from 3.75 kB for closeOnBackdropClick: 3.78 kB,
     // then from 4 kB for pills sharing a placement (Pill/zone.ts): 4.69 kB,
     // then from 4.75 kB for the themes (Pill/themed.ts): 4.80 kB,
-    // then from 4.9 kB for several panels: 4.87 kB
-    budget: 5 * KB, // 1.44 kB at 9.0.0-next.0
+    // then from 4.9 kB for several panels: 4.87 kB,
+    // then from 5 kB for scenes (Pill/scene.ts, and the swap, which only the host had): 6.16 kB
+    budget: 6.5 * KB, // 1.44 kB at 9.0.0-next.0
   },
   {
     name: "A form panel",
     description: "the quick start, with a form panel, a text field and a switch",
     code: 'export { MagicPill, pill, PillFormPanel, PillInput, PillSwitch } from "ENTRY";',
-    // 12.17 kB, then 12.71 kB with the busy labels
-    budget: 13 * KB,
+    // 12.17 kB, then 12.71 kB with the busy labels, 13.38 kB with scenes
+    budget: 13.5 * KB,
   },
   {
     name: "Everything",
@@ -66,8 +68,9 @@ const PROBES = [
     // then from 20.5 kB for the settings' fields: 22.01 kB,
     // then from 22.25 kB for codes, files and colours: 22.66 kB,
     // then from 22.75 kB for the form panel: 23.11 kB,
-    // then from 23.25 kB for the busy labels: 23.57 kB
-    budget: 23.75 * KB, // 9.07 kB at 9.0.0-next.0
+    // then from 23.25 kB for the busy labels: 23.57 kB,
+    // then from 23.75 kB for scenes: 24.16 kB
+    budget: 24.5 * KB, // 9.07 kB at 9.0.0-next.0
   },
 ];
 const STYLESHEETS = [

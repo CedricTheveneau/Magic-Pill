@@ -30,7 +30,7 @@ On top of it come ready-made **templates** (a notification, a navbar) and a **co
  - [X] Accessible: screen reader announcements, keyboard focus pauses the countdown, focus handling for panels and modals
  - [X] Works in any React 18+ app, including React Server Components (Next.js App Router), with any router
  - [X] Styles you can override without `!important`, design tokens, no fonts loaded behind your back
- - [X] Tiny: the quick start adds about **12.6 kB gzipped** to your app (9.5 kB of JavaScript + 3.1 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
+ - [X] Tiny: the quick start adds about **13.3 kB gzipped** to your app (10.2 kB of JavaScript + 3.1 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
  - [X] Written in TypeScript, zero runtime dependencies
 
 ## Installation
@@ -178,6 +178,7 @@ pill().notify({
 |---|---|---|
 | `name` | `"main"` | Which `pill(name)` controls it. Mount one host per name. |
 | `children` | none | The **base layer**: shown whenever no notification is. Without it, the pill hides between notifications. |
+| `scene` | none | A name for what the base layer shows: when it changes, the pill goes from one to the other (through the circle, or sliding with `swap="always"`) instead of jumping. |
 | `duration` | `5000` | Default display time for notifications. |
 | `idle` | `"hidden"` | With no base layer and nothing queued: `"hidden"`, or `"rest"` for a small resting circle showing `idleIcon`. |
 | `idleIcon` | none | The icon of the resting circle. |
@@ -283,6 +284,7 @@ import { Pill, PillActions, PillAction, PhoneIcon, MailIcon, DocumentIcon } from
 | `closeOnBackdropClick` | `boolean`, for the `"overlay"` placement: a click outside the modal does what Escape does (closes its panel if it's open, the modal otherwise). Call `event.preventDefault()` in your `onClick` to keep it open | `false` |
 | `backdrop` | `"plain"`, `"glow"`, or any string, for the `"overlay"` placement: what's behind the modal (see below) | `"plain"` |
 | `ladder` | `boolean`, for the fixed placements: pills with the same placement line up like the rungs of a ladder (see below). `false` leaves this one out: it stays in its spot and the others ignore it | `true` |
+| `scene` / `sceneChange` | A name for what the pill shows: when it changes, the pill goes from one content to the other instead of jumping (see below). `"circle"`, `"slide"` or `"none"` | none / `"circle"` |
 | `orientation` | `"horizontal"`, `"vertical"` | `"vertical"` for `left`/`right` |
 | `variant` | `"neutral"`, `"success"`, `"danger"`, or any string (see [Styling](#styling)) | `"neutral"` |
 | `theme` | `"plain"`, `"glass"`, `"liquid"`, or any string (see [Themes](#themes)). The variant picks the colour, the theme the material | `"plain"` |
@@ -296,6 +298,13 @@ Any other prop (`className`, `aria-label`, `ref`…) goes to the element.
 - `PillMessage`: the message, in the italic serif.
 - `PillActions` and `PillAction`: round buttons. `label` is required: it's the accessible name, and it shows on hover, on focus, with `expanded`, or at the `expanded` level. A `PillAction` is a `<button>` with `onClick`, or a link with `href` (through `linkComponent` if you pass one).
 - `PillPanel` and `PillPanelTrigger`: content shown at the `panel` level, and the action that opens it. The panel takes the focus when it opens, closes on Escape or with its close button (`closeLabel`, `closeIcon`, and `closeExpanded` to always show the label), and gives the focus back to the trigger. `titleAction` goes at the end of the title's row and `footer` before the close button, which is then quieter (an outline, `--mp-close`). **Several panels in one pill:** give each a `name`, and its trigger the same `panel`.
+
+**Scenes:** when what a pill shows changes altogether, name it. The pill closes to a circle on the old content and opens on the new one, as a host does between its navbar and a notification; `sceneChange="slide"` slides one out and the other in, as between two notifications. The colour follows, each scene starts anew, and a focus that leaves with the old content goes to the pill. At once with reduced motion.
+```tsx
+<Pill scene={isIn ? "done" : "form"} variant={isIn ? "success" : "neutral"}>
+  {isIn ? <PillMessage>You're in!</PillMessage> : <PillForm onSend={subscribe}>…</PillForm>}
+</Pill>
+```
 
 **Pills in the same spot:** pills with the same fixed `placement` make room for each other, `<MagicPill>` hosts included. The first one set up keeps its spot, and the next ones line up after it: below it at the top of the screen, above it at the bottom, further in from the edge on the `left` and `right`. Each one keeps its own `--mp-gap` from the one before it.
 - When a pill hides or unmounts, the ones after it take its place. A hidden pill keeps its turn, and takes its spot back when it shows again; one that unmounts comes back last.
