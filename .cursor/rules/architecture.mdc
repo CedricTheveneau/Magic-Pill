@@ -73,8 +73,8 @@ src/
 - No compound statics (`Pill.Icon`): a Server Component can't dot into a client module. Export each part by name.
 
 ### Styling
-- `src/styles.css` is entirely inside `@layer magic-pill`, with the `look`, `theme` and `behaviour` sub-layers (behaviour last, so hiding rules always win). `src/themes.css` fills `magic-pill.theme`, for pills with a `theme`: plain pills must not need it.
-- Select parts with `[data-mp="…"]` and states with data attributes (`data-presence`, `data-placement`, `data-orientation`, `data-variant`, `data-theme`). No class names of ours.
+- `src/styles.css` is entirely inside `@layer magic-pill`, with the `look`, `theme` and `behaviour` sub-layers (behaviour last, so hiding rules always win). `src/themes.css` fills `magic-pill.theme`, for pills with a `theme` or a `backdrop`: plain pills must not need it.
+- Select parts with `[data-mp="…"]` and states with data attributes (`data-presence`, `data-placement`, `data-orientation`, `data-variant`, `data-theme`, `data-backdrop`). No class names of ours.
 - Public tokens (`--mp-*`) are only **read**, with fallbacks, never declared, so users can set them anywhere. Private values start with `--_mp-`.
 - Never load fonts or anything else from the network (no `@import`, no `url()`); `styles.test.ts` and `themes.test.ts` guard it.
 - Themes keep text readable over any page by default: measure it on real pixels (white, black and pure colours behind the pill), actions included.

@@ -264,6 +264,7 @@ import { Pill, PillActions, PillAction, PhoneIcon, MailIcon, DocumentIcon } from
 | `placement` | `"inline"` (in the page flow), `"top"`, `"bottom"`, `"left"`, `"right"`, `"top-start"`, `"top-end"`, `"bottom-start"`, `"bottom-end"` (fixed; `start`/`end` follow the text direction), `"overlay"` (a modal `<dialog>`). Change it and the pill travels to its new place (e.g. with the scroll, or for a guided tour), except to or from `"overlay"`. | `"inline"` |
 | `presence` / `defaultPresence` / `onPresenceChange` | `"hidden"`, `"rest"` (a circle with the icon only), `"compact"`, `"expanded"` (every action label shown), `"panel"` | `"compact"` |
 | `closeOnBackdropClick` | `boolean`, for the `"overlay"` placement: a click outside the modal does what Escape does (closes its panel if it's open, the modal otherwise). Call `event.preventDefault()` in your `onClick` to keep it open | `false` |
+| `backdrop` | `"plain"`, `"glow"`, or any string, for the `"overlay"` placement: what's behind the modal (see below) | `"plain"` |
 | `ladder` | `boolean`, for the fixed placements: pills with the same placement line up like the rungs of a ladder (see below). `false` leaves this one out: it stays in its spot and the others ignore it | `true` |
 | `orientation` | `"horizontal"`, `"vertical"` | `"vertical"` for `left`/`right` |
 | `variant` | `"neutral"`, `"success"`, `"danger"`, or any string (see [Styling](#styling)) | `"neutral"` |
@@ -294,6 +295,8 @@ Any other prop (`className`, `aria-label`, `ref`…) goes to the element.
   </PillActions>
 </Pill>
 ```
+
+Its backdrop is `--mp-backdrop`: a colour, or any CSS background. `--mp-backdrop-blur: 10px` also blurs the page. `backdrop="glow"` adds two soft lights drifting over them: import `magic-pill/themes.css`, and set `--mp-glow-1`, `--mp-glow-2` (their colours) and `--mp-glow-duration` (a full turn, `14s`). They stand still with reduced motion. Any other string is written to `data-backdrop`, for a backdrop of your own: `[data-mp="pill"][data-backdrop="dots"]::backdrop { … }`.
 
 ### Your own templates
 Templates are plain arrangements of the parts, so yours work the same way. `usePill()` gives a part access to its pill (`presence`, `setPresence`, `placement`, `orientation`, `variant`). Inside a `<MagicPill>`, the `render` option puts your arrangement in the queue:
@@ -331,7 +334,7 @@ Twelve built-in icons, drawn in `currentColor` and decorative by default (`aria-
 
 ## Styling
 - **Easy to override:** every rule sits in a `magic-pill` cascade layer. Any CSS of yours that isn't in a layer wins, whatever its specificity, with no `!important`.
-- **No collisions:** parts are selected by `data-mp` attributes (`[data-mp="pill"]`, `"icon"`, `"divider"`, `"message"`, `"actions"`, `"action"`, `"action-body"`, `"action-icon"`, `"label"`, `"panel"`, `"panel-title"`, `"panel-body"`, `"panel-footer"`, `"navbar"`), and states by `data-presence`, `data-placement`, `data-orientation`, `data-variant` and `data-theme`. There are no class names of ours to clash with yours.
+- **No collisions:** parts are selected by `data-mp` attributes (`[data-mp="pill"]`, `"icon"`, `"divider"`, `"message"`, `"actions"`, `"action"`, `"action-body"`, `"action-icon"`, `"label"`, `"panel"`, `"panel-title"`, `"panel-body"`, `"panel-footer"`, `"navbar"`), and states by `data-presence`, `data-placement`, `data-orientation`, `data-variant`, `data-theme` and `data-backdrop`. There are no class names of ours to clash with yours.
 - **Classes:** every part takes a `className`; templates and `<MagicPill>` take `classNames`.
 - **Global resets are safe:** an action's look lives on its inner `[data-mp="action-body"]`, so app-wide rules such as `a { color: inherit }` or `button { background: none }` don't break it. To restyle an action, target `[data-mp="action-body"]`.
 - **Tailwind CSS v4:** declare the layer order once, before your imports, so utilities win: `@layer theme, base, magic-pill, components, utilities;`.
@@ -352,7 +355,7 @@ Twelve built-in icons, drawn in `currentColor` and decorative by default (`aria-
 | `--mp-max-width` / `--mp-message-width` / `--mp-panel-width` | `48rem` / `24rem` / `32rem` |
 | `--mp-radius-panel` / `--mp-shadow` | `2.5rem` / a soft drop shadow |
 | `--mp-offset` / `--mp-z-index` | `1.5rem` from the viewport edges (plus safe areas) / `50` |
-| `--mp-backdrop` | the overlay's backdrop |
+| `--mp-backdrop` / `--mp-backdrop-blur` | the overlay's backdrop: `rgb(20 20 20 / 0.4)` / no blur |
 | `--mp-duration-enter` / `--mp-duration-change` / `--mp-duration-exit` | `500ms` / `250ms` / `300ms` |
 | `--mp-scale-origin` | `center`: where the pill pops in from and scales out to (e.g. `bottom` to come out of the edge) |
 | `--mp-align` | How a vertical pill lines up its items: `start`, `center` or `end` (following the text direction). By default, along the screen edge for a `left` or `right` pill, centred otherwise |
