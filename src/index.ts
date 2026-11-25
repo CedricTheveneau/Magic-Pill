@@ -77,6 +77,10 @@ export { PillCode } from './PillForm/PillCode';
 export type { PillCodeProps } from './PillForm/PillCode';
 export { PillFile } from './PillForm/PillFile';
 export type { PillFileProps } from './PillForm/PillFile';
+export { PillDate } from './PillForm/PillDate';
+export type { PillDateProps } from './PillForm/PillDate';
+export type { CalendarLabels } from './PillForm/Calendar';
+export type { DateType } from './PillForm/dates';
 export { PillColor } from './PillForm/PillColor';
 export type { PillColorProps } from './PillForm/PillColor';
 

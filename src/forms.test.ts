@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 import { describe, expect, it } from "vitest";
 
+import calendar from "./calendar.css?raw";
 import forms from "./forms.css?raw";
 import styles from "./styles.css?raw";
 import themes from "./themes.css?raw";
@@ -8,8 +9,11 @@ import themes from "./themes.css?raw";
 const withoutComments = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, "");
 
 // Guards for the forms' contract (docs/v9/forms-proposal.md)
-describe("forms.css", () => {
-  const css = withoutComments(forms);
+describe.each([
+  ["forms.css", forms],
+  ["calendar.css", calendar],
+])("%s", (_name, raw) => {
+  const css = withoutComments(raw);
 
   it("loads nothing from the network: no @import, no url()", () => {
     // Assert
@@ -46,6 +50,34 @@ describe("forms.css", () => {
     expect(css).not.toMatch(/(^|[\s{;])--mp-[\w-]+\s*:/m);
   });
 
+  it("leaves unstyled pills alone, and selects by data attributes only", () => {
+    // Assert
+    for (const [selector] of css.matchAll(/\[data-mp="pill"\][^{]*/g)) {
+      expect(selector.trim()).toBe('[data-mp="pill"]:not([data-unstyled])');
+    }
+    expect(css).not.toMatch(/(^|[\s,>+~(])\.[a-zA-Z_-]/m);
+  });
+
+  it("never sets text under 16px in a control: iOS would zoom the page in", () => {
+    // Assert
+    expect(css).toContain("font-size: max(1rem, 16px);");
+  });
+
+  it("puts no pseudo-element in :is(), which would drop the rule", () => {
+    // Assert
+    expect(css).not.toMatch(/:is\([^)]*::/);
+  });
+
+  it("follows reduced motion and forced colours", () => {
+    // Assert
+    expect(css).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(css).toContain("@media (forced-colors: active)");
+  });
+});
+
+describe("forms.css, by itself", () => {
+  const css = withoutComments(forms);
+
   it.each([
     "field",
     "on-field",
@@ -70,24 +102,6 @@ describe("forms.css", () => {
     expect(css).toMatch(new RegExp(`var\\(\\s*--mp-${token},`));
   });
 
-  it("leaves unstyled pills alone, and selects by data attributes only", () => {
-    // Assert
-    for (const [selector] of css.matchAll(/\[data-mp="pill"\][^{]*/g)) {
-      expect(selector.trim()).toBe('[data-mp="pill"]:not([data-unstyled])');
-    }
-    expect(css).not.toMatch(/(^|[\s,>+~(])\.[a-zA-Z_-]/m);
-  });
-
-  it("never sets text under 16px in a control: iOS would zoom the page in", () => {
-    // Assert
-    expect(css).toContain("font-size: max(1rem, 16px);");
-  });
-
-  it("puts no pseudo-element in :is(), which would drop the rule", () => {
-    // Assert
-    expect(css).not.toMatch(/:is\([^)]*::/);
-  });
-
   it("gives every look to every kind of field, through the same values", () => {
     // Arrange: everything that's on, off, or a bar
     const values = ["on-fill", "on-rim", "mark", "mark-text", "off-fill", "off-rim", "track-fill", "track-rim", "switch-fill", "switch-rim", "bar-fill", "bar-rim"];
@@ -99,9 +113,4 @@ describe("forms.css", () => {
     expect(rules.match(/background: var\(--_mp-accent\)/g)).toHaveLength(2);
   });
 
-  it("follows reduced motion and forced colours", () => {
-    // Assert
-    expect(css).toContain("@media (prefers-reduced-motion: reduce)");
-    expect(css).toContain("@media (forced-colors: active)");
-  });
 });

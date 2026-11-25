@@ -76,7 +76,7 @@ export const FieldShell = forwardRef<HTMLElement, InternalFieldProps & { [data: 
         data-layout={layout ?? ((isText && form.layout) || "stacked")}
         data-invalid={error ? "" : undefined}
       >
-        <Label {...(!group && { htmlFor: id })} data-mp="field-label" data-hidden={hideLabel ? "" : undefined}>
+        <Label id={`${id}label`} {...(!group && { htmlFor: id })} data-mp="field-label" data-hidden={hideLabel ? "" : undefined}>
           {label}
           {optional && (
             <>

@@ -69,8 +69,9 @@ const PROBES = [
     // then from 22.25 kB for codes, files and colours: 22.66 kB,
     // then from 22.75 kB for the form panel: 23.11 kB,
     // then from 23.25 kB for the busy labels: 23.57 kB,
-    // then from 23.75 kB for scenes: 24.16 kB
-    budget: 24.5 * KB, // 9.07 kB at 9.0.0-next.0
+    // then from 23.75 kB for scenes: 24.16 kB,
+    // then from 24.5 kB for the calendar (PillDate, only for apps that use it): 29.35 kB
+    budget: 29.75 * KB, // 9.07 kB at 9.0.0-next.0
   },
 ];
 const STYLESHEETS = [
@@ -95,6 +96,12 @@ const STYLESHEETS = [
     description: "the fields, only for apps that import it",
     // 4.99 kB, then 5.34 kB for the looks of every field
     budget: 5.5 * KB,
+  },
+  {
+    name: "calendar.css",
+    description: "the calendar, only for apps that import it",
+    // 2.17 kB
+    budget: 2.5 * KB,
   },
 ];
 
