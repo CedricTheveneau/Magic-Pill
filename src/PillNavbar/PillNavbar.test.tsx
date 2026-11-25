@@ -1,13 +1,14 @@
 import { forwardRef, type AnchorHTMLAttributes } from "react";
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { findActiveIndex } from "./matchPath";
-import { PillNavbar, type NavItem } from "./PillNavbar";
+import { PillNavbar, type NavItem, type NavLinkItem } from "./PillNavbar";
 import Pill from "../Pill/Pill";
+import { PillPanel } from "../Pill/PillPanel";
 import BoxIcon from "../icons/BoxIcon";
 
-const items: NavItem[] = [
+const items: NavLinkItem[] = [
   { href: "/", label: "Home", icon: <BoxIcon /> },
   { href: "/blog", label: "Blog" },
   { href: "/blog/drafts", label: "Drafts" },
@@ -148,5 +149,56 @@ describe("PillNavbar", () => {
     expect(screen.getByRole("navigation", { name: "Sections" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "Home" }).hasAttribute("data-router")).toBe(true);
     expect(screen.queryByRole("link", { name: "Evil" })).toBeNull();
+  });
+});
+
+describe("items that aren't links", () => {
+  const mixed = (skip = vi.fn()): NavItem[] => [
+    { href: "/", label: "Home" },
+    { onClick: skip, label: "Skip session", icon: <BoxIcon />, expanded: true },
+    { panel: "prefs", label: "Preferences", icon: <BoxIcon /> },
+    { href: "/blog", label: "Blog" },
+  ];
+
+  it("render buttons, next to links that still match the path", () => {
+    // Arrange
+    const skip = vi.fn();
+    render(
+      <Pill>
+        <PillNavbar items={mixed(skip)} pathname="/blog" />
+      </Pill>,
+    );
+
+    // Act
+    const button = screen.getByRole("button", { name: "Skip session" });
+    fireEvent.click(button);
+
+    // Assert
+    expect(skip).toHaveBeenCalledOnce();
+    expect(button.hasAttribute("data-expanded")).toBe(true);
+    expect(screen.getByRole("link", { name: "Blog" }).getAttribute("aria-current")).toBe("page");
+    expect(screen.getByRole("link", { name: "Home" }).hasAttribute("aria-current")).toBe(false);
+    expect(button.hasAttribute("aria-current")).toBe(false);
+  });
+
+  it("open the panel with their name", () => {
+    // Arrange
+    render(
+      <Pill>
+        <PillNavbar items={mixed()} pathname="/" />
+        <PillPanel name="account" title="Account" />
+        <PillPanel name="prefs" title="Preferences" />
+      </Pill>,
+    );
+    const trigger = screen.getByRole("button", { name: "Preferences" });
+
+    // Act
+    fireEvent.click(trigger);
+
+    // Assert
+    const open = document.querySelectorAll('[data-mp="panel"][data-open]');
+    expect(open).toHaveLength(1);
+    expect(open[0].id).toBe(trigger.getAttribute("aria-controls"));
+    expect(screen.getByRole("region", { name: "Preferences" })).toBe(open[0]);
   });
 });
