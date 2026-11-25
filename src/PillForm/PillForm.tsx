@@ -9,7 +9,7 @@ import { useInternalPill } from "../Pill/PillContext";
 
 export interface PillFormProps extends ComponentPropsWithoutRef<"form"> {
   /**
-   * How its fields look: filled like the actions (`solid`, the default), with a
+   * How its fields look, switches and choices included: filled like the actions (`solid`, the default), with a
    * hint of the pill's text (`soft`), or an `outline`. Any other string is
    * written to `data-look`, for one of your own.
    */

@@ -416,7 +416,7 @@ async function send(data: FormData) {
 
 | Prop | Default | |
 |---|---|---|
-| `look` | `"solid"` | `"solid"` (like the actions), `"soft"` (a hint of the pill's text), `"outline"`, or any string (written to `data-look`) |
+| `look` | `"solid"` | Of every field, switches and choices included: `"solid"` (like the actions), `"soft"` (a hint of the pill's text), `"outline"`, or any string (written to `data-look`) |
 | `layout` | `"stacked"` | Its text fields' labels: above, or beside (`"inline"`) |
 | `errors` | `"inline"` | The browser's validation messages: under the fields, or in its bubbles (`"native"`) |
 | `onSend(data, event)` | none | Instead of `onSubmit`: called once every field is valid, with no page load. While the promise it returns is pending, the form is busy; if it's rejected, the error's message shows (`errorLabel` if it has none) |
