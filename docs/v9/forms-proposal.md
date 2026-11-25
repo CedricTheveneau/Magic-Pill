@@ -100,7 +100,7 @@ Every field takes:
 
 `PillInput` also has `icon`, `suffix` (`"kg"`, `"$"`) and `suggestions` (a native `<datalist>`).
 
-**Left out on purpose** (each can be made with `PillField`): a slider with two thumbs, tags, a rating, rich text, a custom calendar. The native calendar is the one people know on their device, and the only one that costs nothing.
+**Left out on purpose** (each can be made with `PillField`): a slider with two thumbs, tags, a rating, rich text. *(A custom calendar was left out too; the maintainer asked for an optional one: `PillDate`, §13.)* The native calendar is the one people know on their device, and the only one that costs nothing.
 
 ## 6. `PillFormPanel`
 
@@ -214,3 +214,12 @@ The three looks of the lab, **solid** (the default), **soft** and **outline**, a
 | 7. Drop-down lists | **The pill's where the browser lets us**, the system's elsewhere. `--mp-picker: none` for the system's everywhere |
 | 8. The set of fields | §5, with what it leaves out |
 | 9. `forms.css` apart, and the sizes of §11 | Yes |
+
+## 13. After trying the built forms (the maintainer, 2026-11-25)
+
+| Asked | Built |
+|---|---|
+| A label while it's sending, several if possible (the prototype's was lost on the way) | `busyLabel` and `busyInterval`, on `PillFormPanel` and on the new `PillSubmit`; `onSend` on `PillForm`, for forms in the pill itself |
+| The navbar/notification transitions for every template | `scene` on `<Pill>` and on a host's base layer; `sceneChange`: `circle`, `slide`, `none` |
+| Soft and outline switches and segmented choices, for a consistent look | `look` reaches every kind of field |
+| An optional calendar, for every format | `PillDate` and `magic-pill/calendar.css`: dates, months, weeks, times, dates and times; a popover or `inline` |
