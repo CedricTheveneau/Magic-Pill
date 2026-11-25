@@ -15,9 +15,13 @@
 
 ### Changed
 - A pill's open panel sits one level above the other pills (`--mp-z-index` + 1) until it has closed
+- A panel's close button shows its icon, and its label on hover and focus, like the other actions. `closeExpanded`, on `<PillPanel>` or in a notification's `panel`, always shows it
+- Colours change together: the text's and the actions' now fade like the pill's
 
 ### Fixed
 - A notification triggered with the keyboard from inside the pill (an action of the base layer, for instance) never timed out: the pill thought it still had the focus
+- A panel's footer changed colour at once when the variant changed, ahead of the pill
+- A navbar too wide for its pill (a narrow screen, a long label) pushed its last items out of it: the open label folds while another item is pointed at or focused with the keyboard, and a label that still has no room ends with an ellipsis
 
 ## [9.0.0] - 2026-11-23
 9.0.0 is the first stable release of Magic Pill; earlier versions are deprecated (upgrading from 8.x: [MIGRATING.md](./MIGRATING.md)). It's a breaking release with a new API, but most apps get shorter.
