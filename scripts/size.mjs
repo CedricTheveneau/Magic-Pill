@@ -56,8 +56,9 @@ const PROBES = [
     // then from 17.25 kB for a navbar's narrow screens (PillNavbar/room.ts): 17.70 kB,
     // then from 18 kB for several panels and the navbar's other items: 18.02 kB,
     // then from 18.25 kB for the text fields (PillForm/, only for apps with forms): 20.40 kB,
-    // then from 20.5 kB for the settings' fields: 22.01 kB
-    budget: 22.25 * KB, // 9.07 kB at 9.0.0-next.0
+    // then from 20.5 kB for the settings' fields: 22.01 kB,
+    // then from 22.25 kB for codes, files and colours: 22.66 kB
+    budget: 22.75 * KB, // 9.07 kB at 9.0.0-next.0
   },
 ];
 const STYLESHEETS = [
@@ -80,8 +81,8 @@ const STYLESHEETS = [
   {
     name: "forms.css",
     description: "the fields, only for apps that import it",
-    // 4.69 kB
-    budget: 4.75 * KB,
+    // 4.99 kB
+    budget: 5.25 * KB,
   },
 ];
 

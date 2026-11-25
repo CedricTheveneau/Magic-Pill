@@ -76,3 +76,9 @@ export const MinusGlyph = () => (
     <path d="M5 12h14" />
   </Glyph>
 );
+
+export const UploadGlyph = () => (
+  <Glyph>
+    <path d="M12 16V4.5m0 0L7.5 9M12 4.5 16.5 9M4.5 15.500v2a3 3 0 0 0 3 3h9a3 3 0 0 0 3-3v-2" />
+  </Glyph>
+);
