@@ -54,6 +54,9 @@
       --_mp-on-surface: var(--mp-on-surface, #f9f9f9);
       --_mp-action: var(--mp-action, #f9f9f9);
       --_mp-on-action: var(--mp-on-action, #141414);
+      --_mp-action-rim: var(--mp-action-rim, transparent);
+      --_mp-action-current: var(--mp-action-current, var(--_mp-action));
+      --_mp-on-action-current: var(--mp-on-action-current, var(--_mp-on-action));
       --_mp-offset: var(--mp-offset, 1.5rem);
       --_mp-padding: var(--mp-padding, 0.875rem);
       --_mp-gap: var(--mp-gap, 1rem);
@@ -386,6 +389,7 @@
         overflow: hidden;
         border-radius: 9999px;
         background: var(--_mp-action);
+        box-shadow: inset 0 0 0 1px var(--_mp-action-rim);
         color: var(--_mp-on-action);
         font-family: var(--mp-font-accent, inherit);
         font-style: normal;
@@ -402,6 +406,11 @@
       & [data-mp="action"][aria-disabled="true"] {
         cursor: not-allowed;
         opacity: 0.6;
+      }
+
+      & [data-mp="action"]:is([aria-current="page"], [aria-current="true"]) [data-mp="action-body"] {
+        background: var(--_mp-action-current);
+        color: var(--_mp-on-action-current);
       }
 
       & [data-mp="action-icon"] {

@@ -62,6 +62,13 @@ describe("styles.css", () => {
     );
   });
 
+  it("gives actions a rim and the current page's one its own colours, unchanged by default", () => {
+    // Assert
+    expect(withoutComments).toContain("--_mp-action-rim: var(--mp-action-rim, transparent);");
+    expect(withoutComments).toContain("--_mp-action-current: var(--mp-action-current, var(--_mp-action));");
+    expect(withoutComments).toContain("--_mp-on-action-current: var(--mp-on-action-current, var(--_mp-on-action));");
+  });
+
   it("follows prefers-reduced-motion", () => {
     // Assert
     expect(withoutComments).toContain("@media (prefers-reduced-motion: reduce)");
