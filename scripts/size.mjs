@@ -47,8 +47,8 @@ const PROBES = [
     name: "A form panel",
     description: "the quick start, with a form panel, a text field and a switch",
     code: 'export { MagicPill, pill, PillFormPanel, PillInput, PillSwitch } from "ENTRY";',
-    // 12.17 kB
-    budget: 12.25 * KB,
+    // 12.17 kB, then 12.71 kB with the busy labels
+    budget: 13 * KB,
   },
   {
     name: "Everything",
@@ -65,8 +65,9 @@ const PROBES = [
     // then from 18.25 kB for the text fields (PillForm/, only for apps with forms): 20.40 kB,
     // then from 20.5 kB for the settings' fields: 22.01 kB,
     // then from 22.25 kB for codes, files and colours: 22.66 kB,
-    // then from 22.75 kB for the form panel: 23.11 kB
-    budget: 23.25 * KB, // 9.07 kB at 9.0.0-next.0
+    // then from 22.75 kB for the form panel: 23.11 kB,
+    // then from 23.25 kB for the busy labels: 23.57 kB
+    budget: 23.75 * KB, // 9.07 kB at 9.0.0-next.0
   },
 ];
 const STYLESHEETS = [

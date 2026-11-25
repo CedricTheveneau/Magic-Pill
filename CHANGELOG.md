@@ -21,6 +21,7 @@
   - `PillSlider`, `PillSwitch`, `PillCheckbox`, `PillChoices` (a list, one bar where the choice slides, chips; one or several), `PillStepper` and `PillFields`. Tokens: `--mp-track`, `--mp-track-size`, `--mp-thumb`
   - `PillCode` (a one-time code), `PillFile` and `PillColor`
   - `PillFormPanel`: a panel that is a form. It sends, waits, closes, or says what went wrong
+  - `PillSubmit`, the action that sends a form and says so meanwhile: `busyLabel`, one label or several that follow one another, also on `PillFormPanel`. `onSend` on `PillForm` gets the data, waits, and says what went wrong
   - A form of the base layer that's being filled in isn't replaced by a notification, which waits for its panel to close
 
 ### Changed
