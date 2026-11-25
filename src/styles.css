@@ -469,6 +469,8 @@
         & > * {
           min-inline-size: 0;
           overflow: hidden;
+          text-overflow: clip;
+          transition: text-overflow 0s allow-discrete;
         }
       }
 
@@ -497,8 +499,46 @@
           transition-delay: 0s;
         }
 
+        & [data-mp="label"] > * {
+          text-overflow: ellipsis;
+          transition-delay: var(--_mp-change);
+        }
+
         & [data-mp="action-icon"] + [data-mp="label"] {
           margin-inline-start: 0.5rem;
+        }
+      }
+
+      /* A navbar stays in its pill: where it's too narrow, the open label is
+         cut short, rather than the last items */
+      &[data-orientation="horizontal"] [data-mp="navbar"] {
+        min-inline-size: 0;
+
+        & [data-mp="action"] {
+          flex: 0 1 auto;
+          min-inline-size: var(--_mp-action-size);
+        }
+
+        & :is([data-mp="action-body"], [data-mp="label"]) {
+          min-inline-size: 0;
+        }
+
+        & [data-mp="action-body"] {
+          inline-size: 100%;
+        }
+      }
+
+      /* No room for two labels (PillNavbar/room.ts): the one that was open
+         folds while another is pointed at or focused */
+      & [data-mp="navbar"][data-tight] [data-mp="action"]:not(:hover, :focus-visible) {
+        & [data-mp="action-body"] {
+          padding-inline-end: calc((var(--_mp-action-size) - 1.25rem) / 2);
+        }
+
+        & [data-mp="action-icon"] + [data-mp="label"] {
+          grid-template-columns: 0fr;
+          margin-inline-start: 0;
+          opacity: 0;
         }
       }
 
@@ -515,6 +555,11 @@
             grid-template-columns: 1fr;
             opacity: 1;
             transition-delay: 0s;
+          }
+
+          & [data-mp="label"] > * {
+            text-overflow: ellipsis;
+            transition-delay: var(--_mp-change);
           }
 
           & [data-mp="action-icon"] + [data-mp="label"] {
