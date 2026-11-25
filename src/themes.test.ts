@@ -122,6 +122,14 @@ describe("themes.css", () => {
     expect(css).not.toMatch(/var\(\s*--mp-(on-)?action\s*[,)]/);
   });
 
+  it("takes the glass of open lists and calendars away with the rest, when less transparency is asked for", () => {
+    // Arrange
+    const preferences = css.slice(css.lastIndexOf("@media (prefers-reduced-transparency: reduce)"));
+
+    // Assert
+    expect(preferences).toContain("--_mp-list-filter: none;");
+  });
+
   it("frosts an open panel more, whether or not the text is kept readable", () => {
     // Assert
     expect(css).toContain("--_mp-frost: max(var(--_mp-own-frost), var(--mp-panel-frost, 12px));");

@@ -6,7 +6,7 @@ import { adapt } from "./adaptive";
 import { canRefract, lensId, lensMap, makeLens, type Lens } from "./lens";
 import { followPointer } from "./light";
 
-const LENSES = ["--_mp-lens", "--_mp-action-lens"] as const;
+const LENSES = ["--_mp-lens", "--_mp-action-lens", "--_mp-list-lens"] as const;
 // What a lens is made from: registered in themes.css, which also gives them a
 // (very short) transition, so a change of any token is heard when it ends
 const WATCHED = /^(--_mp-(refraction|edge|fringe|follow|adaptive|action-layer|action-radius)|border-top-left-radius)$/;
@@ -65,7 +65,10 @@ const reader = (element: HTMLElement): Read => {
   return (property) => Number.parseFloat(style.getPropertyValue(property)) || 0;
 };
 
-/** The lenses of a pill and of its actions (null: none), from its tokens. In the order of LENSES. */
+/**
+ * The lenses of a pill, of its actions, and of the lists and calendars it opens
+ * (null: none), from its tokens. In the order of LENSES.
+ */
 function readLenses(element: HTMLElement, read: Read, glassActions: boolean): readonly (Lens | null)[] {
   const refraction = read("--_mp-refraction");
   if (refraction <= 0) return [];
@@ -74,11 +77,12 @@ function readLenses(element: HTMLElement, read: Read, glassActions: boolean): re
   // The browser never rounds a corner by more than half the pill
   const corner = Math.min(read("border-top-left-radius"), element.offsetWidth / 2, element.offsetHeight / 2);
   const pill = makeLens(corner, edge, refraction, fringe);
-  if (!glassActions) return [pill];
-  // The same glass at the actions' scale
-  const radius = read("--_mp-action-radius");
-  const scale = corner > 0 ? Math.min(1, radius / corner) : 1;
-  return [pill, makeLens(radius, edge * scale, refraction * scale, fringe)];
+  // The same glass, at another scale. No corners, no lens: lists have some with forms.css
+  const scaled = (radius: number) => {
+    const scale = corner > 0 ? Math.min(1, radius / corner) : 1;
+    return makeLens(radius, edge * scale, refraction * scale, fringe);
+  };
+  return [pill, glassActions ? scaled(read("--_mp-action-radius")) : null, scaled(read("--_mp-list-radius"))];
 }
 
 const clear = (element: HTMLElement) => LENSES.forEach((property) => element.style.removeProperty(property));

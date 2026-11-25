@@ -113,11 +113,14 @@
       padding: 0.6rem;
       overflow: auto;
       border: 0;
-      border-radius: 1.5rem;
-      background: var(--_mp-paper);
+      border-radius: var(--_mp-list-radius);
+      background: var(--_mp-sheet);
+      -webkit-backdrop-filter: var(--_mp-list-filter, none);
+      backdrop-filter: var(--_mp-list-filter, none) var(--_mp-list-lens,);
       box-shadow:
         0 0.5rem 1.5rem rgb(20 20 20 / 0.35),
-        inset 0 0 0 1px var(--_mp-paper-rim);
+        inset 0 0 0 1px var(--_mp-paper-rim),
+        var(--_mp-list-rim, 0 0 transparent);
       color: var(--_mp-ink);
       opacity: 0;
       scale: 0.96;
@@ -285,7 +288,7 @@
       & thead th {
         block-size: 1.75rem;
         font-size: 0.75rem;
-        opacity: 0.65;
+        opacity: var(--_mp-dim);
       }
     }
 
@@ -296,7 +299,7 @@
       border-radius: 99px;
 
       &[data-other] {
-        opacity: 0.62;
+        opacity: var(--_mp-dim);
       }
 
       /* Today, or this month */
@@ -335,7 +338,7 @@
     & [data-mp="calendar-week"] {
       inline-size: 1.75rem;
       font-size: 0.75rem;
-      opacity: 0.65;
+      opacity: var(--_mp-dim);
     }
 
     & [data-mp="calendar-body"][data-type="week"] {
