@@ -181,6 +181,75 @@ describe("PillOptics", () => {
     });
   });
 
+  describe("glass actions", () => {
+    const asking = { ...GLASS, "--_mp-action-layer": "1", "--_mp-action-radius": "18px" } as CSSProperties;
+    const actionLens = () => pill().style.getPropertyValue("--_mp-action-lens");
+
+    it("moves the pill's glass to a layer, and gives its actions the same glass at their scale", async () => {
+      // Act
+      await renderAll(<><PillOptics />{show({ style: asking })}</>);
+
+      // Assert: corners half as round, so an edge and a bend half as large
+      expect(pill().dataset.actions).toBe("glass");
+      expect(lensOf()).toBe("url(#mp-lens-36-20-45-0)");
+      expect(actionLens()).toBe("url(#mp-lens-18-10-22_5-0)");
+      expect(filters()).toHaveLength(2);
+    });
+
+    it("never bends more in the actions than in the pill", async () => {
+      // Act
+      await renderAll(<><PillOptics />{show({ style: { ...asking, "--_mp-action-radius": "60px" } as CSSProperties })}</>);
+
+      // Assert
+      expect(actionLens()).toBe("url(#mp-lens-60-20-45-0)");
+    });
+
+    it("needs to be asked for", async () => {
+      // Act
+      await renderAll(<><PillOptics />{show()}</>);
+
+      // Assert
+      expect(pill().dataset.actions).toBeUndefined();
+      expect(actionLens()).toBe("");
+    });
+
+    it("is layered without a lens where refraction can't be drawn, for the frosting", async () => {
+      // Arrange
+      vi.mocked(lens.canRefract).mockReturnValue(false);
+
+      // Act
+      await renderAll(<><PillOptics />{show({ style: asking })}</>);
+
+      // Assert
+      expect(pill().dataset.actions).toBe("glass");
+      expect(actionLens()).toBe("");
+    });
+
+    it("goes back when it's no longer asked for, or when PillOptics leaves", async () => {
+      // Arrange
+      const { again } = await renderAll(<><PillOptics />{show({ style: asking })}</>);
+
+      // Act
+      pill().style.setProperty("--_mp-action-layer", "0");
+      await act(async () => {
+        fireEvent(pill(), Object.assign(new Event("transitionend", { bubbles: true }), { propertyName: "--_mp-action-layer" }));
+      });
+      const afterToken = [pill().dataset.actions, actionLens()];
+      pill().style.setProperty("--_mp-action-layer", "1");
+      await act(async () => {
+        fireEvent(pill(), Object.assign(new Event("transitionend", { bubbles: true }), { propertyName: "--_mp-action-layer" }));
+      });
+      const asked = pill().dataset.actions;
+      await again(<>{show({ style: asking })}</>);
+
+      // Assert
+      expect(afterToken).toEqual([undefined, ""]);
+      expect(asked).toBe("glass");
+      expect(pill().dataset.actions).toBeUndefined();
+      expect(actionLens()).toBe("");
+    });
+  });
+
   describe.each([
     ["the pointer's light", "--_mp-follow", () => vi.spyOn(light, "followPointer")],
     ["adaptive tinting", "--_mp-adaptive", () => vi.spyOn(adaptive, "adapt")],

@@ -65,7 +65,8 @@ const STYLESHEETS = [
   {
     name: "themes.css",
     description: "the glass themes, only for apps that import it",
-    budget: 2.25 * KB,
+    // Raised from 2.25 kB for the mask of the panels' text and the glass actions: 2.43 kB
+    budget: 2.6 * KB,
   },
 ];
 

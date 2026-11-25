@@ -58,10 +58,29 @@
   initial-value: 0;
 }
 
-/* Tinted by <PillOptics>: registered so it can be transitioned */
+/* How much the actions are glass too, and whether they can be given it */
+@property --_mp-action-glass {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@property --_mp-action-layer {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --_mp-action-radius {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+/* Tinted by <PillOptics>: registered so it can be transitioned. The actions read it too */
 @property --_mp-light-color {
   syntax: "<color>";
-  inherits: false;
+  inherits: true;
   initial-value: white;
 }
 
@@ -113,6 +132,14 @@
     }
   }
 
+  @keyframes mp-settle {
+    from,
+    to {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
   @keyframes mp-seen {
     from {
       --_mp-seen: 0%;
@@ -150,6 +177,9 @@
       --_mp-fringe: var(--mp-fringe, 0);
       --_mp-follow: calc(var(--_mp-rays) * var(--mp-light-follow, 0));
       --_mp-adaptive: calc(var(--_mp-rays) * var(--mp-adaptive, 0));
+      --_mp-action-glass: calc(var(--_mp-rays) * var(--mp-action-glass, 0));
+      --_mp-action-layer: var(--_mp-action-glass);
+      --_mp-action-radius: calc(var(--_mp-action-size) / 2);
       --_mp-light: calc(var(--_mp-rays) * var(--mp-light, 0.7));
       --_mp-light-color: var(--mp-light-color, #fff);
       --_mp-drop: 0 0.5rem 0.5rem rgb(20 20 20 / 0.45);
@@ -185,27 +215,27 @@
 
       /* Joins the pill's own transitions (styles.css). The 1ms ones only tell
          <PillOptics> that a token has changed: with reduced motion too */
-      --_mp-watch: --_mp-refraction 1ms, --_mp-edge 1ms, --_mp-fringe 1ms, --_mp-follow 1ms, --_mp-adaptive 1ms;
+      --_mp-watch: --_mp-refraction 1ms, --_mp-edge 1ms, --_mp-fringe 1ms, --_mp-follow 1ms, --_mp-adaptive 1ms,
+        --_mp-action-layer 1ms, --_mp-action-radius 1ms;
       --_mp-also: color var(--_mp-change) ease-in-out, --_mp-veil var(--_mp-change) ease-in-out,
-        --_mp-frost var(--_mp-change) ease-in-out, --_mp-light-color var(--_mp-change) ease-in-out, var(--_mp-watch);
+        --_mp-frost var(--_mp-change) ease-in-out, --_mp-light-color var(--_mp-change) ease-in-out, var(--_mp-watch),
+        var(--_mp-still, visibility 0s);
 
-      background:
+      /* The glass, as values: it's painted by the pill itself, or by a layer
+         of its own (below) */
+      --_mp-image:
         radial-gradient(
           circle 13rem at var(--_mp-sheen-x, calc(50% + var(--_mp-light-x) * 45%))
             var(--_mp-sheen-y, calc(50% + var(--_mp-light-y) * 160%)),
           rgb(from var(--_mp-light-color) r g b / calc(0.1 * var(--_mp-light))),
           transparent
         ),
-        linear-gradient(var(--_mp-veil), var(--_mp-veil)),
-        color-mix(in srgb, var(--_mp-surface) calc(var(--_mp-tint) * 100%), transparent);
+        linear-gradient(var(--_mp-veil), var(--_mp-veil));
+      --_mp-fill: color-mix(in srgb, var(--_mp-surface) calc(var(--_mp-tint) * 100%), transparent);
       --_mp-filter: blur(var(--_mp-frost)) saturate(calc(1 + var(--_mp-rays) * (var(--mp-vibrancy, 1.9) - 1)));
-      -webkit-backdrop-filter: var(--_mp-filter);
-      /* The lens comes last: blurring after it would blur its edge */
-      backdrop-filter: var(--_mp-filter) var(--_mp-lens,);
-      /* The drop shadow, a rim all around, the light on the edge that faces
-         it and through the opposite one, then the glow inside */
-      box-shadow:
-        var(--mp-shadow, var(--_mp-drop)),
+      /* A rim all around, the light on the edge that faces it and through the
+         opposite one, then the glow inside */
+      --_mp-rim:
         inset 0 0 0 1px
           rgb(from var(--_mp-light-color) r g b / calc(var(--_mp-clear) * (0.16 - 0.06 * min(1, var(--_mp-light))))),
         inset calc(var(--_mp-light-x) * -1.25px) calc(var(--_mp-light-y) * -1.25px) 0.75px -0.25px
@@ -215,6 +245,11 @@
         inset calc(var(--_mp-light-x) * -6px) calc(var(--_mp-light-y) * -6px) 10px -6px
           rgb(from var(--_mp-light-color) r g b / calc(0.4 * var(--_mp-light) * var(--_mp-edge-light))),
         inset 0 0 14px rgb(from var(--_mp-light-color) r g b / calc(0.16 * var(--_mp-light) * var(--_mp-thick)));
+      background: var(--_mp-image), var(--_mp-fill);
+      -webkit-backdrop-filter: var(--_mp-filter);
+      /* The lens comes last: blurring after it would blur its edge */
+      backdrop-filter: var(--_mp-filter) var(--_mp-lens,);
+      box-shadow: var(--mp-shadow, var(--_mp-drop)), var(--_mp-rim);
 
       &:is([data-theme="glass"], [data-theme="liquid"]) {
         --_mp-own-tint: var(--mp-tint, 0.35);
@@ -274,6 +309,57 @@
         --_mp-frost: max(var(--_mp-own-frost), var(--mp-panel-frost, 12px));
       }
 
+      /* Glass actions (--mp-action-glass): the light on their own edges… */
+      & [data-mp="action-body"] {
+        --_mp-shine: calc(var(--_mp-light) * var(--_mp-action-glass));
+        box-shadow:
+          inset 0 0 0 1px var(--_mp-action-rim),
+          inset calc(var(--_mp-light-x) * -1px) calc(var(--_mp-light-y) * -1px) 0.75px -0.25px
+            rgb(from var(--_mp-light-color) r g b / calc(0.75 * var(--_mp-shine))),
+          inset calc(var(--_mp-light-x) * 1px) calc(var(--_mp-light-y) * 1px) 0.75px -0.25px
+            rgb(from var(--_mp-light-color) r g b / calc(0.4 * var(--_mp-shine))),
+          inset 0 0 8px rgb(from var(--_mp-light-color) r g b / calc(0.14 * var(--_mp-shine) * var(--_mp-thick)));
+      }
+
+      /* …then the rest, with <PillOptics>. Nothing in a pill can see through
+         it while it has a backdrop-filter of its own (it would only see the
+         pill's tint), so the pill's glass moves to a layer under its content.
+         Not while a panel is open: the layer would scroll away with it */
+      &[data-actions="glass"] {
+        /* The fill goes from one to the other at once, or it would show twice */
+        --_mp-still: background-color 0s;
+
+        &:not([data-presence="panel"]) {
+          background: none;
+          -webkit-backdrop-filter: none;
+          backdrop-filter: none;
+          box-shadow: var(--mp-shadow, var(--_mp-drop));
+
+          &::before {
+            content: "";
+            position: absolute;
+            z-index: -1;
+            inset: 0;
+            border-radius: inherit;
+            background: var(--_mp-image), var(--_mp-fill);
+            -webkit-backdrop-filter: var(--_mp-filter);
+            backdrop-filter: var(--_mp-filter) var(--_mp-lens,);
+            box-shadow: var(--_mp-rim);
+            pointer-events: none;
+            transition: background-color var(--_mp-change) ease-in-out;
+          }
+        }
+
+        /* A fading parent hides the page from them too (they'd turn black),
+           so they wait for the content to have faded in */
+        &:is([data-presence="compact"], [data-presence="expanded"]) [data-mp="action-body"] {
+          --_mp-action-filter: blur(calc(var(--_mp-own-frost) * 0.35));
+          -webkit-backdrop-filter: var(--_mp-action-filter);
+          backdrop-filter: var(--_mp-action-filter) var(--_mp-action-lens,);
+          animation: mp-settle calc(var(--_mp-change) + var(--_mp-fade));
+        }
+      }
+
       /* The panel's text can't fade into a see-through surface. It's masked
          instead, down to the footer, as it scrolls */
       @supports (animation-timeline: view()) {
@@ -315,10 +401,12 @@
       }
     }
 
-    /* Nothing moves by itself with reduced motion: the light stays put */
+    /* Nothing moves by itself with reduced motion: the light stays put. And
+       pills fade, which would hide the page from the actions' glass */
     @media (prefers-reduced-motion: reduce) {
       [data-mp="pill"][data-theme]:not([data-theme="plain"], [data-unstyled]) {
         --_mp-follow: 0;
+        --_mp-action-layer: 0;
       }
     }
 
