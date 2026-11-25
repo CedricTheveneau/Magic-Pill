@@ -20,6 +20,7 @@ export type {
   PillButtonActionProps,
   PillLinkActionProps,
   PillPanelProps,
+  PillPanelTriggerProps,
   PillContextValue,
   LinkComponent,
 } from './Pill/types';

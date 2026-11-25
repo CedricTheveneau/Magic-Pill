@@ -26,7 +26,11 @@ export type NotificationAction =
 
 export interface NotificationPanel {
   title?: ReactNode;
+  /** At the end of the title's row, e.g. a <PillAction>. */
+  titleAction?: ReactNode;
   content: ReactNode;
+  /** In the footer, before the close button, e.g. a <PillAction>. */
+  footer?: ReactNode;
   /** The action that opens the panel. Default `{ icon: <PlusIcon />, label: "Learn more" }`. */
   trigger?: { icon?: ReactNode; label: string; expanded?: boolean };
   /** Default "Close". */
@@ -129,6 +133,8 @@ export function NotificationContent({
       {panel && (
         <PillPanel
           title={panel.title}
+          titleAction={panel.titleAction}
+          footer={panel.footer}
           closeLabel={panel.closeLabel}
           closeExpanded={panel.closeExpanded}
           className={classNames.panel}

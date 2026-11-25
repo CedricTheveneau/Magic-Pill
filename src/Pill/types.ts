@@ -130,6 +130,15 @@ export type PillActionProps = PillButtonActionProps | PillLinkActionProps;
 
 export interface PillPanelProps extends Omit<ComponentPropsWithoutRef<"div">, "title"> {
   title?: ReactNode;
+  /**
+   * For several panels in one pill: the trigger whose `panel` is the same
+   * opens this one. Default: the pill's only panel, with no name.
+   */
+  name?: string;
+  /** At the end of the title's row, e.g. `<PillAction label="Default" … />`. */
+  titleAction?: ReactNode;
+  /** In the footer, before the close button, e.g. `<PillAction label="Save" … />`. */
+  footer?: ReactNode;
   /** Default "Close". */
   closeLabel?: string;
   /** Default <CloseIcon />. */
@@ -138,9 +147,18 @@ export interface PillPanelProps extends Omit<ComponentPropsWithoutRef<"div">, "t
   closeExpanded?: boolean;
 }
 
+export interface PillPanelTriggerProps extends Omit<PillButtonActionProps, "onClick"> {
+  /** The `name` of the panel it opens, when the pill has several. */
+  panel?: string;
+}
+
 export interface PillContextValue {
   presence: PillPresence;
   setPresence: (presence: PillPresence) => void;
+  /** Opens the pill's panel, or the one with that name. */
+  openPanel: (name?: string) => void;
+  /** Back to the level the pill had before its panel opened. */
+  closePanel: () => void;
   placement: PillPlacement;
   orientation: PillOrientation;
   variant: PillVariant;

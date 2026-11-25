@@ -304,8 +304,12 @@ export function readMorphTimings(element: HTMLElement): MorphTimings {
 }
 
 function readPanel(pill: HTMLElement): { element: HTMLElement; box: PanelBox } | undefined {
-  const element = pill.querySelector<HTMLElement>(':scope > [data-mp="panel"]');
-  if (!element || getComputedStyle(element).display === "none") return undefined;
+  // The open one, or the one closing: it's still displayed while it fades
+  const shown = [...pill.querySelectorAll<HTMLElement>(':scope > [data-mp="panel"]')].filter(
+    (panel) => getComputedStyle(panel).display !== "none",
+  );
+  const element = shown.find((panel) => panel.hasAttribute("data-open")) ?? shown[0];
+  if (!element) return undefined;
   const pillRect = pill.getBoundingClientRect();
   const rect = element.getBoundingClientRect();
   return {
