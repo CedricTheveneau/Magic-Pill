@@ -26,8 +26,9 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`${overlock.variable} ${lexend.variable}`}>
       <body>
         <DemoProvider>
-          {children}
+          {/* Before the pages: pills that share a spot line up in the order they mount, and this one keeps its own */}
           <HelpPill />
+          {children}
           <AppPill />
         </DemoProvider>
       </body>
