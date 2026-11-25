@@ -23,5 +23,5 @@ export default defineConfig({
   unbundle: true,
   // Consumers import the stylesheet themselves, so it's shipped untouched next
   // to the bundles (L9). package.json maps the 8.x paths to it too.
-  copy: [{ from: ["src/styles.css", "src/themes.css", "src/forms.css"], to: "dist" }],
+  copy: [{ from: ["src/styles.css", "src/themes.css", "src/forms.css", "src/calendar.css"], to: "dist" }],
 });

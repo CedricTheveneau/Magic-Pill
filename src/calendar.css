@@ -1,0 +1,490 @@
+/*
+ * Magic Pill v9 calendar: the look of <PillDate>. Optional: import it next to
+ * styles.css and forms.css, in any order.
+ *
+ * Same rules as the others: everything is in the magic-pill layer (your
+ * unlayered CSS wins), public tokens (--mp-*) are only read, and nothing is
+ * loaded from the network.
+ */
+
+@layer magic-pill.look, magic-pill.theme, magic-pill.forms, magic-pill.behaviour;
+
+@layer magic-pill.forms {
+  [data-mp="pill"]:not([data-unstyled]) {
+    /* ─── The field ────────────────────────────────────────────────────────── */
+
+    /* Sent and checked, never seen: what the browser says about it points here */
+    & [data-mp="date-value"] {
+      position: absolute;
+      inset: 0;
+      inline-size: 100%;
+      block-size: 100%;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    & [data-mp="field-box"][data-type="pill-date"] {
+      cursor: pointer;
+    }
+
+    & [data-mp="field-trigger"] {
+      appearance: none;
+      position: static;
+      flex: 1 1 auto;
+      min-inline-size: 0;
+      min-block-size: var(--_mp-field-size);
+      margin: 0;
+      padding: 0;
+      border: 0;
+      outline: 0;
+      background: none;
+      box-shadow: none;
+      color: inherit;
+      font: inherit;
+      font-size: max(1rem, 16px);
+      text-align: start;
+      cursor: pointer;
+
+      /* The whole field opens it */
+      &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+      }
+
+      & > span {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      &[data-empty] {
+        color: var(--_mp-placeholder);
+      }
+
+      &:disabled {
+        cursor: not-allowed;
+      }
+    }
+
+    & [data-mp="field-box"]:has(> [data-mp="field-trigger"]:focus-visible) {
+      outline: 2px solid var(--_mp-on-surface);
+      outline-offset: 2px;
+    }
+
+    & [data-mp="field"]:has(> [data-mp="field-box"] > [data-mp="field-trigger"]:disabled) {
+      opacity: 0.5;
+    }
+
+    /* ─── The calendar ─────────────────────────────────────────────────────── */
+
+    & [data-mp="calendar"] {
+      --_mp-cell: var(--mp-calendar-cell, 2.25rem);
+      --_mp-paper: var(--mp-list, #f9f9f9);
+      --_mp-ink: var(--mp-on-list, #141414);
+      --_mp-chosen: var(--_mp-ink);
+      --_mp-on-chosen: var(--_mp-paper);
+      --_mp-hover: color-mix(in srgb, var(--_mp-ink) 10%, transparent);
+      box-sizing: border-box;
+      color: var(--_mp-ink);
+      font-family: var(--_mp-label-font);
+      font-size: 0.9375rem;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 1.3;
+
+      /* In the form, in the pill's own colours */
+      &[data-inline] {
+        --_mp-paper: transparent;
+        --_mp-ink: var(--_mp-on-surface);
+        --_mp-chosen: var(--_mp-on-fill);
+        --_mp-on-chosen: var(--_mp-mark-text);
+        --_mp-chosen-rim: var(--_mp-on-rim);
+        position: relative;
+        inline-size: fit-content;
+        max-inline-size: 100%;
+      }
+    }
+
+    & [data-mp="calendar"][popover] {
+      position: fixed;
+      inset: auto;
+      margin: 0;
+      padding: 0.6rem;
+      overflow: auto;
+      border: 0;
+      border-radius: 1.5rem;
+      background: var(--_mp-paper);
+      box-shadow: 0 0.5rem 1.5rem rgb(20 20 20 / 0.35);
+      opacity: 0;
+      scale: 0.96;
+      transform-origin: top;
+      transition:
+        opacity 150ms ease-out,
+        scale 150ms ease-out,
+        overlay 150ms allow-discrete,
+        display 150ms allow-discrete;
+
+      &[data-above] {
+        transform-origin: bottom;
+      }
+
+      &:popover-open {
+        opacity: 1;
+        scale: 1;
+
+        @starting-style {
+          opacity: 0;
+          scale: 0.96;
+        }
+      }
+    }
+
+    /* Without popovers: in the page, under the field */
+    @supports not selector(:popover-open) {
+      & [data-mp="field-box"]:has(> [data-mp="calendar"][data-open]) {
+        flex-wrap: wrap;
+      }
+
+      & [data-mp="calendar"][popover] {
+        display: none;
+        position: static;
+      }
+
+      & [data-mp="calendar"][data-open] {
+        display: block;
+        opacity: 1;
+        scale: 1;
+      }
+    }
+
+    & [data-mp="calendar-body"] {
+      display: grid;
+      gap: 0.4rem 0.75rem;
+      justify-content: center;
+
+      &[data-type="datetime-local"] {
+        grid-template-columns: auto auto;
+      }
+    }
+
+    & [data-mp="calendar-head"] {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-block-end: 0.25rem;
+    }
+
+    /* A button's look is on the button here: an app's resets only take its
+       background away, and it stays readable */
+    & :is([data-mp="calendar-button"], [data-mp="calendar-heading"], [data-mp="calendar-cell"]) {
+      appearance: none;
+      display: grid;
+      place-items: center;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      outline-offset: -2px;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+      transition:
+        background-color 150ms ease-out,
+        color 150ms ease-out;
+
+      &:focus-visible {
+        outline: 2px solid var(--_mp-ink);
+      }
+
+      &:disabled {
+        cursor: default;
+        opacity: 0.4;
+      }
+    }
+
+    & [data-mp="calendar-button"] {
+      min-inline-size: var(--_mp-cell);
+      min-block-size: var(--_mp-cell);
+      border-radius: 99px;
+
+      & > svg {
+        inline-size: 1.15rem;
+        block-size: 1.15rem;
+        rotate: 90deg;
+      }
+
+      &[data-next] > svg {
+        rotate: -90deg;
+      }
+
+      &:dir(rtl) > svg {
+        rotate: -90deg;
+      }
+
+      &[data-next]:dir(rtl) > svg {
+        rotate: 90deg;
+      }
+    }
+
+    & [data-mp="calendar-heading"] {
+      padding: 0.4rem 0.9rem;
+      border-radius: 99px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+
+      &:disabled {
+        opacity: 1;
+      }
+    }
+
+    @media (hover: hover) {
+      & :is([data-mp="calendar-button"], [data-mp="calendar-heading"]):not(:disabled):hover,
+      & [data-mp="calendar-cell"]:not([aria-disabled="true"]):hover,
+      & [data-mp="calendar-option"]:not([aria-disabled="true"]):hover {
+        background: var(--_mp-hover);
+      }
+    }
+
+    & [data-mp="calendar-grid"] {
+      inline-size: 100%;
+      margin: 0;
+      border-collapse: collapse;
+      border-spacing: 0;
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+      animation: mp-page-in var(--_mp-change) ease-out;
+
+      &[data-direction="1"] {
+        --_mp-from: 1.25rem;
+      }
+
+      &[data-direction="-1"] {
+        --_mp-from: -1.25rem;
+      }
+
+      &:dir(rtl)[data-direction="1"] {
+        --_mp-from: -1.25rem;
+      }
+
+      &:dir(rtl)[data-direction="-1"] {
+        --_mp-from: 1.25rem;
+      }
+
+      & :is(th, td) {
+        padding: 0;
+        border: 0;
+        background: none;
+        font-weight: 400;
+        text-align: center;
+      }
+
+      & thead th {
+        block-size: 1.75rem;
+        font-size: 0.75rem;
+        opacity: 0.65;
+      }
+    }
+
+    & [data-mp="calendar-cell"] {
+      inline-size: var(--_mp-cell);
+      block-size: var(--_mp-cell);
+      margin-inline: auto;
+      border-radius: 99px;
+
+      &[data-other] {
+        opacity: 0.45;
+      }
+
+      /* Today, or this month */
+      &[aria-current="date"] {
+        box-shadow: inset 0 0 0 1.5px color-mix(in srgb, currentColor 45%, transparent);
+        font-weight: 700;
+      }
+
+      &[aria-disabled="true"] {
+        cursor: not-allowed;
+        opacity: 0.3;
+        text-decoration: line-through;
+      }
+
+      &[data-chosen] {
+        background: var(--_mp-chosen);
+        box-shadow: inset 0 0 0 1.5px var(--_mp-chosen-rim, transparent);
+        color: var(--_mp-on-chosen);
+        font-weight: 700;
+        opacity: 1;
+      }
+    }
+
+    /* Months and years: as wide as the days were, so nothing jumps */
+    & [data-mp="calendar-grid"]:not([data-view="days"]) {
+      block-size: calc(6 * var(--_mp-cell) + 1.75rem);
+      min-inline-size: calc(7 * var(--_mp-cell));
+
+      & [data-mp="calendar-cell"] {
+        inline-size: calc(100% - 0.4rem);
+        block-size: 2.75rem;
+      }
+    }
+
+    /* A week is chosen whole */
+    & [data-mp="calendar-week"] {
+      inline-size: 1.75rem;
+      font-size: 0.75rem;
+      opacity: 0.65;
+    }
+
+    & [data-mp="calendar-body"][data-type="week"] {
+      & tr[data-chosen] > td {
+        background: var(--_mp-chosen);
+
+        &:nth-of-type(1) {
+          border-start-start-radius: 99px;
+          border-end-start-radius: 99px;
+        }
+
+        &:last-of-type {
+          border-start-end-radius: 99px;
+          border-end-end-radius: 99px;
+        }
+      }
+
+      & [data-chosen] [data-mp="calendar-cell"] {
+        background: transparent;
+      }
+
+      @media (hover: hover) {
+        & tr:has([data-mp="calendar-cell"]:not([aria-disabled="true"]):hover):not([data-chosen]) > td {
+          background: var(--_mp-hover);
+
+          &:nth-of-type(1) {
+            border-start-start-radius: 99px;
+            border-end-start-radius: 99px;
+          }
+
+          &:last-of-type {
+            border-start-end-radius: 99px;
+            border-end-end-radius: 99px;
+          }
+
+          & [data-mp="calendar-cell"] {
+            background: transparent;
+          }
+        }
+      }
+    }
+
+    /* ─── The time ─────────────────────────────────────────────────────────── */
+
+    & [data-mp="calendar-time"] {
+      display: flex;
+      gap: 0.25rem;
+      justify-content: center;
+      /* As high as the calendar next to it, whose rows don't change */
+      block-size: calc(6 * var(--_mp-cell) + 4rem);
+    }
+
+    & [data-mp="calendar-column"] {
+      position: relative;
+      inline-size: 3.25rem;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      border-radius: 1rem;
+      outline-offset: -2px;
+      scrollbar-width: none;
+
+      &:focus-visible {
+        outline: 2px solid var(--_mp-ink);
+      }
+    }
+
+    & [data-mp="calendar-option"] {
+      display: grid;
+      place-items: center;
+      block-size: var(--_mp-cell);
+      border-radius: 99px;
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+      transition:
+        background-color 150ms ease-out,
+        color 150ms ease-out;
+
+      &[aria-selected="true"] {
+        background: var(--_mp-chosen);
+        color: var(--_mp-on-chosen);
+        font-weight: 700;
+      }
+
+      &[aria-disabled="true"] {
+        cursor: not-allowed;
+        opacity: 0.3;
+      }
+    }
+
+    & [data-mp="calendar-body"][data-type="time"] [data-mp="calendar-time"] {
+      block-size: calc(5 * var(--_mp-cell));
+    }
+
+    & [data-mp="calendar-foot"] {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: center;
+      gap: 0.25rem;
+
+      & [data-mp="calendar-button"] {
+        padding-inline: 0.9rem;
+        font-size: 0.875rem;
+      }
+
+      & [data-main] {
+        background: var(--_mp-chosen);
+        color: var(--_mp-on-chosen);
+        font-weight: 700;
+      }
+    }
+
+    @media (max-width: 26rem) {
+      & [data-mp="calendar-body"][data-type="datetime-local"] {
+        grid-template-columns: auto;
+
+        & [data-mp="calendar-time"] {
+          block-size: calc(3 * var(--_mp-cell));
+        }
+      }
+    }
+
+    /* ─── Preferences ──────────────────────────────────────────────────────── */
+
+    @media (prefers-reduced-motion: reduce) {
+      & [data-mp="calendar"][popover],
+      & [data-mp^="calendar-"] {
+        animation: none;
+        transition: none;
+      }
+    }
+
+    @media (forced-colors: active) {
+      & [data-mp="calendar"][popover] {
+        border: 1px solid CanvasText;
+      }
+
+      & :is([data-mp="calendar-cell"][data-chosen], [data-mp="calendar-option"][aria-selected="true"]) {
+        forced-color-adjust: none;
+        background: Highlight;
+        color: HighlightText;
+      }
+    }
+  }
+
+  @keyframes mp-page-in {
+    from {
+      opacity: 0;
+      translate: var(--_mp-from, 0) 0;
+    }
+  }
+}

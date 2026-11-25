@@ -9,6 +9,6 @@ export default defineConfig({
     restoreMocks: true,
     unstubGlobals: true,
     // Lets the stylesheets' tests read them as text (`?raw`)
-    css: { include: [/src\/(styles|themes|forms)\.css/] },
+    css: { include: [/src\/(styles|themes|forms|calendar)\.css/] },
   },
 });

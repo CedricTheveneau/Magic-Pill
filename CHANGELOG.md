@@ -21,6 +21,7 @@
   - Tokens that follow the actions by default: `--mp-field`, `--mp-on-field`, `--mp-field-rim`, `--mp-field-size`, `--mp-field-radius`, `--mp-field-gap`, `--mp-field-scheme`, `--mp-placeholder`, `--mp-label-font`, `--mp-label-style`, `--mp-label-weight`, `--mp-error`, `--mp-list`, `--mp-on-list`, `--mp-picker`
   - `PillSlider`, `PillSwitch`, `PillCheckbox`, `PillChoices` (a list, one bar where the choice slides, chips; one or several), `PillStepper` and `PillFields`. Tokens: `--mp-track`, `--mp-track-size`, `--mp-thumb`
   - `PillCode` (a one-time code), `PillFile` and `PillColor`
+  - `PillDate`, with an optional `magic-pill/calendar.css`: a calendar in the pill's language for dates, months, weeks, times, and dates and times, in a popover or `inline`, with the native inputs' values, in the reader's language and with the keyboard
   - `PillFormPanel`: a panel that is a form. It sends, waits, closes, or says what went wrong
   - `PillSubmit`, the action that sends a form and says so meanwhile: `busyLabel`, one label or several that follow one another, also on `PillFormPanel`. `onSend` on `PillForm` gets the data, waits, and says what went wrong
   - A form of the base layer that's being filled in isn't replaced by a notification, which waits for its panel to close

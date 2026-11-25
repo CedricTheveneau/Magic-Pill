@@ -19,6 +19,7 @@
     "./styles.css": "./dist/styles.css",
     "./themes.css": "./dist/themes.css",
     "./forms.css": "./dist/forms.css",
+    "./calendar.css": "./dist/calendar.css",
     "./magicpill.css": "./dist/styles.css",
     "./dist/magicpill.css": "./dist/styles.css",
     "./package.json": "./package.json"
