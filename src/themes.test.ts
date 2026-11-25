@@ -63,6 +63,11 @@ describe("themes.css", () => {
     expect(css).toMatch(new RegExp(`var\\(\\s*--mp-${token},`));
   });
 
+  it("frosts an open panel more, whether or not the text is kept readable", () => {
+    // Assert
+    expect(css).toContain("--_mp-frost: max(var(--_mp-own-frost), var(--mp-panel-frost, 12px));");
+  });
+
   it("leaves plain, unstyled and theme-less pills alone", () => {
     // Arrange
     const selectors = [...css.matchAll(/\[data-mp="pill"\][^{]*/g)].map(([selector]) => selector.trim());

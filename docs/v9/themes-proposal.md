@@ -135,12 +135,8 @@ A client component, rendered once, with no props: the tokens decide. It does the
 
 ## 7. Readable by default
 
-`--mp-readable: 1` does two things; `0` leaves both to the app.
-
-1. **Contrast.** A veil, black under light text and white under dark text, just strong enough for the text whatever the page shows. Its strength is computed in CSS from `--mp-surface` and `--mp-tint`, so it also works for custom colours, with no script.
-2. **Panels are frosted more** (`--mp-panel-frost`), since long text over a busy page is tiring.
-
-*In the Glass lab these were separate: the switch only did the contrast, and the panel's frosting was always on. Here one token manages both.*
+1. **Contrast** (`--mp-readable: 1`; `0` leaves it to the app). A veil, black under light text and white under dark text, just strong enough for the text whatever the page shows. Its strength is computed in CSS from `--mp-surface` and `--mp-tint`, so it also works for custom colours, with no script.
+2. **Panels are frosted more** (`--mp-panel-frost`), since long text over a busy page is tiring. On its own, as in the Glass lab: *first built under `--mp-readable` too, which left see-through panels with it off (the maintainer, 2026-11-25).*
 
 Measured in Chromium, on 8 extreme backdrops (white, black, pure colours, grey) and 6 tints from 0 to 0.9:
 

@@ -126,9 +126,9 @@
         --_mp-tint: max(var(--_mp-own-tint), var(--mp-status-tint, 0.75));
       }
 
-      /* More text, more frosting */
+      /* More text, more frosting, readable or not */
       &[data-presence="panel"] {
-        --_mp-frost: max(var(--_mp-own-frost), var(--mp-readable, 1) * var(--mp-panel-frost, 12px));
+        --_mp-frost: max(var(--_mp-own-frost), var(--mp-panel-frost, 12px));
       }
 
       /* It can't fade the text into a see-through surface: it frosts it */

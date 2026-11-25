@@ -380,14 +380,14 @@ Set these tokens like the others, on `:root`, on one pill, or anywhere in betwee
 | `--mp-tint` | How much of the surface's colour stays, from 0 (clear) to 1 (solid) | `0.35` | `0.18` |
 | `--mp-status-tint` | The least a `success` or `danger` pill keeps, so it still reads as one | `0.75` | `0.75` |
 | `--mp-frost` | The blur of what's behind | `14px` | `3px` |
-| `--mp-panel-frost` | The least blur behind an open panel (more text, more frosting) | `12px` | `12px` |
+| `--mp-panel-frost` | The least blur behind an open panel (more text, more frosting); `0px` for none | `12px` | `12px` |
 | `--mp-rays` | Ray casting: `0` turns the light and the vibrancy off | `1` | `1` |
 | `--mp-light` | The strength of the light on the edges, 0 to 1 | `0.7` | `0.7` |
 | `--mp-light-angle` / `--mp-light-color` | Where the light comes from, and its colour | `235deg` (top left) / `#fff` | same |
 | `--mp-vibrancy` | How much the page's colours glow through (`1` is off) | `1.9` | `1.9` |
 | `--mp-readable` | Keeps the text readable over any page: see below | `1` | `1` |
 
-- **Readable by default:** a veil, worked out in CSS from the surface's colour and tint, keeps Magic Pill's colours at 4.5:1 or more over any page, and panels are frosted more. `--mp-readable: 0` turns both off; the contrast is then yours to check, as it is for your own `--mp-action` colours.
+- **Readable by default:** a veil, worked out in CSS from the surface's colour and tint, keeps Magic Pill's colours at 4.5:1 or more over any page. `--mp-readable: 0` turns it off; the contrast is then yours to check, as it is for your own `--mp-action` colours.
 - **Actions** are see-through on `glass` and `liquid`, solid on the others. Any action works on any theme:
 
 ```css
