@@ -18,7 +18,7 @@
   /* Behaviour comes last, so it beats the look whatever the specificity:
      a closed panel or a hidden pill stays hidden even if a visual rule
      sets a display. Your own unlayered CSS still beats both. */
-  @layer look, behaviour;
+  @layer look, theme, behaviour;
 
   @layer behaviour {
     /* ─── Behaviour: kept by `unstyled` pills ──────────────────────────────── */
@@ -54,6 +54,9 @@
       --_mp-on-surface: var(--mp-on-surface, #f9f9f9);
       --_mp-action: var(--mp-action, #f9f9f9);
       --_mp-on-action: var(--mp-on-action, #141414);
+      --_mp-action-rim: var(--mp-action-rim, transparent);
+      --_mp-action-current: var(--mp-action-current, var(--_mp-action));
+      --_mp-on-action-current: var(--mp-on-action-current, var(--_mp-on-action));
       --_mp-offset: var(--mp-offset, 1.5rem);
       --_mp-padding: var(--mp-padding, 0.875rem);
       --_mp-gap: var(--mp-gap, 1rem);
@@ -98,12 +101,14 @@
          bottom to come out of the edge a bottom pill sits on */
       transform-origin: var(--mp-scale-origin, center);
       /* The size itself is animated by script (morph.ts): CSS can't
-         transition a size that follows the content */
+         transition a size that follows the content. --_mp-also: what a theme
+         adds (themes.css) */
       transition:
         scale var(--_mp-enter) var(--_mp-ease-enter),
         border-radius var(--_mp-change) ease-in-out,
         background-color var(--_mp-change) ease-in-out,
         z-index 0s var(--_mp-lower),
+        var(--_mp-also, visibility 0s),
         visibility 0s;
 
       & *,
@@ -134,6 +139,7 @@
           border-radius var(--_mp-change) ease-in-out var(--_mp-fade),
           background-color var(--_mp-change) ease-in-out var(--_mp-fade),
           z-index 0s var(--_mp-lower),
+          var(--_mp-also, visibility 0s),
           visibility 0s linear calc(var(--_mp-fade) + var(--_mp-change) + var(--_mp-exit));
       }
 
@@ -148,6 +154,7 @@
           border-radius var(--_mp-change) ease-in-out var(--_mp-fade),
           background-color var(--_mp-change) ease-in-out var(--_mp-fade),
           z-index 0s var(--_mp-lower),
+          var(--_mp-also, visibility 0s),
           visibility 0s;
       }
 
@@ -386,6 +393,7 @@
         overflow: hidden;
         border-radius: 9999px;
         background: var(--_mp-action);
+        box-shadow: inset 0 0 0 1px var(--_mp-action-rim);
         color: var(--_mp-on-action);
         font-family: var(--mp-font-accent, inherit);
         font-style: normal;
@@ -402,6 +410,11 @@
       & [data-mp="action"][aria-disabled="true"] {
         cursor: not-allowed;
         opacity: 0.6;
+      }
+
+      & [data-mp="action"]:is([aria-current="page"], [aria-current="true"]) [data-mp="action-body"] {
+        background: var(--_mp-action-current);
+        color: var(--_mp-on-action-current);
       }
 
       & [data-mp="action-icon"] {

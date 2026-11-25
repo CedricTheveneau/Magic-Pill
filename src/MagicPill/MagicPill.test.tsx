@@ -200,6 +200,17 @@ describe("MagicPill", () => {
       expect(message()).toBe("early");
     });
 
+    it("gives its theme to whatever it shows", () => {
+      // Arrange
+      render(<MagicPill theme="glass" />);
+
+      // Act
+      show({ message: "Saved", variant: "success" });
+
+      // Assert
+      expect(root().dataset).toMatchObject({ theme: "glass", variant: "success" });
+    });
+
     it("only follows its own name", () => {
       // Arrange
       render(<MagicPill name="sidebar" />);

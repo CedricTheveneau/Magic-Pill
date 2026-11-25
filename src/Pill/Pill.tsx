@@ -37,6 +37,7 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
     closeOnBackdropClick = false,
     orientation,
     variant = "neutral",
+    theme,
     unstyled = false,
     children,
     onKeyDown,
@@ -156,6 +157,7 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
         data-placement={placement}
         data-orientation={resolvedOrientation}
         data-variant={variant}
+        {...(theme !== undefined && { "data-theme": theme })}
         data-unstyled={unstyled ? "" : undefined}
         // Hidden: out of the focus order and the accessibility tree at once,
         // while the exit animation plays (Y5)

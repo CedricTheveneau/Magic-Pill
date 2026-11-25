@@ -53,6 +53,24 @@ describe("Pill", () => {
       expect(pill().dataset.orientation).toBe("horizontal");
     });
 
+    it.each(["plain", "glass", "liquid", "paper"])("writes the theme %s, built in or custom", (theme) => {
+      // Act
+      const { pill } = renderPill({ theme });
+
+      // Assert
+      expect(pill().dataset.theme).toBe(theme);
+    });
+
+    it("has no data-theme without a theme, and leaves the app's own alone", () => {
+      // Act
+      const { pill } = renderPill();
+      const own = renderPill({ "data-theme": "dark" } as Parameters<typeof Pill>[0]);
+
+      // Assert
+      expect(pill().hasAttribute("data-theme")).toBe(false);
+      expect(own.pill().dataset.theme).toBe("dark");
+    });
+
     it("writes custom variants and unstyled", () => {
       // Act
       const { pill } = renderPill({ variant: "brand", unstyled: true });

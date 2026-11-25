@@ -32,7 +32,7 @@ describe("styles.css", () => {
 
   it("declares the behaviour sub-layer after the look, so hiding rules always win", () => {
     // Assert
-    expect(withoutComments).toMatch(/@layer magic-pill\s*{\s*@layer look, behaviour;/);
+    expect(withoutComments).toMatch(/@layer magic-pill\s*{\s*@layer look, theme, behaviour;/);
     expect(withoutComments.indexOf("@layer behaviour {")).toBeGreaterThan(-1);
     expect(withoutComments.indexOf("@layer look {")).toBeGreaterThan(-1);
   });
@@ -60,6 +60,13 @@ describe("styles.css", () => {
     expect(withoutComments).toMatch(
       /\[data-placement="right"\]:dir\(ltr\), \[data-placement="left"\]:dir\(rtl\)\)\s*{\s*--_mp-align: var\(--mp-align, end\);/,
     );
+  });
+
+  it("gives actions a rim and the current page's one its own colours, unchanged by default", () => {
+    // Assert
+    expect(withoutComments).toContain("--_mp-action-rim: var(--mp-action-rim, transparent);");
+    expect(withoutComments).toContain("--_mp-action-current: var(--mp-action-current, var(--_mp-action));");
+    expect(withoutComments).toContain("--_mp-on-action-current: var(--mp-on-action-current, var(--_mp-on-action));");
   });
 
   it("follows prefers-reduced-motion", () => {

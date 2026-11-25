@@ -44,6 +44,13 @@ export type PillOrientation = "horizontal" | "vertical";
 export type PillVariant = "neutral" | "success" | "danger" | (string & {});
 
 /**
+ * The pill's material. `glass` and `liquid` need `magic-pill/themes.css`. Any
+ * other string is written to `data-theme` so you can define your own:
+ * `[data-mp="pill"][data-theme="paper"] { --mp-surface: … }`.
+ */
+export type PillTheme = "plain" | "glass" | "liquid" | (string & {});
+
+/**
  * A component that renders a link from an `href`, such as Next's `Link`.
  * React Router's `Link` takes `to`: wrap it.
  */
@@ -75,6 +82,8 @@ export interface PillProps extends Omit<ComponentPropsWithoutRef<"div">, "childr
   orientation?: PillOrientation;
   /** Default `neutral`. */
   variant?: PillVariant;
+  /** The variant picks the colour, the theme the material. Default `plain`. */
+  theme?: PillTheme;
   /** Keeps the behaviour and the data attributes, drops the visual styles. */
   unstyled?: boolean;
 }

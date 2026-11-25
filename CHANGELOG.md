@@ -3,6 +3,11 @@
 ## [Unreleased]
 ### Added
 - Pills with the same fixed placement make room for each other instead of overlapping: the first one set up keeps its spot, the next ones line up after it (below it at the top of the screen, above it at the bottom, further in from the edge on the sides), and take its place when it hides or unmounts. An open panel covers the others. On by default, for `<MagicPill>` hosts too; `ladder={false}` leaves a pill out
+- Themes: the `theme` prop on `<Pill>` and `<MagicPill>`, written to `data-theme`. `glass` and `liquid` come in an optional stylesheet, `magic-pill/themes.css`; any other name is yours to style, on the same glass if you like
+  - Set through tokens: `--mp-tint`, `--mp-status-tint`, `--mp-frost`, `--mp-panel-frost`, `--mp-rays`, `--mp-light`, `--mp-light-angle`, `--mp-light-color`, `--mp-vibrancy`, `--mp-readable`
+  - Text stays readable whatever the page shows behind the pill, with no script: a veil worked out from the pill's own colour. `--mp-readable: 0` opts out
+  - Solid when the system asks for less transparency, more contrast or forced colours, and where the browser can't draw it
+- `--mp-action-rim`, `--mp-action-current` and `--mp-on-action-current`: an outline for the actions, and the current page's own colours. Together with `--mp-action`, they make actions solid or see-through on any theme
 
 ### Changed
 - A pill's open panel sits one level above the other pills (`--mp-z-index` + 1) until it has closed

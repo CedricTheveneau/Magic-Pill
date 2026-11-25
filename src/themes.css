@@ -1,0 +1,179 @@
+/*
+ * Magic Pill v9 themes: glass and liquid (Liquid Glass), and the material
+ * custom themes are built on. Optional: import it next to styles.css, in any
+ * order, for pills with a `theme`. Plain pills don't use it.
+ *
+ * - Same rules as styles.css: everything is in the magic-pill layer (your
+ *   unlayered CSS wins), public tokens (--mp-*) are only read, and nothing is
+ *   loaded from the network.
+ * - Booleans are 1 and 0, to be used in calc().
+ * - Browsers without relative colours or pow() keep the plain look.
+ */
+
+/* Between the look and the behaviour, even when this file is imported first */
+@layer magic-pill.look, magic-pill.theme, magic-pill.behaviour;
+
+/* Registered so they can be transitioned */
+@property --_mp-veil {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: transparent;
+}
+
+@property --_mp-frost {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@layer magic-pill.theme {
+  @supports (color: oklch(from red l c h / calc(pow(l, 2)))) {
+    [data-mp="pill"][data-theme]:not([data-theme="plain"], [data-unstyled]) {
+      /* How much of the surface's colour stays: 1 is solid. A custom theme
+         is, until it sets --mp-tint */
+      --_mp-own-tint: var(--mp-tint, 1);
+      --_mp-tint: var(--_mp-own-tint);
+      --_mp-clear: clamp(0, (1 - var(--_mp-tint)) * 1000, 1);
+      --_mp-rays: var(--mp-rays, var(--_mp-clear));
+      --_mp-own-frost: var(--mp-frost, 14px);
+      --_mp-frost: var(--_mp-own-frost);
+      --_mp-light: calc(var(--_mp-rays) * var(--mp-light, 0.7));
+      --_mp-light-color: var(--mp-light-color, #fff);
+      --_mp-drop: 0 0.5rem 0.5rem rgb(20 20 20 / 0.45);
+      /* How thick the glass looks: its inner glow */
+      --_mp-thick: 0;
+      --_mp-edge-light: 0.5;
+      /* Where the light comes from, as a direction */
+      --_mp-light-x: cos(var(--mp-light-angle, 235deg));
+      --_mp-light-y: sin(var(--mp-light-angle, 235deg));
+
+      /* Keeps the text readable whatever the page shows: a black veil under
+         light text, a white one under dark text (the surface's lightness
+         tells which), just strong enough for 4.5:1 over the worst page (white
+         or black) with the highlight on top.
+         pow(l, 1.364) is about the sRGB value of a grey of lightness l. A
+         solid surface is left alone. */
+      --_mp-peak: calc((0.44 - 0.1 * var(--_mp-light)) / (1 - 0.1 * var(--_mp-light)));
+      --_mp-veil: oklch(
+        from var(--_mp-surface) clamp(0, (l - 0.62) * 1000, 1) 0 0 /
+          calc(
+            var(--mp-readable, 1) * var(--_mp-clear) *
+              max(
+                0,
+                clamp(0, (0.62 - l) * 1000, 1) *
+                  (1 - var(--_mp-peak) / (1 - var(--_mp-tint) + var(--_mp-tint) * pow(l, 1.364))) +
+                  clamp(0, (l - 0.62) * 1000, 1) * (0.53 - var(--_mp-tint) * pow(l, 1.364)) /
+                  (1.001 - var(--_mp-tint) * pow(l, 1.364))
+              )
+          )
+      );
+
+      /* Joins the pill's own transitions (styles.css) */
+      --_mp-also: color var(--_mp-change) ease-in-out, --_mp-veil var(--_mp-change) ease-in-out,
+        --_mp-frost var(--_mp-change) ease-in-out;
+
+      background:
+        radial-gradient(
+          circle 13rem at calc(50% + var(--_mp-light-x) * 45%) calc(50% + var(--_mp-light-y) * 160%),
+          rgb(from var(--_mp-light-color) r g b / calc(0.1 * var(--_mp-light))),
+          transparent
+        ),
+        linear-gradient(var(--_mp-veil), var(--_mp-veil)),
+        color-mix(in srgb, var(--_mp-surface) calc(var(--_mp-tint) * 100%), transparent);
+      --_mp-filter: blur(var(--_mp-frost)) saturate(calc(1 + var(--_mp-rays) * (var(--mp-vibrancy, 1.9) - 1)));
+      -webkit-backdrop-filter: var(--_mp-filter);
+      backdrop-filter: var(--_mp-filter);
+      /* The drop shadow, a rim all around, the light on the edge that faces
+         it and through the opposite one, then the glow inside */
+      box-shadow:
+        var(--mp-shadow, var(--_mp-drop)),
+        inset 0 0 0 1px
+          rgb(from var(--_mp-light-color) r g b / calc(var(--_mp-clear) * (0.16 - 0.06 * min(1, var(--_mp-light))))),
+        inset calc(var(--_mp-light-x) * -1.25px) calc(var(--_mp-light-y) * -1.25px) 0.75px -0.25px
+          rgb(from var(--_mp-light-color) r g b / calc(0.85 * var(--_mp-light))),
+        inset calc(var(--_mp-light-x) * 1.25px) calc(var(--_mp-light-y) * 1.25px) 0.75px -0.25px
+          rgb(from var(--_mp-light-color) r g b / calc(0.45 * var(--_mp-light))),
+        inset calc(var(--_mp-light-x) * -6px) calc(var(--_mp-light-y) * -6px) 10px -6px
+          rgb(from var(--_mp-light-color) r g b / calc(0.4 * var(--_mp-light) * var(--_mp-edge-light))),
+        inset 0 0 14px rgb(from var(--_mp-light-color) r g b / calc(0.16 * var(--_mp-light) * var(--_mp-thick)));
+
+      &:is([data-theme="glass"], [data-theme="liquid"]) {
+        --_mp-own-tint: var(--mp-tint, 0.35);
+        --_mp-rays: var(--mp-rays, 1);
+        --_mp-drop: 0 0.5rem 1.25rem rgb(20 20 20 / 0.28);
+        /* Actions made of the same glass, unless the app colours them. Filled
+           with the lightest (under dark text, the darkest) grey the text can
+           sit on, so they stand out without taking its contrast away */
+        --_mp-action: var(
+          --mp-action,
+          oklch(from var(--_mp-on-surface) clamp(0.548, 0.548 + (0.62 - l) * 1000, 0.628) 0 0 / 0.3)
+        );
+        --_mp-on-action: var(--mp-on-action, var(--_mp-on-surface));
+        --_mp-action-rim: var(--mp-action-rim, var(--mp-action, rgb(from var(--_mp-on-surface) r g b / 0.2)));
+        --_mp-action-current: var(--mp-action-current, var(--mp-action, var(--_mp-on-surface)));
+        --_mp-on-action-current: var(--mp-on-action-current, var(--mp-on-action, var(--_mp-surface)));
+      }
+
+      &[data-theme="liquid"] {
+        --_mp-own-tint: var(--mp-tint, 0.18);
+        --_mp-own-frost: var(--mp-frost, 3px);
+        --_mp-thick: 1;
+        --_mp-edge-light: 1;
+      }
+
+      /* A status must still read as one */
+      &:is([data-variant="success"], [data-variant="danger"]) {
+        --_mp-tint: max(var(--_mp-own-tint), var(--mp-status-tint, 0.75));
+      }
+
+      /* More text, more frosting, readable or not */
+      &[data-presence="panel"] {
+        --_mp-frost: max(var(--_mp-own-frost), var(--mp-panel-frost, 12px));
+      }
+
+      /* It can't fade the text into a see-through surface: it frosts it */
+      & [data-mp="panel-footer"] {
+        isolation: isolate;
+        background: none;
+
+        &::before {
+          content: "";
+          position: absolute;
+          z-index: -1;
+          inset: 0 calc(var(--_mp-padding) * -2.5) calc(var(--_mp-padding) * -2.5);
+          background: color-mix(in srgb, var(--_mp-surface) calc(max(0.5, var(--_mp-tint)) * 100%), transparent);
+          -webkit-backdrop-filter: blur(8px);
+          backdrop-filter: blur(8px);
+          -webkit-mask: linear-gradient(transparent, #000 40%);
+          mask: linear-gradient(transparent, #000 40%);
+        }
+
+        /* Nor may the text read through its see-through action */
+        & [data-mp="action-body"] {
+          -webkit-backdrop-filter: blur(8px);
+          backdrop-filter: blur(8px);
+        }
+      }
+    }
+
+    /* Preferences: solid surfaces and solid actions, as in the plain look */
+    @media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
+      [data-mp="pill"][data-theme]:not([data-theme="plain"], [data-unstyled]) {
+        &,
+        &[data-variant] {
+          --_mp-tint: 1;
+          --_mp-rays: 0;
+          --_mp-filter: none;
+        }
+
+        &:is([data-theme="glass"], [data-theme="liquid"]) {
+          --_mp-action: var(--mp-action, #f9f9f9);
+          --_mp-on-action: var(--mp-on-action, #141414);
+          --_mp-action-rim: var(--mp-action-rim, transparent);
+          --_mp-action-current: var(--mp-action-current, var(--_mp-action));
+          --_mp-on-action-current: var(--mp-on-action-current, var(--_mp-on-action));
+        }
+      }
+    }
+  }
+}
