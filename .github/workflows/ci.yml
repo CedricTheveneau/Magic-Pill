@@ -50,7 +50,7 @@ jobs:
             test -f "$f" || { echo "::error::Missing build output: $f"; exit 1; }
           done
           # Components with state must keep their "use client" directive (Server Component support)
-          for f in MagicPill/MagicPill Pill/Pill Pill/PillContext Pill/PillPanel Pill/modal Pill/morph Pill/themed Pill/zone PillNavbar/PillNavbar PillNavbar/room PillForm/PillForm PillForm/PillField PillForm/PillInput PillForm/PillTextarea PillForm/PillSelect PillForm/PillSlider PillForm/PillSwitch PillForm/PillCheckbox PillForm/PillChoices PillForm/PillStepper PillForm/PillCode PillForm/PillFile PillForm/PillColor PillForm/validity PillForm/keyboard PillOptics/PillOptics store/usePillQueue; do
+          for f in MagicPill/MagicPill Pill/Pill Pill/PillContext Pill/PillPanel Pill/modal Pill/morph Pill/themed Pill/zone PillNavbar/PillNavbar PillNavbar/room PillForm/PillForm PillForm/PillField PillForm/PillInput PillForm/PillTextarea PillForm/PillSelect PillForm/PillSlider PillForm/PillSwitch PillForm/PillCheckbox PillForm/PillChoices PillForm/PillStepper PillForm/PillCode PillForm/PillFile PillForm/PillColor PillForm/PillFormPanel PillForm/validity PillForm/keyboard PillOptics/PillOptics store/usePillQueue; do
             for ext in js mjs; do
               test "$(head -c 13 "dist/$f.$ext")" = '"use client";' || { echo "::error::dist/$f.$ext doesn't start with \"use client\""; exit 1; }
             done

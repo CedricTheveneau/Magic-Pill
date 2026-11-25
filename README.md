@@ -338,7 +338,7 @@ pill().notify({
 
 ### React Server Components
 - The parts, `PillAction`, `PillNotification`, the icons and `pill()` have no `"use client"`. A Server Component can render them (and pass `linkComponent={Link}`) without shipping them to the browser.
-- `Pill`, `MagicPill`, `PillPanel`, `PillPanelTrigger`, `PillNavbar`, `PillOptics`, `usePill` and `usePillQueue` are Client Components. You can still render them from a Server Component.
+- `Pill`, `MagicPill`, `PillPanel`, `PillPanelTrigger`, `PillNavbar`, `PillOptics`, the fields, `PillForm`, `PillFormPanel`, `usePill` and `usePillQueue` are for the client. You can still render them from a Server Component.
 - Call `pill()` from client code: event handlers, effects, client-side stores.
 
 ### Headless: `usePillQueue`
@@ -351,18 +351,29 @@ Fields for a panel, or for the pill itself, on native controls: phones keep thei
 import "magic-pill/styles.css";
 import "magic-pill/forms.css"; // in any order
 
-<Pill>
-  <PillMessage>Any question?</PillMessage>
-  <PillActions><PillPanelTrigger icon={<MailIcon />} label="Write to us" /></PillActions>
-  <PillPanel title="Write to us" footer={<PillAction type="submit" form="contact" icon={<ArrowIcon />} label="Send" />}>
-    <PillForm id="contact" onSubmit={send}>
-      <PillInput name="email" label="Email" type="email" required />
-      <PillSelect name="about" label="About" options={["An order", "A return", "Something else"]} />
-      <PillTextarea name="message" label="Message" required maxLength={400} />
-    </PillForm>
-  </PillPanel>
-</Pill>
+<MagicPill>
+  <PillNavbar items={[{ href: "/", label: "Home", icon: <BoxIcon /> }, { panel: "contact", label: "Write to us", icon: <MailIcon /> }]} />
+  <PillFormPanel name="contact" title="Write to us" submitLabel="Send" onSubmit={send}>
+    <PillInput name="email" label="Email" type="email" required />
+    <PillSelect name="about" label="About" options={["An order", "A return", "Something else"]} />
+    <PillTextarea name="message" label="Message" required maxLength={400} />
+  </PillFormPanel>
+</MagicPill>;
+
+async function send(data: FormData) {
+  await api.send(Object.fromEntries(data)); // the panel waits, then closes; if this throws, it stays open and says why
+  pill().notify({ message: "Sent", variant: "success" });
+}
 ```
+
+**`<PillFormPanel>`** is a `<PillPanel>` that is a form. It takes the panel's `name`, `title`, `titleAction`, `closeLabel`, `closeIcon` and `closeExpanded`, the form's `look`, `layout`, `errors` and `disabled`, and:
+
+| Prop | |
+|---|---|
+| `onSubmit(data, event)` | Called once every field is valid. The panel closes after it, unless it returns `false`. While the promise it returns is pending, the fields wait; if it's rejected, the panel stays open, keeps what was typed and shows the error's message |
+| `submitLabel` / `submitIcon` / `busyLabel` | The main action, and its label while it waits. Without a label there's none: for settings that apply at once |
+| `resetLabel` | An action in the title's row that resets the fields |
+| `errorLabel` | Shown when the error has no message. Default "Something went wrong." |
 
 **The fields.** Any other prop goes to the native control (`name`, `value`, `defaultValue`, `required`, `onChange`, `ref`…).
 
@@ -403,6 +414,7 @@ import "magic-pill/forms.css"; // in any order
 - **In the pill itself**, a `<PillForm>` is a row, with fields as tall as the actions: one field, one action.
 - **On phones**, the pill stays above the keyboard while one of its fields has the focus.
 - **Escape** closes an open list, not the panel.
+- **Notifications wait** while a form of the base layer is open, so what's being typed isn't taken away. The base layer unmounts while a notification shows: keep what must last in your own state.
 
 ```tsx
 <Pill>

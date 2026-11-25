@@ -137,9 +137,20 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
   // shows it while it closes, instead of collapsing around nothing
   const lastBase = useRef<ReactNode>(children);
   if (hasBase) lastBase.current = children;
+  // Someone filling in a form of the base layer: notifications wait until its
+  // panel closes, rather than taking what was typed away
+  const [isFillingIn, setIsFillingIn] = useState(false);
+  const isWaiting = isFillingIn && hasBase;
   const target = useMemo<Scene>(
-    () => (current ? { kind: "notification", item: current } : hasBase ? BASE : idle === "rest" ? IDLE : NONE),
-    [current, hasBase, idle],
+    () =>
+      current && !isWaiting
+        ? { kind: "notification", item: current }
+        : hasBase
+          ? BASE
+          : idle === "rest"
+            ? IDLE
+            : NONE,
+    [current, isWaiting, hasBase, idle],
   );
 
   // What it shows, moved towards the target one timed step at a time
@@ -161,6 +172,11 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
     const swapped = capture.current;
     capture.current = null;
     if (swapped && rootRef.current) playSwap(rootRef.current, swapped);
+  }, [displayed]);
+
+  useEffect(() => {
+    const hasForm = () => !!rootRef.current?.querySelector('[data-mp="panel"][data-open] form');
+    setIsFillingIn(displayed.scene.kind === "base" && displayed.presence === "panel" && hasForm());
   }, [displayed]);
 
   // New content is on the page in its closed state: have the browser style it
