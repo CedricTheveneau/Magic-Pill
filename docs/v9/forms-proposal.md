@@ -1,6 +1,6 @@
 # Forms: API proposal
 
-> **Status: waiting for the maintainer's OK** (2026-11-25). No code before it. It goes with a throwaway prototype, the **Forms lab** (a private page), built on a copy of the real sources: every field, the three apps of `mockups/App Usage Samples/` working, and every setting below adjustable. **§12 is what needs an answer.**
+> **Status: approved by the maintainer on 2026-11-25** (§12), with the prototype, the **Forms lab**. Additions from that review are marked *added*. The delivery is §11.
 
 ## 1. What was asked
 
@@ -51,7 +51,8 @@ async function saveProfile(data: FormData) {
 | `usePill()` gets `openPanel(name?)` and `closePanel()` | For your own parts |
 | `pill().notify({ panel: { …, titleAction, footer } })` | The same slots in a notification's panel |
 
-- **Next to a main action, Close is quiet** (an outline), so Save stands out. Alone, it's as today.
+- **Close shows its icon, and its label on hover and focus** (*added*, #96; `closeExpanded` shows it for good).
+- **Next to a main action, Close is quiet** (an outline), so Save stands out; `--mp-close`, `--mp-on-close` and `--mp-close-rim` change it (*added*: every setting of the lab is in the library). Alone, it looks like the other actions.
 - `name` is kept by the pill, next to its presence: closing goes back to where it was, and the focus goes back to the trigger that opened *that* panel.
 - In the DOM, the title gets a wrapper (`data-mp="panel-head"`). `data-mp="panel-title"` is unchanged.
 - **Not included:** going from one open panel straight to another (a wizard). The pill animates when its presence changes, and here it doesn't.
@@ -77,14 +78,14 @@ type NavItem =
 | `PillSlider` | a range: its value at the end of the label's line (`format`, e.g. to add "min") | above |
 | `PillSwitch` | on or off, at once (`role="switch"`) | row |
 | `PillCheckbox` | something to agree to, sent with the form; `indeterminate` | row |
-| `PillChoices` | one of several (radios), or several (`multiple`, checkboxes). `look`: `list`, `segmented`, `chips` | above |
+| `PillChoices` | one of several (radios), or several (`multiple`, checkboxes). `look`: `list`, `segmented` (*added*: the choice **slides** from one to the next instead of fading), `chips` | above |
 | `PillStepper` | a number, one step at a time (− 2 +), with a `unit` | row |
 | `PillCode` | a one-time code: one input drawn as slots, so pasting and SMS autofill work; `onComplete` | above |
 | `PillFile` | one or more files: a drop area that names them | above |
 | `PillColor` | a colour | row |
 | `PillField` | the shell alone (label, hint, error, wired): **for any control of yours** | either |
 | `PillFields` | fields that go together: a title, `columns={2}`, `separators` | |
-| `PillForm` | the `<form>`: stacked in a panel, **a row in the pill itself** (§7) | |
+| `PillForm` | the `<form>`: stacked in a panel, **a row in the pill itself** (§7). `look`: `solid`, `soft`, `outline` or your own, `layout`, `errors`, `disabled` (*added*: the lab's settings) | |
 | `PillFormPanel` | the template: `PillPanel` + `PillForm` + Save (§6) | |
 
 Every field takes:
@@ -154,12 +155,11 @@ Set like the others. **Each defaults to what the pill already has**, so fields f
 | `--mp-label-font` / `--mp-label-style` / `--mp-label-weight` | | `--mp-font-accent` / `normal` / `400` |
 | `--mp-error` | | `--mp-danger` mixed with the pill's text; its text alone on the status colours |
 | `--mp-list` / `--mp-on-list` | An open drop-down list (where the browser lets us draw it) | `#f9f9f9` / `#141414` |
+| `--mp-picker` (*added*) | `none` for the system's lists everywhere | `base-select` |
 
-The three looks of the lab are these tokens: **solid** (the default), **soft** and **outline**.
+The three looks of the lab, **solid** (the default), **soft** and **outline**, are `<PillForm look>` (*added*), which sets these tokens' defaults from the pill's own text.
 
 ```css
-/* Outline */
-:root { --mp-field: transparent; --mp-on-field: #f9f9f9; --mp-field-rim: rgb(249 249 249 / 0.55); --mp-field-scheme: dark; }
 /* The mockups */
 :root { --mp-surface: #0d3142; --mp-on-surface: #f2efea; --mp-action: #f2efea; --mp-on-action: #0d3142; --mp-accent: #ff4f00; --mp-on-accent: #f2efea; }
 ```
@@ -201,9 +201,9 @@ The three looks of the lab are these tokens: **solid** (the default), **soft** a
 6. **The template**: `PillFormPanel`, the keyboard, notifications' panels.
 7. **A QA pass**: the themes on real pixels, Safari, Firefox, phones.
 
-## 12. To decide
+## 12. Decisions (the maintainer, 2026-11-25: "I validate everything")
 
-| | Proposed |
+| | Decided |
 |---|---|
 | 1. Names | As above: `PillInput`…, `PillFormPanel`, the tokens of §9, `name`/`panel` for several panels |
 | 2. Default look | **Solid**: light fields, like the mockups and the actions |
@@ -211,6 +211,6 @@ The three looks of the lab are these tokens: **solid** (the default), **soft** a
 | 4. Close, next to Save | **Quiet** |
 | 5. Labels | **Above**, in the accent font (Lexend), regular weight |
 | 6. Errors | **Under the field** |
-| 7. Drop-down lists | **The pill's where the browser lets us**, the system's elsewhere. The alternative is the system's everywhere |
+| 7. Drop-down lists | **The pill's where the browser lets us**, the system's elsewhere. `--mp-picker: none` for the system's everywhere |
 | 8. The set of fields | §5, with what it leaves out |
 | 9. `forms.css` apart, and the sizes of §11 | Yes |
