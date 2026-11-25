@@ -29,7 +29,7 @@ On top of it come ready-made **templates** (a notification, a navbar) and a **co
  - [X] Accessible: screen reader announcements, keyboard focus pauses the countdown, focus handling for panels and modals
  - [X] Works in any React 18+ app, including React Server Components (Next.js App Router), with any router
  - [X] Styles you can override without `!important`, design tokens, no fonts loaded behind your back
- - [X] Tiny: the quick start adds about **12.2 kB gzipped** to your app (9.3 kB of JavaScript + 2.9 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
+ - [X] Tiny: the quick start adds about **12.6 kB gzipped** to your app (9.5 kB of JavaScript + 3.1 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
  - [X] Written in TypeScript, zero runtime dependencies
 
 ## Installation
@@ -113,7 +113,7 @@ const id = pill().notify({
 | `message` | `ReactNode` | Required (unless you use `render`). Any content, e.g. `<>Total: <strong>768.99$</strong></>`. Never parsed as HTML. |
 | `icon` | `ReactNode` | The leading icon, followed by the divider. |
 | `action` | `{ icon?, label, onClick }` or `{ icon?, label, href }`, plus `expanded?` | The round button. Its label shows on hover and focus, or all the time with `expanded: true` (phones don't hover). Clicking it dismisses the notification; call `event.preventDefault()` in `onClick` to keep it open. |
-| `panel` | `{ title?, content, trigger?, closeLabel?, closeExpanded? }` | A "Learn more" action that grows the pill into a panel. `trigger` defaults to `{ icon: <PlusIcon />, label: "Learn more" }` and takes `expanded` too, `closeLabel` to `"Close"`: like the other labels, it shows on hover and focus, or all the time with `closeExpanded`. |
+| `panel` | `{ title?, titleAction?, content, footer?, trigger?, closeLabel?, closeExpanded? }` | A "Learn more" action that grows the pill into a panel. `trigger` defaults to `{ icon: <PlusIcon />, label: "Learn more" }` and takes `expanded` too, `closeLabel` to `"Close"`: like the other labels, it shows on hover and focus, or all the time with `closeExpanded`. `titleAction` and `footer`: see [the panel](#the-primitive). |
 | `variant` | `"neutral"` · `"success"` · `"danger"` · any string | Defaults to the host's variant. |
 | `duration` | `number` (ms) | Defaults to the host's (5000). `Infinity` keeps it until dismissed. |
 | `id` | `string` | Notifying again with the same id updates the notification in place. |
@@ -211,6 +211,21 @@ export function AppPill() {
 ```
 
 - **Matching:** an item is active on its own path and below it, on whole segments: `/blog` is active on `/blog/my-post`, not on `/blogroll`. `/` is only active on `/`. When several items match, the longest `href` wins. Override with `match: "exact"` or `match: (pathname) => boolean`.
+- **Items can be actions**, or open a panel of the same pill: `{ onClick, label, icon }` and `{ panel: "settings", label, icon }`, with `expanded: true` to always show their label. The panels sit next to the navbar:
+
+```tsx
+<MagicPill>
+  <PillNavbar
+    items={[
+      { href: "/", label: "Home", icon: <BoxIcon /> },
+      { onClick: skipSession, label: "Skip session", icon: <ArrowIcon />, expanded: true },
+      { panel: "settings", label: "Timer settings", icon: <InfoIcon /> },
+    ]}
+  />
+  <PillPanel name="settings" title="Timer settings">…</PillPanel>
+</MagicPill>
+```
+
 - **The active link** shows its label and gets `aria-current="page"`.
 - **Without `pathname`**, the navbar reads `window.location.pathname` after mounting and on back/forward navigation. That misses client-side navigations, so pass `pathname` when you use a client-side router.
 - **On a narrow screen**, when there's no room for the current page's label and the one you point at (or focus), the current one folds meanwhile. A label that still has no room ends with an ellipsis.
@@ -279,7 +294,7 @@ Any other prop (`className`, `aria-label`, `ref`…) goes to the element.
 - `PillDivider`: the thin line after the icon.
 - `PillMessage`: the message, in the italic serif.
 - `PillActions` and `PillAction`: round buttons. `label` is required: it's the accessible name, and it shows on hover, on focus, with `expanded`, or at the `expanded` level. A `PillAction` is a `<button>` with `onClick`, or a link with `href` (through `linkComponent` if you pass one).
-- `PillPanel` and `PillPanelTrigger`: content shown at the `panel` level, and the action that opens it. The panel takes the focus when it opens, closes on Escape or with its close button (`closeLabel`, `closeIcon`, and `closeExpanded` to always show the label), and gives the focus back to the trigger. One panel per pill.
+- `PillPanel` and `PillPanelTrigger`: content shown at the `panel` level, and the action that opens it. The panel takes the focus when it opens, closes on Escape or with its close button (`closeLabel`, `closeIcon`, and `closeExpanded` to always show the label), and gives the focus back to the trigger. `titleAction` goes at the end of the title's row and `footer` before the close button, which is then quieter (an outline, `--mp-close`). **Several panels in one pill:** give each a `name`, and its trigger the same `panel`.
 
 **Pills in the same spot:** pills with the same fixed `placement` make room for each other, `<MagicPill>` hosts included. The first one set up keeps its spot, and the next ones line up after it: below it at the top of the screen, above it at the bottom, further in from the edge on the `left` and `right`. Each one keeps its own `--mp-gap` from the one before it.
 - When a pill hides or unmounts, the ones after it take its place. A hidden pill keeps its turn, and takes its spot back when it shows again; one that unmounts comes back last.
@@ -300,7 +315,7 @@ Any other prop (`className`, `aria-label`, `ref`…) goes to the element.
 Its backdrop is `--mp-backdrop`: a colour, or any CSS background. `--mp-backdrop-blur: 10px` also blurs the page. `backdrop="glow"` adds two soft lights drifting over them: import `magic-pill/themes.css`, and set `--mp-glow-1`, `--mp-glow-2` (their colours) and `--mp-glow-duration` (a full turn, `14s`). They stand still with reduced motion. Any other string is written to `data-backdrop`, for a backdrop of your own: `[data-mp="pill"][data-backdrop="dots"]::backdrop { … }`.
 
 ### Your own templates
-Templates are plain arrangements of the parts, so yours work the same way. `usePill()` gives a part access to its pill (`presence`, `setPresence`, `placement`, `orientation`, `variant`). Inside a `<MagicPill>`, the `render` option puts your arrangement in the queue:
+Templates are plain arrangements of the parts, so yours work the same way. `usePill()` gives a part access to its pill (`presence`, `setPresence`, `openPanel(name?)`, `closePanel()`, `placement`, `orientation`, `variant`). Inside a `<MagicPill>`, the `render` option puts your arrangement in the queue:
 
 ```tsx
 pill().notify({
@@ -335,7 +350,7 @@ Twelve built-in icons, drawn in `currentColor` and decorative by default (`aria-
 
 ## Styling
 - **Easy to override:** every rule sits in a `magic-pill` cascade layer. Any CSS of yours that isn't in a layer wins, whatever its specificity, with no `!important`.
-- **No collisions:** parts are selected by `data-mp` attributes (`[data-mp="pill"]`, `"icon"`, `"divider"`, `"message"`, `"actions"`, `"action"`, `"action-body"`, `"action-icon"`, `"label"`, `"panel"`, `"panel-title"`, `"panel-body"`, `"panel-footer"`, `"navbar"`), and states by `data-presence`, `data-placement`, `data-orientation`, `data-variant`, `data-theme`, `data-backdrop` and `data-scheme`. There are no class names of ours to clash with yours.
+- **No collisions:** parts are selected by `data-mp` attributes (`[data-mp="pill"]`, `"icon"`, `"divider"`, `"message"`, `"actions"`, `"action"`, `"action-body"`, `"action-icon"`, `"label"`, `"panel"`, `"panel-head"`, `"panel-title"`, `"panel-title-action"`, `"panel-body"`, `"panel-footer"`, `"navbar"`), and states by `data-presence`, `data-placement`, `data-orientation`, `data-variant`, `data-theme`, `data-backdrop` and `data-scheme`. There are no class names of ours to clash with yours.
 - **Classes:** every part takes a `className`; templates and `<MagicPill>` take `classNames`.
 - **Global resets are safe:** an action's look lives on its inner `[data-mp="action-body"]`, so app-wide rules such as `a { color: inherit }` or `button { background: none }` don't break it. To restyle an action, target `[data-mp="action-body"]`.
 - **Tailwind CSS v4:** declare the layer order once, before your imports, so utilities win: `@layer theme, base, magic-pill, components, utilities;`.
@@ -360,6 +375,8 @@ Twelve built-in icons, drawn in `currentColor` and decorative by default (`aria-
 | `--mp-on-neutral-action` / `--mp-on-success-action` / `--mp-on-danger-action` | `--mp-on-action`: the text of one variant's actions |
 | `--mp-action-rim` | `transparent`: a thin outline on the actions |
 | `--mp-action-current` / `--mp-on-action-current` | the action's own colours: the action with `aria-current` (a navbar's current page) |
+| `--mp-accent` / `--mp-on-accent` | the pill's text / its surface: what stands out, such as a panel's `titleAction` |
+| `--mp-close` / `--mp-on-close` / `--mp-close-rim` | `transparent` / the pill's text / the same at 48%: the close button next to a panel's `footer` |
 | `--mp-success` / `--mp-danger` | `#3f7253` / `#c2303e` |
 | `--mp-font-text` / `--mp-font-accent` | `inherit` (see [Fonts](#fonts)) |
 | `--mp-text-size` / `--mp-title-size` | fluid, about 1rem / 1.5–2rem |

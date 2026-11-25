@@ -63,6 +63,9 @@
       --_mp-action-rim: var(--mp-action-rim, transparent);
       --_mp-action-current: var(--mp-action-current, var(--_mp-action));
       --_mp-on-action-current: var(--mp-on-action-current, var(--_mp-on-action));
+      /* What stands out: a panel's main actions */
+      --_mp-accent: var(--mp-accent, var(--_mp-on-surface));
+      --_mp-on-accent: var(--mp-on-accent, var(--_mp-surface));
       --_mp-offset: var(--mp-offset, 1.5rem);
       --_mp-padding: var(--mp-padding, 0.875rem);
       --_mp-gap: var(--mp-gap, 1rem);
@@ -429,6 +432,13 @@
           color var(--_mp-change) ease-in-out;
       }
 
+      /* Next to a main action */
+      & [data-mp="action"][data-quiet] {
+        --_mp-action: var(--mp-close, transparent);
+        --_mp-on-action: var(--mp-on-close, var(--_mp-on-surface));
+        --_mp-action-rim: var(--mp-close-rim, color-mix(in srgb, var(--_mp-on-surface) 48%, transparent));
+      }
+
       & [data-mp="action"]:focus-visible {
         outline: 2px solid var(--_mp-on-surface);
         outline-offset: 2px;
@@ -479,6 +489,11 @@
           text-overflow: clip;
           transition: text-overflow 0s allow-discrete;
         }
+      }
+
+      /* With no icon, the same space on both sides */
+      & [data-mp="label"]:first-child {
+        margin-inline-start: calc(var(--_mp-action-size) / 2.5 - (var(--_mp-action-size) - 1.25rem) / 2);
       }
 
       /* In a column, the pill is as wide as its widest item: a label folds
@@ -580,6 +595,7 @@
          pill shrinks, out of the flow so the pill can take its closed size */
       & [data-mp="panel"] {
         display: grid;
+        grid-template-columns: minmax(0, 1fr);
         gap: var(--_mp-gap);
         outline: none;
         opacity: 1;
@@ -601,7 +617,23 @@
         transition-behavior: allow-discrete;
       }
 
+      & [data-mp="panel-head"] {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--_mp-gap);
+      }
+
+      & [data-mp="panel-title-action"] {
+        --_mp-action-size: 2.25rem;
+        --_mp-action: var(--_mp-accent);
+        --_mp-on-action: var(--_mp-on-accent);
+        --_mp-action-rim: transparent;
+        flex: none;
+      }
+
       & [data-mp="panel-title"] {
+        min-inline-size: 0;
         font-size: var(--mp-title-size, clamp(1.5rem, 1.25rem + 1vw, 2rem));
         font-style: italic;
         font-weight: 900;
@@ -617,7 +649,9 @@
         position: sticky;
         inset-block-end: 0;
         display: flex;
+        flex-wrap: wrap;
         justify-content: center;
+        gap: calc(var(--_mp-gap) * 0.75);
         padding-block-start: var(--_mp-gap);
         isolation: isolate;
 

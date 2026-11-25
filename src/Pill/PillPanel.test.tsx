@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import Pill from "./Pill";
 import { PillActions, PillMessage } from "./parts";
 import { PillPanel, PillPanelTrigger } from "./PillPanel";
+import { usePill } from "./PillContext";
+import PillAction from "./PillAction";
 import type { PillPresence } from "./types";
 import { resetInputModality } from "../utils/inputModality";
 
@@ -184,5 +186,113 @@ describe("PillPanel and PillPanelTrigger", () => {
 
     // Act + Assert
     expect(() => render(<PillPanel>Body</PillPanel>)).toThrow("[magic-pill] <PillPanel> must be rendered inside a <Pill>.");
+  });
+});
+
+describe("several panels in one pill", () => {
+  const Own = () => {
+    const { openPanel, closePanel } = usePill();
+    return (
+      <>
+        <button onClick={() => openPanel("second")}>open the second</button>
+        <button onClick={closePanel}>close it</button>
+      </>
+    );
+  };
+  const TwoPanels = () => (
+    <Pill>
+      <PillActions>
+        <PillPanelTrigger panel="first" label="First" />
+        <PillPanelTrigger panel="second" label="Second" />
+      </PillActions>
+      <Own />
+      <PillPanel name="first" title="The first">
+        One
+      </PillPanel>
+      <PillPanel name="second" title="The second">
+        Two
+      </PillPanel>
+    </Pill>
+  );
+  const open = () => [...document.querySelectorAll('[data-mp="panel"][data-open]')].map((panel) => panel.textContent);
+
+  beforeEach(() => {
+    resetInputModality();
+  });
+
+  it("opens the one its trigger names, and gives the focus back to that trigger", () => {
+    // Arrange
+    render(<TwoPanels />);
+    const second = screen.getByRole("button", { name: "Second" });
+
+    // Act
+    fireEvent.click(second);
+
+    // Assert
+    expect(open()).toEqual([expect.stringContaining("The second")]);
+    expect(second.getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getByRole("button", { name: "First" }).getAttribute("aria-expanded")).toBe("false");
+    expect(document.activeElement).toBe(screen.getByRole("region", { name: "The second" }));
+
+    // Act: close it, then open the other
+    fireEvent.keyDown(document.activeElement!, { key: "Escape" });
+    expect(document.activeElement).toBe(second);
+    fireEvent.click(screen.getByRole("button", { name: "First" }));
+
+    // Assert
+    expect(open()).toEqual([expect.stringContaining("The first")]);
+  });
+
+  it("gives each panel its own id", () => {
+    // Act
+    render(<TwoPanels />);
+
+    // Assert
+    const ids = [...document.querySelectorAll('[data-mp="panel"]')].map((panel) => panel.id);
+    expect(new Set(ids).size).toBe(2);
+  });
+
+  it("opens and closes from usePill()", () => {
+    // Arrange
+    render(<TwoPanels />);
+
+    // Act + Assert
+    fireEvent.click(screen.getByText("open the second"));
+    expect(open()).toEqual([expect.stringContaining("The second")]);
+    fireEvent.click(screen.getByText("close it"));
+    expect(open()).toEqual([]);
+  });
+});
+
+describe("a panel's slots", () => {
+  it("puts an action in the title's row, and actions before a quieter close button", () => {
+    // Act
+    render(
+      <Pill defaultPresence="panel">
+        <PillPanel
+          title="Timer settings"
+          titleAction={<PillAction label="Default" />}
+          footer={<PillAction label="Save" />}
+        />
+      </Pill>,
+    );
+
+    // Assert
+    const region = screen.getByRole("region", { name: "Timer settings" }); // the action isn't part of the name
+    const names = [...region.querySelectorAll("button")].map((button) => button.textContent);
+    expect(names).toEqual(["Default", "Save", "Close"]);
+    expect(screen.getByRole("button", { name: "Close" }).hasAttribute("data-quiet")).toBe(true);
+  });
+
+  it("leaves a close button on its own as it is", () => {
+    // Act
+    render(
+      <Pill defaultPresence="panel">
+        <PillPanel title="Details" />
+      </Pill>,
+    );
+
+    // Assert
+    expect(screen.getByRole("button", { name: "Close" }).hasAttribute("data-quiet")).toBe(false);
   });
 });

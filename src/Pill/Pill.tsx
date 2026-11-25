@@ -58,6 +58,7 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
   const ref = useMemo(() => mergeRefs(rootRef, forwardedRef), [forwardedRef]);
   const panelTriggerRef = useRef<HTMLElement | null>(null);
   const panelId = useId();
+  const [panel, setPanel] = useState<string | undefined>(undefined);
   // The size on screen, kept up to date between changes
   const lastSize = useRef<Size | null>(null);
   // The overlay is a native modal <dialog>: focus trap, Escape and inert page for free
@@ -83,6 +84,14 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
       onPresenceChange?.(next);
     },
     [presence, isControlled, onPresenceChange],
+  );
+
+  const openPanel = useCallback(
+    (name?: string) => {
+      setPanel(name);
+      setPresence("panel");
+    },
+    [setPresence],
   );
 
   const closePanel = useCallback(() => {
@@ -137,15 +146,17 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
     () => ({
       presence,
       setPresence,
+      panel,
+      openPanel,
       closePanel,
       placement,
       orientation: resolvedOrientation,
       variant,
-      panelId,
+      panelIdOf: (name) => (name === undefined ? panelId : `${panelId}-${name}`),
       panelTriggerRef,
       rootRef,
     }),
-    [presence, setPresence, closePanel, placement, resolvedOrientation, variant, panelId],
+    [presence, setPresence, panel, openPanel, closePanel, placement, resolvedOrientation, variant, panelId],
   );
 
   // Typed as a <div>: the <dialog> only adds the cancel/close events used above

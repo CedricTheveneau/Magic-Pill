@@ -20,6 +20,7 @@ export type {
   PillButtonActionProps,
   PillLinkActionProps,
   PillPanelProps,
+  PillPanelTriggerProps,
   PillContextValue,
   LinkComponent,
 } from './Pill/types';
@@ -36,7 +37,7 @@ export type {
   NotificationPanel,
 } from './PillNotification/PillNotification';
 export { PillNavbar } from './PillNavbar/PillNavbar';
-export type { PillNavbarProps, NavItem } from './PillNavbar/PillNavbar';
+export type { PillNavbarProps, NavItem, NavLinkItem, NavActionItem, NavPanelItem } from './PillNavbar/PillNavbar';
 
 // 3. Controllers: a host per named pill, driven from anywhere
 export { default as MagicPill } from './MagicPill/MagicPill';
