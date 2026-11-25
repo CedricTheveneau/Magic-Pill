@@ -50,6 +50,23 @@ export { PillTextarea } from './PillForm/PillTextarea';
 export type { PillTextareaProps } from './PillForm/PillTextarea';
 export { PillSelect } from './PillForm/PillSelect';
 export type { PillSelectProps, PillOption, PillOptionGroup } from './PillForm/PillSelect';
+export { PillSlider } from './PillForm/PillSlider';
+export type { PillSliderProps } from './PillForm/PillSlider';
+export { PillSwitch } from './PillForm/PillSwitch';
+export type { PillSwitchProps } from './PillForm/PillSwitch';
+export { PillCheckbox } from './PillForm/PillCheckbox';
+export type { PillCheckboxProps } from './PillForm/PillCheckbox';
+export { PillChoices } from './PillForm/PillChoices';
+export type {
+  PillChoicesProps,
+  PillSingleChoiceProps,
+  PillMultipleChoiceProps,
+  PillChoice,
+} from './PillForm/PillChoices';
+export { PillStepper } from './PillForm/PillStepper';
+export type { PillStepperProps } from './PillForm/PillStepper';
+export { PillFields } from './PillForm/PillFields';
+export type { PillFieldsProps } from './PillForm/PillFields';
 
 // 3. Controllers: a host per named pill, driven from anywhere
 export { default as MagicPill } from './MagicPill/MagicPill';

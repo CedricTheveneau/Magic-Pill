@@ -18,6 +18,7 @@
 - Forms, in an optional `magic-pill/forms.css`: fields on native controls, with no dependency, for panels and for the pill itself. The browser's validation shows under them, and the pill stays above the on-screen keyboard
   - `PillForm` (`look`: solid, soft, outline; `layout`; `errors`; `disabled`; `busy`), `PillInput` (12 types, icons, suffixes, suggestions), `PillTextarea`, `PillSelect`, and `PillField` for a control of yours
   - Tokens that follow the actions by default: `--mp-field`, `--mp-on-field`, `--mp-field-rim`, `--mp-field-size`, `--mp-field-radius`, `--mp-field-gap`, `--mp-field-scheme`, `--mp-placeholder`, `--mp-label-font`, `--mp-label-style`, `--mp-label-weight`, `--mp-error`, `--mp-list`, `--mp-on-list`, `--mp-picker`
+  - `PillSlider`, `PillSwitch`, `PillCheckbox`, `PillChoices` (a list, one bar where the choice slides, chips; one or several), `PillStepper` and `PillFields`. Tokens: `--mp-track`, `--mp-track-size`, `--mp-thumb`
 
 ### Changed
 - A pill's open panel sits one level above the other pills (`--mp-z-index` + 1) until it has closed

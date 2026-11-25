@@ -371,6 +371,12 @@ import "magic-pill/forms.css"; // in any order
 | `PillInput` | `type`: `text`, `email`, `password` (with a button that shows it), `search`, `tel`, `url`, `number`, `date`, `time`, `datetime-local`, `month`, `week`. Also `icon`, `suffix` (`"kg"`), `suggestions` (a list), `revealLabel` |
 | `PillTextarea` | Grows with its text, and counts it with `maxLength` |
 | `PillSelect` | `options`: strings, `{ value, label, disabled? }`, or groups (`{ label, options }`). `placeholder`, `icon`, and `layout="inline"` for a chip at the end of the row |
+| `PillSlider` | A range, with its value at the end of the label's line: `format={(v) => `${v} min`}` |
+| `PillSwitch` | On or off, at once |
+| `PillCheckbox` | Something to agree to, sent with the form. `indeterminate` |
+| `PillChoices` | One of several (radios), or several with `multiple` (checkboxes). `look`: `"list"`, `"segmented"` (one bar, where the choice slides) or `"chips"`. `options`: strings or `{ value, label, icon?, hint?, disabled? }`. `onChange(value)` |
+| `PillStepper` | A number, one step at a time, with a `unit` |
+| `PillFields` | Fields that go together: a `label`, `columns={2}`, `separators` |
 | `PillField` | The label, the hint and the error, wired to a control of yours: `{(control) => <input {...control} />}` |
 
 | Every field's props | |
@@ -413,6 +419,8 @@ import "magic-pill/forms.css"; // in any order
 | `--mp-label-font` / `--mp-label-style` / `--mp-label-weight` | `--mp-font-accent` / `normal` / `400` |
 | `--mp-error` | `--mp-danger` mixed with the pill's text (its text alone on `success` and `danger`) |
 | `--mp-list` / `--mp-on-list` / `--mp-picker` | `#f9f9f9` / `#141414`: an open list, where the browser lets it be drawn (Chromium). `--mp-picker: none` keeps the system's |
+| `--mp-accent` / `--mp-on-accent` | the pill's text / its surface: switches, sliders, ticks, the submit action |
+| `--mp-track` / `--mp-track-size` / `--mp-thumb` | the pill's text at 48% / `4px` / `1.25rem`: what's off; a slider's thickness and thumb |
 
 > **Your app's resets:** CSS like `input { border: 1px solid }` that isn't in a layer also reaches the pill's fields. Their look is on what surrounds the controls, so they only need to stay bare: scope such rules, or put them in a layer.
 

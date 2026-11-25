@@ -56,6 +56,7 @@ describe("forms.css", () => {
     "field-scheme",
     "placeholder",
     "track",
+    "track-size",
     "thumb",
     "label-font",
     "label-style",

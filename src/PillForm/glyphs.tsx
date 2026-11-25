@@ -58,3 +58,21 @@ export const SearchGlyph = () => (
     <path d="m16 16 4.5 4.5" />
   </Glyph>
 );
+
+export const TickGlyph = () => (
+  <Glyph width={3.4}>
+    <path d="m5.5 12.5 4.2 4.2 8.8-9.2" />
+  </Glyph>
+);
+
+export const AddGlyph = () => (
+  <Glyph>
+    <path d="M5 12h14M12 5v14" />
+  </Glyph>
+);
+
+export const MinusGlyph = () => (
+  <Glyph>
+    <path d="M5 12h14" />
+  </Glyph>
+);

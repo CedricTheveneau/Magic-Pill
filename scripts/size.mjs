@@ -55,8 +55,9 @@ const PROBES = [
     // then from 13.5 kB for the glass' optics (PillOptics/, only for apps that render it): 17.05 kB,
     // then from 17.25 kB for a navbar's narrow screens (PillNavbar/room.ts): 17.70 kB,
     // then from 18 kB for several panels and the navbar's other items: 18.02 kB,
-    // then from 18.25 kB for the text fields (PillForm/, only for apps with forms): 20.40 kB
-    budget: 20.5 * KB, // 9.07 kB at 9.0.0-next.0
+    // then from 18.25 kB for the text fields (PillForm/, only for apps with forms): 20.40 kB,
+    // then from 20.5 kB for the settings' fields: 22.01 kB
+    budget: 22.25 * KB, // 9.07 kB at 9.0.0-next.0
   },
 ];
 const STYLESHEETS = [
@@ -79,8 +80,8 @@ const STYLESHEETS = [
   {
     name: "forms.css",
     description: "the fields, only for apps that import it",
-    // 3.07 kB
-    budget: 3.25 * KB,
+    // 4.69 kB
+    budget: 4.75 * KB,
   },
 ];
 
