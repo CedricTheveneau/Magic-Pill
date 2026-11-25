@@ -2,13 +2,14 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { onThemedPills, themedPills } from "../Pill/themed";
+import { adapt } from "./adaptive";
 import { canRefract, lensId, lensMap, makeLens, type Lens } from "./lens";
 import { followPointer } from "./light";
 
 const LENS = "--_mp-lens";
 // What a lens is made from: registered in themes.css, which also gives them a
 // (very short) transition, so a change of any token is heard when it ends
-const WATCHED = /^(--_mp-(refraction|edge|fringe|follow)|border-top-left-radius)$/;
+const WATCHED = /^(--_mp-(refraction|edge|fringe|follow|adaptive)|border-top-left-radius)$/;
 
 /** Red, green and blue: how far each one bends apart, and the matrix that keeps it alone. */
 const CHANNELS = [
@@ -88,7 +89,8 @@ function makeGroup(start: (pills: ReadonlySet<HTMLElement>) => () => void) {
 /**
  * What themes can't do in CSS. Render it once, anywhere: the tokens of each
  * themed pill decide. It draws the refraction of the glass (in the browsers
- * that can: Chromium), and has the light follow the pointer (`--mp-light-follow`).
+ * that can: Chromium), has the light follow the pointer (`--mp-light-follow`),
+ * and tints the pill after what's behind it (`--mp-adaptive`).
  */
 export function PillOptics() {
   // The lenses on the page (pills with the same one share it), and whose they are
@@ -106,6 +108,7 @@ export function PillOptics() {
     let pending = false;
     let refracts: boolean | undefined;
     const following = makeGroup(followPointer);
+    const adaptive = makeGroup(adapt);
 
     const update = () => {
       pending = false;
@@ -114,9 +117,11 @@ export function PillOptics() {
       const before = wanted.current;
       wanted.current = new Map();
       const follow: HTMLElement[] = [];
+      const adapted: HTMLElement[] = [];
       for (const element of themedPills) {
         const read = reader(element);
         if (read("--_mp-follow") > 0) follow.push(element);
+        if (read("--_mp-adaptive") > 0) adapted.push(element);
         const lens = refracts === false ? null : readLens(element, read);
         if (!lens) continue;
         // Asked once, and only if a pill needs it
@@ -130,6 +135,7 @@ export function PillOptics() {
         if (!wanted.current.has(element)) element.style.removeProperty(LENS);
       }
       following(follow);
+      adaptive(adapted);
       setLenses((current) => {
         const same = current.length === next.size && current.every((lens) => next.has(lensId(lens)));
         return same ? current : [...next.values()];
@@ -157,6 +163,7 @@ export function PillOptics() {
       for (const element of wanted.current.keys()) element.style.removeProperty(LENS);
       wanted.current.clear();
       following([]);
+      adaptive([]);
     };
   }, []);
 

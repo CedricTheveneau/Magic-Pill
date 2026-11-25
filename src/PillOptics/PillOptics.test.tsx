@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import Pill from "../Pill/Pill";
 import type { PillProps } from "../Pill/types";
 import { PillOptics } from "./PillOptics";
+import * as adaptive from "./adaptive";
 import * as lens from "./lens";
 import * as light from "./light";
 
@@ -182,6 +183,7 @@ describe("PillOptics", () => {
 
   describe.each([
     ["the pointer's light", "--_mp-follow", () => vi.spyOn(light, "followPointer")],
+    ["adaptive tinting", "--_mp-adaptive", () => vi.spyOn(adaptive, "adapt")],
   ])("%s", (_, property, spy) => {
     const asking = { ...GLASS, [property]: "1" } as CSSProperties;
 

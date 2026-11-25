@@ -30,7 +30,7 @@ describe("themes.css", () => {
     expect(topLevel.filter((block) => !/^@property --_mp-[\w-]+$/.test(block))).toEqual(["@layer magic-pill.theme"]);
   });
 
-  it.each(["refraction", "edge", "fringe", "follow"])("registers --_mp-%s and gives it a transition, for <PillOptics>", (name) => {
+  it.each(["refraction", "edge", "fringe", "follow", "adaptive"])("registers --_mp-%s and gives it a transition, for <PillOptics>", (name) => {
     // Assert
     expect(css).toMatch(new RegExp(`@property --_mp-${name} {`));
     expect(css).toMatch(new RegExp(`--_mp-also:[^;]*--_mp-${name} 1ms`));
@@ -69,6 +69,9 @@ describe("themes.css", () => {
     "edge",
     "fringe",
     "light-follow",
+    "adaptive",
+    "adaptive-surface",
+    "adaptive-on-surface",
     "readable",
     "action",
     "on-action",

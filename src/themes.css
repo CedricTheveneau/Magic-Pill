@@ -52,6 +52,19 @@
   initial-value: 0;
 }
 
+@property --_mp-adaptive {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+/* Tinted by <PillOptics>: registered so it can be transitioned */
+@property --_mp-light-color {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: white;
+}
+
 @property --_mp-drift {
   syntax: "<angle>";
   inherits: false;
@@ -106,6 +119,7 @@
       --_mp-edge: var(--mp-edge, 10px);
       --_mp-fringe: var(--mp-fringe, 0);
       --_mp-follow: calc(var(--_mp-rays) * var(--mp-light-follow, 0));
+      --_mp-adaptive: calc(var(--_mp-rays) * var(--mp-adaptive, 0));
       --_mp-light: calc(var(--_mp-rays) * var(--mp-light, 0.7));
       --_mp-light-color: var(--mp-light-color, #fff);
       --_mp-drop: 0 0.5rem 0.5rem rgb(20 20 20 / 0.45);
@@ -143,7 +157,7 @@
          <PillOptics> that a token has changed */
       --_mp-also: color var(--_mp-change) ease-in-out, --_mp-veil var(--_mp-change) ease-in-out,
         --_mp-frost var(--_mp-change) ease-in-out, --_mp-refraction 1ms, --_mp-edge 1ms, --_mp-fringe 1ms,
-        --_mp-follow 1ms;
+        --_mp-follow 1ms, --_mp-adaptive 1ms, --_mp-light-color var(--_mp-change) ease-in-out;
 
       background:
         radial-gradient(
@@ -198,6 +212,26 @@
         --_mp-fringe: var(--mp-fringe, 0.15);
         --_mp-thick: 1;
         --_mp-edge-light: 1;
+      }
+
+      /* Adaptive: the light takes the hue of what's behind, and so does a
+         neutral pill, which turns light over light pages */
+      &[data-scheme] {
+        --_mp-light-color: color-mix(in oklab, var(--_mp-ambient) 45%, var(--mp-light-color, #fff));
+      }
+
+      &[data-scheme][data-variant="neutral"] {
+        --_mp-surface: color-mix(in oklab, var(--_mp-ambient) 14%, var(--mp-surface, #141414));
+      }
+
+      &[data-scheme="light"][data-variant="neutral"] {
+        --_mp-surface: color-mix(in oklab, var(--_mp-ambient) 14%, var(--mp-adaptive-surface, #f9f9f9));
+        --_mp-on-surface: var(--mp-adaptive-on-surface, #141414);
+
+        &:not([data-theme="glass"], [data-theme="liquid"]) {
+          --_mp-action: var(--mp-action, var(--_mp-on-surface));
+          --_mp-on-action: var(--mp-on-action, var(--_mp-surface));
+        }
       }
 
       /* A status must still read as one */
