@@ -78,6 +78,7 @@ Set on `:root`, on one pill, or anywhere in between, like the existing ones. Boo
 | Actions | `--mp-action` / `--mp-on-action` (existing) | colours | see-through / the pill's text | same |
 | (their outline) | `--mp-action-rim` (*added*) | colour | the pill's text at 20% (the action's colour if it's set) | same |
 | (the current page's action) | `--mp-action-current` / `--mp-on-action-current` (*added*) | colours | the pill's text / its surface (the action's colours if they're set) | same |
+| Actions made of the same glass (*added after the themes were built, at the maintainer's request*) | `--mp-action-glass` | 1 / 0 | `0` | `0` |
 | Keep text readable | `--mp-readable` | 1 / 0 | `1` | `1` |
 | (more text, more frosting) | `--mp-panel-frost` | length, the least a panel has | `12px` | `12px` |
 | Modal backdrop: colour | `--mp-backdrop` (existing) | any background | a dark veil | same |
@@ -127,6 +128,7 @@ A client component, rendered once, with no props: the tokens decide. It does the
 - **Refraction** is one hidden SVG filter per combination of tokens. Its map is drawn with percentages, so it follows the pill's size in every morph with no script.
 - **Adaptive** samples the page behind each visible pill as it scrolls (background colours, gradients, images and canvases it's allowed to read), takes their hue for the light, and turns the pill light over light pages, with a margin so it doesn't flicker. Pills without `--mp-adaptive: 1` cost nothing.
 - *As built:* it reads see-through layers, gradients (their mean) and the page's own background too, and rewrites a pill only for a change that can be seen. While scrolling, with 4 adaptive pills and a CPU slowed down 4 times, the main thread is busy 8% of the time on a calm page and 27% over bands of alternating colours (mostly the pills' own fades; reading the page is about 2%), against under 1% without. A change of token is heard through a 1ms transition of the registered properties it feeds, so nothing is polled.
+- **Glass actions:** an element with a `backdrop-filter` hides the page from what's inside it, so with `--mp-action-glass: 1` the pill's glass moves to a layer under its content (`data-actions="glass"`, a `::before`), and its actions get their own filters once the content has faded in (a fading parent hides the page from them too). Not in an open panel, where the layer would scroll away, nor with reduced motion. Their lens is the pill's at their scale.
 - `Pill` keeps a small list of the themed pills on the page for it. Plain pills aren't in it.
 
 ## 6. The modal's backdrop

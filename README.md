@@ -390,6 +390,7 @@ Set these tokens like the others, on `:root`, on one pill, or anywhere in betwee
 | `--mp-vibrancy` | How much the page's colours glow through (`1` is off) | `1.9` | `1.9` |
 | `--mp-refraction` | With `<PillOptics>`: how much the edge bends what's behind, 0 to 1 | `0.16` | `0.55` |
 | `--mp-edge` / `--mp-fringe` | With `<PillOptics>`: how wide that edge is, and how much it splits colours, 0 to 1 | `10px` / `0` | `22px` / `0.15` |
+| `--mp-action-glass` | `1` makes the actions little lenses of the same glass: the light on their edges, and with `<PillOptics>`, their own refraction and frosting | `0` | `0` |
 | `--mp-light-follow` | With `<PillOptics>`: `1` has the light follow the pointer | `0` | `0` |
 | `--mp-adaptive` | With `<PillOptics>`: `1` tints the pill after the page behind it, and turns a neutral pill light over light pages | `0` | `0` |
 | `--mp-adaptive-surface` / `--mp-adaptive-on-surface` | The colours of that light pill | `#f9f9f9` / `#141414` | same |
@@ -426,6 +427,8 @@ import { MagicPill, PillOptics } from "magic-pill";
 
   - **Refraction** is drawn by Chromium browsers (Chrome, Edge, Arc, Dia…) that use the GPU. Safari and Firefox show the same glass without the bending. A Content Security Policy needs `img-src data:` for it.
   - **Adaptive** reads colours, gradients, images, videos and canvases behind the pill. It can't read `url()` backgrounds, pictures from other sites (without CORS), or elements that ignore the pointer. It writes `data-scheme="light"` or `"dark"` on the pill. Status pills keep their colours.
+  - **Cost:** the graphics card does the work. With three Liquid Glass pills on a MacBook Pro (M2 Pro, 1440 × 900 at 2x), a frame takes about 1.1 ms, 1.4 ms with `--mp-action-glass: 1`. The colour fringe is most of it: with `--mp-fringe: 0`, 0.5 ms, glass actions included.
+  - Glass actions aren't refracted in an open panel, nor with reduced motion (pills fade then, which hides the page from them).
   - The light doesn't follow a finger, nor anything with reduced motion.
 - **Where the glass can't be drawn** (a browser without relative colours or `pow()` in CSS, less transparency, more contrast, forced colours), the pill has its plain look.
 

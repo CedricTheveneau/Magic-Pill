@@ -80,6 +80,7 @@ src/
 - Public tokens (`--mp-*`) are only **read**, with fallbacks, never declared, so users can set them anywhere. Private values start with `--_mp-`.
 - Never load fonts or anything else from the network (no `@import`, no `url()`); `styles.test.ts` and `themes.test.ts` guard it.
 - What `<PillOptics>` reads is registered in `themes.css` (`@property`) and listed with a 1ms transition in `--_mp-also`: that's how it hears a token change. Check refraction with the full Chromium and a GPU (the headless shell draws it off-centre).
+- An element with `backdrop-filter`, `opacity` < 1, `filter` or `mask` hides the page from any `backdrop-filter` inside it (and one inside a see-through pill lays its tint down twice): that's why glass actions need the pill's glass on a layer, and why the panel's text is masked rather than covered.
 - Themes keep text readable over any page by default: measure it on real pixels (white, black and pure colours behind the pill), actions included.
 - Check visual changes in a real browser, including a phone width and `prefers-reduced-motion`.
 

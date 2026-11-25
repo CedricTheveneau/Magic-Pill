@@ -555,6 +555,7 @@
       [data-mp="pill"]:not([data-unstyled]) {
         transition:
           opacity 150ms linear,
+          var(--_mp-watch, visibility 0s),
           visibility 0s;
 
         &[data-presence="hidden"] {
@@ -562,12 +563,14 @@
           opacity: 0;
           transition:
             opacity 150ms linear,
+            var(--_mp-watch, visibility 0s),
             visibility 0s linear 150ms;
         }
 
         &[data-presence="rest"] {
           transition:
             opacity 150ms linear,
+            var(--_mp-watch, visibility 0s),
             visibility 0s;
         }
 

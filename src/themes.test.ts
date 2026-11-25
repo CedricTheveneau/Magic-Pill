@@ -30,10 +30,39 @@ describe("themes.css", () => {
     expect(topLevel.filter((block) => !/^@property --_mp-[\w-]+$/.test(block))).toEqual(["@layer magic-pill.theme"]);
   });
 
-  it.each(["refraction", "edge", "fringe", "follow", "adaptive"])("registers --_mp-%s and gives it a transition, for <PillOptics>", (name) => {
+  it.each(["refraction", "edge", "fringe", "follow", "adaptive", "action-layer", "action-radius"])("registers --_mp-%s and gives it a transition, for <PillOptics>", (name) => {
     // Assert
     expect(css).toMatch(new RegExp(`@property --_mp-${name} {`));
-    expect(css).toMatch(new RegExp(`--_mp-also:[^;]*--_mp-${name} 1ms`));
+    expect(css).toMatch(new RegExp(`--_mp-watch:[^;]*--_mp-${name} 1ms`));
+  });
+
+  it("tells <PillOptics> of token changes with reduced motion too, where pills have other transitions", () => {
+    // Arrange
+    const reduced = withoutComments(styles).split("@media (prefers-reduced-motion: reduce)")[1];
+
+    // Assert
+    expect(reduced.match(/var\(--_mp-watch, visibility 0s\)/g)).toHaveLength(3);
+    expect(css).toMatch(/--_mp-also:[^;]*var\(--_mp-watch\)/);
+  });
+
+  it("moves the glass to a layer for glass actions, but not while a panel scrolls it away", () => {
+    // Assert
+    expect(css).toMatch(/&\[data-actions="glass"\] {[^}]*&:not\(\[data-presence="panel"\]\) {[^}]*backdrop-filter: none;/);
+    expect(css).toMatch(/&::before {[^}]*backdrop-filter: var\(--_mp-filter\) var\(--_mp-lens,\);/);
+  });
+
+  it("gives actions their glass once the content has faded in: a fading parent would turn them black", () => {
+    // Assert
+    expect(css).toContain("animation: mp-settle calc(var(--_mp-change) + var(--_mp-fade));");
+    expect(css).toMatch(/@keyframes mp-settle {\s*from,\s*to {[^}]*backdrop-filter: none;/);
+  });
+
+  it("masks a panel's text as it scrolls, where the browser can, and covers it elsewhere", () => {
+    // Assert
+    expect(css).toMatch(/@supports \(animation-timeline: view\(\)\) {[\s\S]*animation: mp-seen linear both;/);
+    expect(css).toContain("@supports not (animation-timeline: view())");
+    // A text that doesn't scroll is all there
+    expect(css).toMatch(/@property --_mp-seen {[^}]*initial-value: 100%;/);
   });
 
   it("puts the lens last in the filters, and Safari's prefixed one has none", () => {
@@ -69,6 +98,7 @@ describe("themes.css", () => {
     "edge",
     "fringe",
     "light-follow",
+    "action-glass",
     "adaptive",
     "adaptive-surface",
     "adaptive-on-surface",

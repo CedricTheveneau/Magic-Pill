@@ -7,6 +7,7 @@
   - Set through tokens: `--mp-tint`, `--mp-status-tint`, `--mp-frost`, `--mp-panel-frost`, `--mp-rays`, `--mp-light`, `--mp-light-angle`, `--mp-light-color`, `--mp-vibrancy`, `--mp-readable`
   - Text stays readable whatever the page shows behind the pill, with no script: a veil worked out from the pill's own colour. `--mp-readable: 0` opts out
   - `<PillOptics />`, rendered once, for what CSS can't do: refraction (`--mp-refraction`, `--mp-edge`, `--mp-fringe`; Chromium only), a light that follows the pointer (`--mp-light-follow`), and adaptive tinting, which takes the colours of the page behind the pill and turns it light over light pages (`--mp-adaptive`, `--mp-adaptive-surface`, `--mp-adaptive-on-surface`)
+  - `--mp-action-glass: 1` makes the actions of the same glass as the pill: the light on their edges and, with `<PillOptics>`, their own refraction and frosting
   - Solid when the system asks for less transparency, more contrast or forced colours, and where the browser can't draw it
 - The modal's backdrop: `--mp-backdrop-blur` blurs the page behind it, and `backdrop="glow"` (with `magic-pill/themes.css`) adds two soft lights drifting over it (`--mp-glow-1`, `--mp-glow-2`, `--mp-glow-duration`), still with reduced motion. Any other `backdrop` is written to `data-backdrop`, for one of your own
 - `--mp-action-rim`, `--mp-action-current` and `--mp-on-action-current`: an outline for the actions, and the current page's own colours. Together with `--mp-action`, they make actions solid or see-through on any theme
