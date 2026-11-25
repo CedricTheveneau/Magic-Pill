@@ -184,10 +184,10 @@
       );
 
       /* Joins the pill's own transitions (styles.css). The 1ms ones only tell
-         <PillOptics> that a token has changed */
+         <PillOptics> that a token has changed: with reduced motion too */
+      --_mp-watch: --_mp-refraction 1ms, --_mp-edge 1ms, --_mp-fringe 1ms, --_mp-follow 1ms, --_mp-adaptive 1ms;
       --_mp-also: color var(--_mp-change) ease-in-out, --_mp-veil var(--_mp-change) ease-in-out,
-        --_mp-frost var(--_mp-change) ease-in-out, --_mp-refraction 1ms, --_mp-edge 1ms, --_mp-fringe 1ms,
-        --_mp-follow 1ms, --_mp-adaptive 1ms, --_mp-light-color var(--_mp-change) ease-in-out;
+        --_mp-frost var(--_mp-change) ease-in-out, --_mp-light-color var(--_mp-change) ease-in-out, var(--_mp-watch);
 
       background:
         radial-gradient(

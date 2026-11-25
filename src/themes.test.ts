@@ -33,7 +33,16 @@ describe("themes.css", () => {
   it.each(["refraction", "edge", "fringe", "follow", "adaptive"])("registers --_mp-%s and gives it a transition, for <PillOptics>", (name) => {
     // Assert
     expect(css).toMatch(new RegExp(`@property --_mp-${name} {`));
-    expect(css).toMatch(new RegExp(`--_mp-also:[^;]*--_mp-${name} 1ms`));
+    expect(css).toMatch(new RegExp(`--_mp-watch:[^;]*--_mp-${name} 1ms`));
+  });
+
+  it("tells <PillOptics> of token changes with reduced motion too, where pills have other transitions", () => {
+    // Arrange
+    const reduced = withoutComments(styles).split("@media (prefers-reduced-motion: reduce)")[1];
+
+    // Assert
+    expect(reduced.match(/var\(--_mp-watch, visibility 0s\)/g)).toHaveLength(3);
+    expect(css).toMatch(/--_mp-also:[^;]*var\(--_mp-watch\)/);
   });
 
   it("masks a panel's text as it scrolls, where the browser can, and covers it elsewhere", () => {
