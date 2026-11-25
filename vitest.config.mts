@@ -9,6 +9,6 @@ export default defineConfig({
     restoreMocks: true,
     unstubGlobals: true,
     // Lets styles.test.ts read the v9 stylesheet as text (`?raw`)
-    css: { include: [/src\/styles\.css/] },
+    css: { include: [/src\/(styles|themes)\.css/] },
   },
 });

@@ -51,8 +51,20 @@ const PROBES = [
     budget: 13.5 * KB, // 9.07 kB at 9.0.0-next.0
   },
 ];
-// Raised from 2.5 kB for pills sharing a placement: 2.51 kB
-const CSS_BUDGET = 2.6 * KB; // 2.15 kB at 9.0.0-next.1 (3.89 kB with its comments, as shipped)
+const STYLESHEETS = [
+  {
+    name: "styles.css",
+    description: "the stylesheet",
+    // Raised from 2.5 kB for pills sharing a placement: 2.51 kB,
+    // then from 2.6 kB for the actions' rim and current page colours: 2.59 kB
+    budget: 2.75 * KB, // 2.15 kB at 9.0.0-next.1 (3.89 kB with its comments, as shipped)
+  },
+  {
+    name: "themes.css",
+    description: "the glass themes, only for apps that import it",
+    budget: 2.25 * KB,
+  },
+];
 
 const root = resolve(import.meta.dirname, "..");
 const entry = join(root, "dist", "index.mjs");
@@ -90,9 +102,11 @@ try {
   }
   // Shipped with its comments; an app's bundler strips them and the whitespace,
   // like it minifies the JavaScript, so that's what's measured
-  const css = readFileSync(join(root, "dist", "styles.css"), "utf8");
-  const minifiedCss = Buffer.from(css.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\s+/g, " ").trim());
-  results.push({ name: "styles.css", description: "the stylesheet", raw: minifiedCss.length, rawLabel: "minified", gzip: gzip(minifiedCss), budget: CSS_BUDGET });
+  for (const { name, description, budget } of STYLESHEETS) {
+    const css = readFileSync(join(root, "dist", name), "utf8");
+    const minified = Buffer.from(css.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\s+/g, " ").trim());
+    results.push({ name, description, raw: minified.length, rawLabel: "minified", gzip: gzip(minified), budget });
+  }
 
   if (process.argv.includes("--json")) {
     console.log(JSON.stringify(results, null, 2));

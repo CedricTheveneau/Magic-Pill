@@ -32,7 +32,7 @@ describe("styles.css", () => {
 
   it("declares the behaviour sub-layer after the look, so hiding rules always win", () => {
     // Assert
-    expect(withoutComments).toMatch(/@layer magic-pill\s*{\s*@layer look, behaviour;/);
+    expect(withoutComments).toMatch(/@layer magic-pill\s*{\s*@layer look, theme, behaviour;/);
     expect(withoutComments.indexOf("@layer behaviour {")).toBeGreaterThan(-1);
     expect(withoutComments.indexOf("@layer look {")).toBeGreaterThan(-1);
   });

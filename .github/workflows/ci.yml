@@ -46,7 +46,7 @@ jobs:
 
       - name: Check build output
         run: |
-          for f in dist/index.js dist/index.mjs dist/index.d.ts dist/index.d.mts dist/styles.css; do
+          for f in dist/index.js dist/index.mjs dist/index.d.ts dist/index.d.mts dist/styles.css dist/themes.css; do
             test -f "$f" || { echo "::error::Missing build output: $f"; exit 1; }
           done
           # Components with state must keep their "use client" directive (Server Component support)
@@ -61,7 +61,9 @@ jobs:
               ! grep -q '"use client"' "dist/$f.$ext" || { echo "::error::dist/$f.$ext must stay server-safe (no \"use client\")"; exit 1; }
             done
           done
-          cmp -s src/styles.css dist/styles.css || { echo "::error::dist/styles.css differs from src/styles.css"; exit 1; }
+          for f in styles.css themes.css; do
+            cmp -s "src/$f" "dist/$f" || { echo "::error::dist/$f differs from src/$f"; exit 1; }
+          done
 
       # What an app ships when it uses Magic Pill, gzipped (scripts/size.mjs holds the budgets)
       - name: Check size budget

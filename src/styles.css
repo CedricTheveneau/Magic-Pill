@@ -18,7 +18,7 @@
   /* Behaviour comes last, so it beats the look whatever the specificity:
      a closed panel or a hidden pill stays hidden even if a visual rule
      sets a display. Your own unlayered CSS still beats both. */
-  @layer look, behaviour;
+  @layer look, theme, behaviour;
 
   @layer behaviour {
     /* ─── Behaviour: kept by `unstyled` pills ──────────────────────────────── */
@@ -101,12 +101,14 @@
          bottom to come out of the edge a bottom pill sits on */
       transform-origin: var(--mp-scale-origin, center);
       /* The size itself is animated by script (morph.ts): CSS can't
-         transition a size that follows the content */
+         transition a size that follows the content. --_mp-also: what a theme
+         adds (themes.css) */
       transition:
         scale var(--_mp-enter) var(--_mp-ease-enter),
         border-radius var(--_mp-change) ease-in-out,
         background-color var(--_mp-change) ease-in-out,
         z-index 0s var(--_mp-lower),
+        var(--_mp-also, visibility 0s),
         visibility 0s;
 
       & *,
@@ -137,6 +139,7 @@
           border-radius var(--_mp-change) ease-in-out var(--_mp-fade),
           background-color var(--_mp-change) ease-in-out var(--_mp-fade),
           z-index 0s var(--_mp-lower),
+          var(--_mp-also, visibility 0s),
           visibility 0s linear calc(var(--_mp-fade) + var(--_mp-change) + var(--_mp-exit));
       }
 
@@ -151,6 +154,7 @@
           border-radius var(--_mp-change) ease-in-out var(--_mp-fade),
           background-color var(--_mp-change) ease-in-out var(--_mp-fade),
           z-index 0s var(--_mp-lower),
+          var(--_mp-also, visibility 0s),
           visibility 0s;
       }
 
