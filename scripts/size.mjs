@@ -25,8 +25,9 @@ const PROBES = [
     // then from 7.5 kB for placement changes and held messages: 7.82 kB,
     // then from 8 kB for the modal's entry and exit (Pill/modal.ts): 8.09 kB,
     // then from 8.25 kB for closeOnBackdropClick: 8.25 kB,
-    // then from 8.5 kB for pills sharing a placement (Pill/zone.ts): 9.14 kB
-    budget: 9.25 * KB, // 4.89 kB at 9.0.0-next.0
+    // then from 8.5 kB for pills sharing a placement (Pill/zone.ts): 9.14 kB,
+    // then from 9.25 kB for the themes (Pill/themed.ts): 9.24 kB
+    budget: 9.4 * KB, // 4.89 kB at 9.0.0-next.0
   },
   {
     name: "Pill primitive",
@@ -36,8 +37,9 @@ const PROBES = [
     // then from 3 kB for placement changes and held messages: 3.31 kB,
     // then from 3.5 kB for the modal's entry and exit (Pill/modal.ts): 3.61 kB,
     // then from 3.75 kB for closeOnBackdropClick: 3.78 kB,
-    // then from 4 kB for pills sharing a placement (Pill/zone.ts): 4.69 kB
-    budget: 4.75 * KB, // 1.44 kB at 9.0.0-next.0
+    // then from 4 kB for pills sharing a placement (Pill/zone.ts): 4.69 kB,
+    // then from 4.75 kB for the themes (Pill/themed.ts): 4.80 kB
+    budget: 4.9 * KB, // 1.44 kB at 9.0.0-next.0
   },
   {
     name: "Everything",
@@ -47,8 +49,9 @@ const PROBES = [
     // then from 11 kB for the queue's swap animation: 11.74 kB,
     // then from 12 kB for placement changes and held messages: 12.09 kB,
     // then from 12.5 kB for the modal's entry and exit and closeOnBackdropClick: 12.54 kB,
-    // then from 12.75 kB for pills sharing a placement (Pill/zone.ts): 13.42 kB
-    budget: 13.5 * KB, // 9.07 kB at 9.0.0-next.0
+    // then from 12.75 kB for pills sharing a placement (Pill/zone.ts): 13.42 kB,
+    // then from 13.5 kB for the glass' optics (PillOptics/, only for apps that render it): 17.05 kB
+    budget: 17.25 * KB, // 9.07 kB at 9.0.0-next.0
   },
 ];
 const STYLESHEETS = [
