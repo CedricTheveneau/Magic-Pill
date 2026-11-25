@@ -242,6 +242,22 @@ export interface SwapCapture {
   down: boolean;
 }
 
+const CONTROLS = "input, textarea, select";
+
+/** What was typed or chosen: a copied control starts from its default value. */
+function copyValues(from: HTMLElement, to: HTMLElement) {
+  const copies = to.querySelectorAll<HTMLInputElement>(CONTROLS);
+  const originals = [...from.querySelectorAll<HTMLInputElement>(CONTROLS)].filter(
+    (control) => !to.contains(control) && !control.closest('[data-mp="outgoing"]'),
+  );
+  originals.forEach((control, index) => {
+    const copy = copies[index];
+    if (!copy || control.type === "file") return;
+    if (control.type === "checkbox" || control.type === "radio") copy.checked = control.checked;
+    else copy.value = control.value;
+  });
+}
+
 /**
  * Before new content replaces the pill's: a still copy of what's on screen,
  * laid over it, to slide out once the new content is in. Null when there's
@@ -255,6 +271,7 @@ export function captureSwap(element: HTMLElement | null): SwapCapture | null {
     if (child.getAttribute("data-mp") !== "outgoing") outgoing.append(child.cloneNode(true));
   }
   stopMorphs(element);
+  copyValues(element, outgoing);
   // For the eyes only: no ids or radio groups shared with the real content
   for (const node of outgoing.querySelectorAll("[id], [name]")) {
     node.removeAttribute("id");

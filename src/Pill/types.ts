@@ -58,6 +58,9 @@ export type LinkComponent = ComponentType<
   AnchorHTMLAttributes<HTMLAnchorElement> & { href: string; ref?: Ref<HTMLAnchorElement> }
 >;
 
+/** How a pill goes from one scene to the next: through the circle, sliding, or at once. */
+export type SceneChange = "circle" | "slide" | "none";
+
 export interface PillProps extends Omit<ComponentPropsWithoutRef<"div">, "children"> {
   children?: ReactNode;
   /** Controlled presence. */
@@ -91,6 +94,14 @@ export interface PillProps extends Omit<ComponentPropsWithoutRef<"div">, "childr
   variant?: PillVariant;
   /** The variant picks the colour, the theme the material. Default `plain`. */
   theme?: PillTheme;
+  /**
+   * A name for what the pill shows. When it changes, the pill doesn't jump to
+   * the new content: it closes on the old one and opens on the new one, as
+   * between a host's navbar and its notifications.
+   */
+  scene?: string | number;
+  /** How: through the circle (default), sliding in the open pill, or at once. */
+  sceneChange?: SceneChange;
   /** Keeps the behaviour and the data attributes, drops the visual styles. */
   unstyled?: boolean;
 }

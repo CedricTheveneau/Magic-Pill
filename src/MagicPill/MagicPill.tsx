@@ -1,5 +1,6 @@
 "use client"
 import {
+  Fragment,
   forwardRef,
   useEffect,
   useLayoutEffect,
@@ -36,7 +37,7 @@ import {
 } from "./choreography";
 
 export interface MagicPillProps
-  extends Omit<PillProps, "presence" | "defaultPresence" | "onPresenceChange" | "children"> {
+  extends Omit<PillProps, "presence" | "defaultPresence" | "onPresenceChange" | "children" | "scene" | "sceneChange"> {
   /** Default "main". Two hosts with the same name warn in development. */
   name?: string;
   /**
@@ -44,6 +45,12 @@ export interface MagicPillProps
    * Notifications take the pill over, then it returns to this content.
    */
   children?: ReactNode;
+  /**
+   * A name for what the base layer shows. When it changes, the pill goes from
+   * the old content to the new one as it does to a notification (see `swap`),
+   * instead of jumping.
+   */
+  scene?: string | number;
   /** Default display time for notifications, in ms. Default 5000. */
   duration?: number;
   /** With no base layer and nothing queued: hide (default) or rest as a circle. */
@@ -93,6 +100,7 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
   {
     name = "main",
     children,
+    scene,
     duration = DEFAULT_DURATION,
     idle = "hidden",
     idleIcon,
@@ -123,6 +131,10 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
   // shows it while it closes, instead of collapsing around nothing
   const lastBase = useRef<ReactNode>(children);
   if (hasBase) lastBase.current = children;
+  const base = useMemo<Scene>(() => (scene === undefined ? BASE : { kind: "base", key: scene }), [scene]);
+  // Its scenes as last given: the one that leaves stays while the pill closes on it
+  const lastScenes = useRef(new Map<string | number | undefined, { children: ReactNode; variant: PillProps["variant"] }>());
+  lastScenes.current.set(scene, { children: lastBase.current, variant });
   // Someone filling in a form of the base layer: notifications wait until its
   // panel closes, rather than taking what was typed away
   const [isFillingIn, setIsFillingIn] = useState(false);
@@ -132,11 +144,11 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
       current && !isWaiting
         ? { kind: "notification", item: current }
         : hasBase
-          ? BASE
+          ? base
           : idle === "rest"
             ? IDLE
             : NONE,
-    [current, isWaiting, hasBase, idle],
+    [current, isWaiting, hasBase, base, idle],
   );
 
   // What it shows, moved towards the target one timed step at a time
@@ -262,7 +274,8 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
   const renderScene = (scene: Scene): ReactNode => {
     switch (scene.kind) {
       case "base":
-        return hasBase ? children : lastBase.current;
+        // A scene of its own: its fields' state doesn't go over to the next one
+        return <Fragment key={scene.key}>{lastScenes.current.get(scene.key)?.children ?? lastBase.current}</Fragment>;
       case "idle":
         return <PillIcon>{idleIcon}</PillIcon>;
       case "notification": {
@@ -290,8 +303,15 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
     }
   };
 
+  // Only the base layer's current scene, and the one still shown, are kept
+  const displayedKey = displayed.scene.kind === "base" ? displayed.scene.key : scene;
+  for (const key of lastScenes.current.keys()) {
+    if (key !== scene && key !== displayedKey) lastScenes.current.delete(key);
+  }
   const sceneVariant =
-    displayed.scene.kind === "notification" ? (displayed.scene.item.input.variant ?? variant) : variant;
+    displayed.scene.kind === "notification"
+      ? (displayed.scene.item.input.variant ?? variant)
+      : (lastScenes.current.get(displayedKey) ?? { variant }).variant;
 
   return (
     <>

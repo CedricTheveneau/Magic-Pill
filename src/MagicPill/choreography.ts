@@ -8,7 +8,8 @@ export { parseDuration };
 /** What the host's pill shows. */
 export type Scene =
   | { kind: "none" }
-  | { kind: "base" }
+  /** `key`: the app's name for what the base layer shows */
+  | { kind: "base"; key?: string | number }
   | { kind: "idle" }
   | { kind: "notification"; item: QueuedNotification };
 
@@ -42,7 +43,12 @@ export interface Step extends Displayed {
 const OPEN_LEVELS: ReadonlySet<PillPresence> = new Set(["compact", "expanded", "panel"]);
 export const isOpen = (presence: PillPresence) => OPEN_LEVELS.has(presence);
 
-const sceneKey = (scene: Scene) => (scene.kind === "notification" ? `notification:${scene.item.id}` : scene.kind);
+const sceneKey = (scene: Scene) =>
+  scene.kind === "notification"
+    ? `notification:${scene.item.id}`
+    : scene.kind === "base"
+      ? `base:${scene.key}`
+      : scene.kind;
 
 /**
  * Where new content slides into the open pill (the "rubik's cube") instead of
