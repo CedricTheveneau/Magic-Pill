@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+
+## [9.1.0] - 2026-11-25
+Themes (frosted glass, Liquid Glass, yours), forms and a calendar, scenes, and pills that make room for each other. Nothing to change in your code: forms, themes and the calendar are optional, each with its own stylesheet.
+
 ### Added
 - Pills with the same fixed placement make room for each other instead of overlapping: the first one set up keeps its spot, the next ones line up after it (below it at the top of the screen, above it at the bottom, further in from the edge on the sides), and take its place when it hides or unmounts. An open panel covers the others. On by default, for `<MagicPill>` hosts too; `ladder={false}` leaves a pill out
 - Themes: the `theme` prop on `<Pill>` and `<MagicPill>`, written to `data-theme`. `glass` and `liquid` come in an optional stylesheet, `magic-pill/themes.css`; any other name is yours to style, on the same glass if you like
@@ -30,6 +34,8 @@
 - A pill's open panel sits one level above the other pills (`--mp-z-index` + 1) until it has closed
 - A panel's close button shows its icon, and its label on hover and focus, like the other actions. `closeExpanded`, on `<PillPanel>` or in a notification's `panel`, always shows it
 - Colours change together: the text's and the actions' now fade like the pill's
+- TypeScript: `NavItem` is a union now, so an `interface` can't extend it: extend `NavLinkItem` instead
+- Size, measured and checked in CI: the quick start (`MagicPill` + `pill()`) adds about 10.2 kB of gzipped JavaScript and 3.1 kB of gzipped CSS to an app; a hand-written `Pill` with its parts, about 6.2 kB of JavaScript. A form panel adds about 3.2 kB to the quick start, and the calendar about 5 kB, only for apps that use them
 
 ### Fixed
 - A notification triggered with the keyboard from inside the pill (an action of the base layer, for instance) never timed out: the pill thought it still had the focus
