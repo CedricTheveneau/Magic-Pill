@@ -15,6 +15,9 @@
 - Panels: `titleAction`, an action at the end of the title's row, and `footer`, actions before the close button, which is then an outline. In notifications' `panel` too. Tokens: `--mp-accent`, `--mp-on-accent`, `--mp-close`, `--mp-on-close`, `--mp-close-rim`
 - Several panels in one pill: a `name` on `<PillPanel>`, the same `panel` on `<PillPanelTrigger>`, and `openPanel(name?)` and `closePanel()` from `usePill()`
 - Navbar items that are actions (`{ onClick, label }`) or that open a panel (`{ panel, label }`), next to links. `NavItem` is now one of `NavLinkItem`, `NavActionItem` and `NavPanelItem`
+- Forms, in an optional `magic-pill/forms.css`: fields on native controls, with no dependency, for panels and for the pill itself. The browser's validation shows under them, and the pill stays above the on-screen keyboard
+  - `PillForm` (`look`: solid, soft, outline; `layout`; `errors`; `disabled`; `busy`), `PillInput` (12 types, icons, suffixes, suggestions), `PillTextarea`, `PillSelect`, and `PillField` for a control of yours
+  - Tokens that follow the actions by default: `--mp-field`, `--mp-on-field`, `--mp-field-rim`, `--mp-field-size`, `--mp-field-radius`, `--mp-field-gap`, `--mp-field-scheme`, `--mp-placeholder`, `--mp-label-font`, `--mp-label-style`, `--mp-label-weight`, `--mp-error`, `--mp-list`, `--mp-on-list`, `--mp-picker`
 
 ### Changed
 - A pill's open panel sits one level above the other pills (`--mp-z-index` + 1) until it has closed

@@ -46,22 +46,22 @@ jobs:
 
       - name: Check build output
         run: |
-          for f in dist/index.js dist/index.mjs dist/index.d.ts dist/index.d.mts dist/styles.css dist/themes.css; do
+          for f in dist/index.js dist/index.mjs dist/index.d.ts dist/index.d.mts dist/styles.css dist/themes.css dist/forms.css; do
             test -f "$f" || { echo "::error::Missing build output: $f"; exit 1; }
           done
           # Components with state must keep their "use client" directive (Server Component support)
-          for f in MagicPill/MagicPill Pill/Pill Pill/PillContext Pill/PillPanel Pill/modal Pill/morph Pill/themed Pill/zone PillNavbar/PillNavbar PillNavbar/room PillOptics/PillOptics store/usePillQueue; do
+          for f in MagicPill/MagicPill Pill/Pill Pill/PillContext Pill/PillPanel Pill/modal Pill/morph Pill/themed Pill/zone PillNavbar/PillNavbar PillNavbar/room PillForm/PillForm PillForm/PillField PillForm/PillInput PillForm/PillTextarea PillForm/PillSelect PillForm/validity PillForm/keyboard PillOptics/PillOptics store/usePillQueue; do
             for ext in js mjs; do
               test "$(head -c 13 "dist/$f.$ext")" = '"use client";' || { echo "::error::dist/$f.$ext doesn't start with \"use client\""; exit 1; }
             done
           done
           # Stateless modules must not have it, or Server Components would get client references
-          for f in Pill/parts Pill/PillAction PillNotification/PillNotification PillNavbar/matchPath store/store MagicPill/choreography PillOptics/lens icons/CheckIcon utils/url utils/timing; do
+          for f in Pill/parts Pill/PillAction PillNotification/PillNotification PillNavbar/matchPath store/store MagicPill/choreography PillForm/glyphs PillOptics/lens icons/CheckIcon utils/url utils/timing; do
             for ext in js mjs; do
               ! grep -q '"use client"' "dist/$f.$ext" || { echo "::error::dist/$f.$ext must stay server-safe (no \"use client\")"; exit 1; }
             done
           done
-          for f in styles.css themes.css; do
+          for f in styles.css themes.css forms.css; do
             cmp -s "src/$f" "dist/$f" || { echo "::error::dist/$f differs from src/$f"; exit 1; }
           done
 

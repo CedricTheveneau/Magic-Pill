@@ -39,6 +39,18 @@ export type {
 export { PillNavbar } from './PillNavbar/PillNavbar';
 export type { PillNavbarProps, NavItem, NavLinkItem, NavActionItem, NavPanelItem } from './PillNavbar/PillNavbar';
 
+// Forms: fields on native controls, for panels and pills. They need magic-pill/forms.css
+export { PillForm } from './PillForm/PillForm';
+export type { PillFormProps } from './PillForm/PillForm';
+export { PillField } from './PillForm/PillField';
+export type { PillFieldProps, FieldProps, FieldControlProps } from './PillForm/PillField';
+export { PillInput } from './PillForm/PillInput';
+export type { PillInputProps, PillInputType } from './PillForm/PillInput';
+export { PillTextarea } from './PillForm/PillTextarea';
+export type { PillTextareaProps } from './PillForm/PillTextarea';
+export { PillSelect } from './PillForm/PillSelect';
+export type { PillSelectProps, PillOption, PillOptionGroup } from './PillForm/PillSelect';
+
 // 3. Controllers: a host per named pill, driven from anywhere
 export { default as MagicPill } from './MagicPill/MagicPill';
 export type { MagicPillProps } from './MagicPill/MagicPill';

@@ -26,6 +26,7 @@ On top of it come ready-made **templates** (a notification, a navbar) and a **co
  - [X] Several named pills on one page, at any edge or corner, inline, or as a modal; pills that share a spot line up instead of overlapping
  - [X] Anything inside: messages, icons and panels are React content; build your own templates from the same parts
  - [X] Shape-changing animations (circle ↔ pill ↔ panel) at the pill's real size, notifications that slide into each other, a pill that travels when its placement changes, all respecting reduced motion
+ - [X] Forms: fields on native controls, in a panel or in the pill, validated by the browser (optional)
  - [X] Accessible: screen reader announcements, keyboard focus pauses the countdown, focus handling for panels and modals
  - [X] Works in any React 18+ app, including React Server Components (Next.js App Router), with any router
  - [X] Styles you can override without `!important`, design tokens, no fonts loaded behind your back
@@ -342,6 +343,78 @@ pill().notify({
 
 ### Headless: `usePillQueue`
 To build your own display on the same store: `const { current, queued } = usePillQueue("main");`.
+
+## Forms
+Fields for a panel, or for the pill itself, on native controls: phones keep their keyboards and date pickers, and autofill, `FormData` and form libraries work as usual. Their look comes in a third stylesheet, so other apps don't load it:
+
+```tsx
+import "magic-pill/styles.css";
+import "magic-pill/forms.css"; // in any order
+
+<Pill>
+  <PillMessage>Any question?</PillMessage>
+  <PillActions><PillPanelTrigger icon={<MailIcon />} label="Write to us" /></PillActions>
+  <PillPanel title="Write to us" footer={<PillAction type="submit" form="contact" icon={<ArrowIcon />} label="Send" />}>
+    <PillForm id="contact" onSubmit={send}>
+      <PillInput name="email" label="Email" type="email" required />
+      <PillSelect name="about" label="About" options={["An order", "A return", "Something else"]} />
+      <PillTextarea name="message" label="Message" required maxLength={400} />
+    </PillForm>
+  </PillPanel>
+</Pill>
+```
+
+**The fields.** Any other prop goes to the native control (`name`, `value`, `defaultValue`, `required`, `onChange`, `ref`…).
+
+| Component | |
+|---|---|
+| `PillInput` | `type`: `text`, `email`, `password` (with a button that shows it), `search`, `tel`, `url`, `number`, `date`, `time`, `datetime-local`, `month`, `week`. Also `icon`, `suffix` (`"kg"`), `suggestions` (a list), `revealLabel` |
+| `PillTextarea` | Grows with its text, and counts it with `maxLength` |
+| `PillSelect` | `options`: strings, `{ value, label, disabled? }`, or groups (`{ label, options }`). `placeholder`, `icon`, and `layout="inline"` for a chip at the end of the row |
+| `PillField` | The label, the hint and the error, wired to a control of yours: `{(control) => <input {...control} />}` |
+
+| Every field's props | |
+|---|---|
+| `label` | Required: it's the accessible name. `hideLabel` keeps it for assistive technology |
+| `hint` | Under the control, and read with it |
+| `error` | Your own error, e.g. from the server. It wins over the browser's |
+| `optional` | Writes "optional" after the label, or your own word |
+| `layout` | For text: the label above (`"stacked"`) or beside (`"inline"`) |
+
+**`<PillForm>`** is a `<form>`, with:
+
+| Prop | Default | |
+|---|---|---|
+| `look` | `"solid"` | `"solid"` (like the actions), `"soft"` (a hint of the pill's text), `"outline"`, or any string (written to `data-look`) |
+| `layout` | `"stacked"` | Its text fields' labels: above, or beside (`"inline"`) |
+| `errors` | `"inline"` | The browser's validation messages: under the fields, or in its bubbles (`"native"`) |
+| `disabled` / `busy` | `false` | Disables every field (`busy`: while something is being sent) |
+
+- **Validation** is the browser's own (`required`, `type`, `pattern`, `min`…), in the reader's language: on an attempt to submit, which focuses the first wrong field, or on leaving a field that was changed and is wrong. A message goes as soon as the value is right.
+- **In the pill itself**, a `<PillForm>` is a row, with fields as tall as the actions: one field, one action.
+- **On phones**, the pill stays above the keyboard while one of its fields has the focus.
+- **Escape** closes an open list, not the panel.
+
+```tsx
+<Pill>
+  <PillForm onSubmit={subscribe}>
+    <PillInput label="Your email" hideLabel type="email" name="email" required />
+    <PillAction type="submit" icon={<ArrowIcon />} label="Subscribe" expanded />
+  </PillForm>
+</Pill>
+```
+
+| Token | Default |
+|---|---|
+| `--mp-field` / `--mp-on-field` / `--mp-field-rim` | the actions' colours and outline (the variant's, the theme's) |
+| `--mp-placeholder` | `--mp-on-field` at 70% (88% on glass) |
+| `--mp-field-size` / `--mp-field-radius` / `--mp-field-gap` | an action's height / half of it / 1.25 times `--mp-gap` |
+| `--mp-field-scheme` | `light` (`dark` on glass, `soft` and `outline`): what the browser draws, such as a calendar |
+| `--mp-label-font` / `--mp-label-style` / `--mp-label-weight` | `--mp-font-accent` / `normal` / `400` |
+| `--mp-error` | `--mp-danger` mixed with the pill's text (its text alone on `success` and `danger`) |
+| `--mp-list` / `--mp-on-list` / `--mp-picker` | `#f9f9f9` / `#141414`: an open list, where the browser lets it be drawn (Chromium). `--mp-picker: none` keeps the system's |
+
+> **Your app's resets:** CSS like `input { border: 1px solid }` that isn't in a layer also reaches the pill's fields. Their look is on what surrounds the controls, so they only need to stay bare: scope such rules, or put them in a layer.
 
 ## Icons
 Twelve built-in icons, drawn in `currentColor` and decorative by default (`aria-hidden`). Any other icon or SVG works too: icons are just React content.

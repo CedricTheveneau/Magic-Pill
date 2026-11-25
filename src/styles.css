@@ -18,7 +18,7 @@
   /* Behaviour comes last, so it beats the look whatever the specificity:
      a closed panel or a hidden pill stays hidden even if a visual rule
      sets a display. Your own unlayered CSS still beats both. */
-  @layer look, theme, behaviour;
+  @layer look, theme, forms, behaviour;
 
   @layer behaviour {
     /* ─── Behaviour: kept by `unstyled` pills ──────────────────────────────── */
