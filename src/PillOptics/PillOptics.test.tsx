@@ -7,6 +7,7 @@ import Pill from "../Pill/Pill";
 import type { PillProps } from "../Pill/types";
 import { PillOptics } from "./PillOptics";
 import * as lens from "./lens";
+import * as light from "./light";
 
 // What themes.css computes from the tokens
 const GLASS = {
@@ -176,6 +177,43 @@ describe("PillOptics", () => {
       // Assert
       expect(lensOf()).toBe("");
       expect(filters()).toHaveLength(0);
+    });
+  });
+
+  describe.each([
+    ["the pointer's light", "--_mp-follow", () => vi.spyOn(light, "followPointer")],
+  ])("%s", (_, property, spy) => {
+    const asking = { ...GLASS, [property]: "1" } as CSSProperties;
+
+    it("only runs for the pills that ask for it", async () => {
+      // Arrange
+      const stop = vi.fn();
+      const start = spy().mockReturnValue(stop);
+
+      // Act
+      const { again, unmount } = await renderAll(<><PillOptics />{show()}</>);
+      const before = start.mock.calls.length;
+      await again(<><PillOptics />{show({ style: asking, theme: "liquid" })}</>);
+      const running = [...start.mock.calls];
+      unmount();
+
+      // Assert
+      expect(before).toBe(0);
+      expect(running).toHaveLength(1);
+      expect([...running[0][0]]).toHaveLength(1);
+      expect(stop).toHaveBeenCalledOnce();
+    });
+
+    it("goes on undisturbed when nothing changed for it", async () => {
+      // Arrange
+      const start = spy().mockReturnValue(vi.fn());
+      const { again } = await renderAll(<><PillOptics />{show({ style: asking })}</>);
+
+      // Act
+      await again(<><PillOptics />{show({ style: asking, presence: "expanded" })}</>);
+
+      // Assert
+      expect(start).toHaveBeenCalledOnce();
     });
   });
 

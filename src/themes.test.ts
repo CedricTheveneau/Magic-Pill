@@ -30,7 +30,7 @@ describe("themes.css", () => {
     expect(topLevel.filter((block) => !/^@property --_mp-[\w-]+$/.test(block))).toEqual(["@layer magic-pill.theme"]);
   });
 
-  it.each(["refraction", "edge", "fringe"])("registers --_mp-%s and gives it a transition, for <PillOptics>", (name) => {
+  it.each(["refraction", "edge", "fringe", "follow"])("registers --_mp-%s and gives it a transition, for <PillOptics>", (name) => {
     // Assert
     expect(css).toMatch(new RegExp(`@property --_mp-${name} {`));
     expect(css).toMatch(new RegExp(`--_mp-also:[^;]*--_mp-${name} 1ms`));
@@ -68,6 +68,7 @@ describe("themes.css", () => {
     "refraction",
     "edge",
     "fringe",
+    "light-follow",
     "readable",
     "action",
     "on-action",
@@ -119,6 +120,13 @@ describe("themes.css", () => {
   it("selects by data attributes, never by class names that could collide", () => {
     // Assert
     expect(css).not.toMatch(/(^|[\s,>+~(])\.[a-zA-Z_-]/m);
+  });
+});
+
+describe("the light that follows the pointer", () => {
+  it("stays put with reduced motion", () => {
+    // Assert
+    expect(withoutComments(themes)).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*{[^}]*--_mp-follow: 0;/);
   });
 });
 

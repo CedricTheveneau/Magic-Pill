@@ -3,11 +3,12 @@ import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { onThemedPills, themedPills } from "../Pill/themed";
 import { canRefract, lensId, lensMap, makeLens, type Lens } from "./lens";
+import { followPointer } from "./light";
 
 const LENS = "--_mp-lens";
 // What a lens is made from: registered in themes.css, which also gives them a
 // (very short) transition, so a change of any token is heard when it ends
-const WATCHED = /^(--_mp-(refraction|edge|fringe)|border-top-left-radius)$/;
+const WATCHED = /^(--_mp-(refraction|edge|fringe|follow)|border-top-left-radius)$/;
 
 /** Red, green and blue: how far each one bends apart, and the matrix that keeps it alone. */
 const CHANNELS = [
@@ -57,10 +58,14 @@ function LensFilter({ lens }: { lens: Lens }) {
   );
 }
 
-/** The lens of a pill, from its tokens, or null without refraction. */
-function readLens(element: HTMLElement): Lens | null {
+type Read = (property: string) => number;
+const reader = (element: HTMLElement): Read => {
   const style = getComputedStyle(element);
-  const read = (property: string) => Number.parseFloat(style.getPropertyValue(property)) || 0;
+  return (property) => Number.parseFloat(style.getPropertyValue(property)) || 0;
+};
+
+/** The lens of a pill, from its tokens, or null without refraction. */
+function readLens(element: HTMLElement, read: Read): Lens | null {
   const refraction = read("--_mp-refraction");
   if (refraction <= 0) return null;
   // The browser never rounds a corner by more than half the pill
@@ -68,10 +73,22 @@ function readLens(element: HTMLElement): Lens | null {
   return makeLens(corner, read("--_mp-edge"), refraction, read("--_mp-fringe"));
 }
 
+/** Runs an effect for the pills that ask for it, and only while some do. */
+function makeGroup(start: (pills: ReadonlySet<HTMLElement>) => () => void) {
+  let pills: readonly HTMLElement[] = [];
+  let stop: (() => void) | undefined;
+  return (next: readonly HTMLElement[]) => {
+    if (next.length === pills.length && next.every((pill) => pills.includes(pill))) return;
+    stop?.();
+    pills = next;
+    stop = next.length > 0 ? start(new Set(next)) : undefined;
+  };
+}
+
 /**
  * What themes can't do in CSS. Render it once, anywhere: the tokens of each
- * themed pill decide. It draws the refraction of the glass, in the browsers
- * that can (Chromium).
+ * themed pill decide. It draws the refraction of the glass (in the browsers
+ * that can: Chromium), and has the light follow the pointer (`--mp-light-follow`).
  */
 export function PillOptics() {
   // The lenses on the page (pills with the same one share it), and whose they are
@@ -88,6 +105,7 @@ export function PillOptics() {
     let stopped = false;
     let pending = false;
     let refracts: boolean | undefined;
+    const following = makeGroup(followPointer);
 
     const update = () => {
       pending = false;
@@ -95,8 +113,11 @@ export function PillOptics() {
       const next = new Map<string, Lens>();
       const before = wanted.current;
       wanted.current = new Map();
+      const follow: HTMLElement[] = [];
       for (const element of themedPills) {
-        const lens = refracts === false ? null : readLens(element);
+        const read = reader(element);
+        if (read("--_mp-follow") > 0) follow.push(element);
+        const lens = refracts === false ? null : readLens(element, read);
         if (!lens) continue;
         // Asked once, and only if a pill needs it
         refracts ??= canRefract();
@@ -108,6 +129,7 @@ export function PillOptics() {
       for (const element of before.keys()) {
         if (!wanted.current.has(element)) element.style.removeProperty(LENS);
       }
+      following(follow);
       setLenses((current) => {
         const same = current.length === next.size && current.every((lens) => next.has(lensId(lens)));
         return same ? current : [...next.values()];
@@ -134,6 +156,7 @@ export function PillOptics() {
       window.removeEventListener("resize", schedule);
       for (const element of wanted.current.keys()) element.style.removeProperty(LENS);
       wanted.current.clear();
+      following([]);
     };
   }, []);
 
