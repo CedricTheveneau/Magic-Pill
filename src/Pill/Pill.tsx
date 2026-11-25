@@ -35,6 +35,7 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
     placement = "inline",
     ladder = true,
     closeOnBackdropClick = false,
+    backdrop,
     orientation,
     variant = "neutral",
     theme,
@@ -158,6 +159,7 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
         data-orientation={resolvedOrientation}
         data-variant={variant}
         {...(theme !== undefined && { "data-theme": theme })}
+        {...(backdrop !== undefined && { "data-backdrop": backdrop })}
         data-unstyled={unstyled ? "" : undefined}
         // Hidden: out of the focus order and the accessibility tree at once,
         // while the exit animation plays (Y5)

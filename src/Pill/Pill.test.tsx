@@ -71,6 +71,22 @@ describe("Pill", () => {
       expect(own.pill().dataset.theme).toBe("dark");
     });
 
+    it.each(["plain", "glow", "dots"])("writes the modal's backdrop %s, built in or custom", (backdrop) => {
+      // Act
+      const { pill } = renderPill({ placement: "overlay", backdrop });
+
+      // Assert
+      expect(pill().dataset.backdrop).toBe(backdrop);
+    });
+
+    it("has no data-backdrop without a backdrop", () => {
+      // Act
+      const { pill } = renderPill({ placement: "overlay" });
+
+      // Assert
+      expect(pill().hasAttribute("data-backdrop")).toBe(false);
+    });
+
     it("writes custom variants and unstyled", () => {
       // Act
       const { pill } = renderPill({ variant: "brand", unstyled: true });
