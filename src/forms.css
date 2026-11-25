@@ -48,8 +48,8 @@
     }
 
     &:is([data-theme="glass"], [data-theme="liquid"]) {
-      --_mp-hint-strength: 88%;
-      --_mp-look-hint-strength: 88%;
+      --_mp-hint-strength: 92%;
+      --_mp-look-hint-strength: 100%;
       --_mp-own-scheme: dark;
     }
 
@@ -57,8 +57,11 @@
       --_mp-own-scheme: light;
     }
 
-    &:is([data-variant="success"], [data-variant="danger"]) {
+    &:is([data-variant="success"], [data-variant="danger"], [data-theme="glass"], [data-theme="liquid"]) {
       --_mp-error: var(--mp-error, var(--_mp-on-surface));
+    }
+
+    &:is([data-variant="success"], [data-variant="danger"]) {
       --_mp-own-switch: color-mix(in srgb, var(--_mp-on-surface) 20%, transparent);
       --_mp-own-switch-rim: var(--_mp-outline);
       --_mp-look-hint-strength: 100%;

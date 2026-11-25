@@ -441,12 +441,12 @@ async function send(data: FormData) {
 | Token | Default |
 |---|---|
 | `--mp-field` / `--mp-on-field` / `--mp-field-rim` | the actions' colours and outline (the variant's, the theme's) |
-| `--mp-placeholder` | `--mp-on-field` at 70% (88% on glass) |
+| `--mp-placeholder` | `--mp-on-field` at 70% (92% on glass) |
 | `--mp-field-size` / `--mp-field-radius` / `--mp-field-gap` | an action's height / half of it / 1.25 times `--mp-gap` |
 | `--mp-field-scheme` | `light` (`dark` on glass, `soft` and `outline`): what the browser draws, such as a calendar |
 | `--mp-label-font` / `--mp-label-style` / `--mp-label-weight` | `--mp-font-accent` / `normal` / `400` |
-| `--mp-error` | `--mp-danger` mixed with the pill's text (its text alone on `success` and `danger`) |
-| `--mp-list` / `--mp-on-list` / `--mp-picker` | `#f9f9f9` / `#141414`: an open list, where the browser lets it be drawn (Chromium). `--mp-picker: none` keeps the system's |
+| `--mp-error` | `--mp-danger` mixed with the pill's text (its text alone on `success`, `danger` and glass) |
+| `--mp-list` / `--mp-on-list` / `--mp-picker` | `#f9f9f9` / `#141414`: an open list, where the browser lets it be drawn (Chromium). `--mp-picker: none` keeps the system's. With the `soft` and `outline` looks, lists and calendars are made of the pill's own colours instead |
 | `--mp-accent` / `--mp-on-accent` | the pill's text / its surface: switches, sliders, ticks, the submit action |
 | `--mp-track` / `--mp-track-size` / `--mp-thumb` | the pill's text at 48% / `4px` / `1.25rem`: what's off; a slider's thickness and thumb |
 
