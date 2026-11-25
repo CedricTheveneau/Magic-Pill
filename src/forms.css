@@ -147,7 +147,7 @@
       }
 
       /* No room for it: the outline tells, and it's still read out */
-      & [data-mp="field-error"] {
+      & :is([data-mp="field-error"], [data-mp="form-error"]) {
         position: absolute;
         inline-size: 1px;
         block-size: 1px;
@@ -1244,6 +1244,12 @@
 
     & [data-mp="field"][data-invalid] [data-mp="field-control"][data-type="file"] {
       outline-color: var(--_mp-error);
+    }
+
+    & > [data-mp="form"][data-failed] [data-mp="field-box"] {
+      box-shadow:
+        inset 0 0 0 2px var(--mp-danger, #c2303e),
+        0 0 0 1px var(--_mp-error);
     }
 
     /* Read only: still there to be read, not to be filled in */

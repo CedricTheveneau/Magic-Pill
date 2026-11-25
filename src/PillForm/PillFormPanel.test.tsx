@@ -89,7 +89,7 @@ describe("PillFormPanel", () => {
     // Arrange
     const { promise, resolve } = deferred();
     const onSubmit = vi.fn(() => promise);
-    renderPanel({ onSubmit, busyLabel: "Saving…" });
+    renderPanel({ onSubmit, busyLabel: ["Saving…", "Still saving…"] });
 
     // Act
     await submit();

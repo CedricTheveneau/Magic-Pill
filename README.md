@@ -338,7 +338,7 @@ pill().notify({
 
 ### React Server Components
 - The parts, `PillAction`, `PillNotification`, the icons and `pill()` have no `"use client"`. A Server Component can render them (and pass `linkComponent={Link}`) without shipping them to the browser.
-- `Pill`, `MagicPill`, `PillPanel`, `PillPanelTrigger`, `PillNavbar`, `PillOptics`, the fields, `PillForm`, `PillFormPanel`, `usePill` and `usePillQueue` are for the client. You can still render them from a Server Component.
+- `Pill`, `MagicPill`, `PillPanel`, `PillPanelTrigger`, `PillNavbar`, `PillOptics`, the fields, `PillForm`, `PillSubmit`, `PillFormPanel`, `usePill` and `usePillQueue` are for the client. You can still render them from a Server Component.
 - Call `pill()` from client code: event handlers, effects, client-side stores.
 
 ### Headless: `usePillQueue`
@@ -371,7 +371,8 @@ async function send(data: FormData) {
 | Prop | |
 |---|---|
 | `onSubmit(data, event)` | Called once every field is valid. The panel closes after it, unless it returns `false`. While the promise it returns is pending, the fields wait; if it's rejected, the panel stays open, keeps what was typed and shows the error's message |
-| `submitLabel` / `submitIcon` / `busyLabel` | The main action, and its label while it waits. Without a label there's none: for settings that apply at once |
+| `submitLabel` / `submitIcon` | The main action. Without a label there's none: for settings that apply at once |
+| `busyLabel` / `busyInterval` | Its label while it waits: one, or several that follow one another (every 2500 ms; the last one stays). Default "Just a moment…" |
 | `resetLabel` | An action in the title's row that resets the fields |
 | `errorLabel` | Shown when the error has no message. Default "Something went wrong." |
 
@@ -391,6 +392,7 @@ async function send(data: FormData) {
 | `PillFile` | Files: an area to click or drop them on, which names them. `multiple`, `accept`, `prompt` |
 | `PillColor` | A colour |
 | `PillFields` | Fields that go together: a `label`, `columns={2}`, `separators` |
+| `PillSubmit` | The action that sends the form: a `PillAction` that says so meanwhile (`busyLabel`, `busyInterval`) |
 | `PillField` | The label, the hint and the error, wired to a control of yours: `{(control) => <input {...control} />}` |
 
 | Every field's props | |
@@ -408,7 +410,8 @@ async function send(data: FormData) {
 | `look` | `"solid"` | `"solid"` (like the actions), `"soft"` (a hint of the pill's text), `"outline"`, or any string (written to `data-look`) |
 | `layout` | `"stacked"` | Its text fields' labels: above, or beside (`"inline"`) |
 | `errors` | `"inline"` | The browser's validation messages: under the fields, or in its bubbles (`"native"`) |
-| `disabled` / `busy` | `false` | Disables every field (`busy`: while something is being sent) |
+| `onSend(data, event)` | none | Instead of `onSubmit`: called once every field is valid, with no page load. While the promise it returns is pending, the form is busy; if it's rejected, the error's message shows (`errorLabel` if it has none) |
+| `disabled` / `busy` | `false` | Disables every field (`busy`: while something is being sent; `onSend` does it for you) |
 
 - **Validation** is the browser's own (`required`, `type`, `pattern`, `min`…), in the reader's language: on an attempt to submit, which focuses the first wrong field, or on leaving a field that was changed and is wrong. A message goes as soon as the value is right.
 - **In the pill itself**, a `<PillForm>` is a row, with fields as tall as the actions: one field, one action.
@@ -418,9 +421,9 @@ async function send(data: FormData) {
 
 ```tsx
 <Pill>
-  <PillForm onSubmit={subscribe}>
+  <PillForm onSend={subscribe}>
     <PillInput label="Your email" hideLabel type="email" name="email" required />
-    <PillAction type="submit" icon={<ArrowIcon />} label="Subscribe" expanded />
+    <PillSubmit icon={<ArrowIcon />} label="Subscribe" expanded busyLabel={["Adding you…", "Nearly there…"]} />
   </PillForm>
 </Pill>
 ```

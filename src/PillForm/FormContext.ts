@@ -9,6 +9,8 @@ export interface FormContextValue {
   layout?: FieldLayout;
   /** Where the browser's validation messages show. */
   errors: FormErrors;
+  /** Whether it's being sent. */
+  isBusy?: boolean;
 }
 
 export const FormContext = createContext<FormContextValue>({ errors: "inline" });

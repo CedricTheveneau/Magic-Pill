@@ -6,7 +6,6 @@ import {
   useMemo,
   useRef,
   useState,
-  type CSSProperties,
   type FocusEvent,
   type MouseEvent,
   type ReactNode,
@@ -21,6 +20,7 @@ import { getStore, type QueuedNotification } from "../store/store";
 import { getInputModality, trackInputModality } from "../utils/inputModality";
 import { usePillQueue } from "../store/usePillQueue";
 import { mergeRefs } from "../utils/react";
+import { VISUALLY_HIDDEN } from "../utils/visuallyHidden";
 import {
   BASE,
   IDLE,
@@ -62,20 +62,6 @@ export interface MagicPillProps
 }
 
 const DEFAULT_DURATION = 5000;
-
-// Readable by screen readers, invisible on screen, and independent of the
-// stylesheet (it must work for unstyled pills too)
-const VISUALLY_HIDDEN: CSSProperties = {
-  position: "absolute",
-  width: 1,
-  height: 1,
-  margin: -1,
-  padding: 0,
-  overflow: "hidden",
-  clip: "rect(0 0 0 0)",
-  whiteSpace: "nowrap",
-  border: 0,
-};
 
 // What the pill says, leaving out the copy of the previous notification sliding out
 const isCurrent = (element: Element) => !element.closest('[data-mp="outgoing"]');
