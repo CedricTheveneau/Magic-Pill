@@ -23,6 +23,12 @@
     --_mp-faint: color-mix(in srgb, var(--_mp-on-surface) 22%, transparent);
     --_mp-quiet: 0.72;
     --_mp-hint-strength: 70%;
+    /* How much of the pill's text (then of the accent) the soft look lays
+       down, and the outline one under what's on */
+    --_mp-soft-field: 13%;
+    --_mp-soft-on: 30%;
+    --_mp-soft-on-rim: transparent;
+    --_mp-outline-on: 14%;
     --_mp-thumb: var(--mp-thumb, 1.25rem);
     --_mp-error: var(--mp-error, color-mix(in oklab, var(--mp-danger, #c2303e) 38%, var(--_mp-on-surface)));
     --_mp-label-font: var(--mp-label-font, var(--mp-font-accent, inherit));
@@ -35,10 +41,15 @@
       --_mp-outline: var(--mp-track, color-mix(in srgb, var(--_mp-on-surface) 85%, transparent));
       --_mp-faint: color-mix(in srgb, var(--_mp-on-surface) 8%, transparent);
       --_mp-quiet: 0.92;
+      --_mp-soft-field: 8%;
+      --_mp-soft-on: 0%;
+      --_mp-soft-on-rim: var(--_mp-accent);
+      --_mp-outline-on: 8%;
     }
 
     &:is([data-theme="glass"], [data-theme="liquid"]) {
       --_mp-hint-strength: 88%;
+      --_mp-look-hint-strength: 88%;
       --_mp-own-scheme: dark;
     }
 
@@ -48,6 +59,9 @@
 
     &:is([data-variant="success"], [data-variant="danger"]) {
       --_mp-error: var(--mp-error, var(--_mp-on-surface));
+      --_mp-own-switch: color-mix(in srgb, var(--_mp-on-surface) 20%, transparent);
+      --_mp-own-switch-rim: var(--_mp-outline);
+      --_mp-look-hint-strength: 100%;
     }
 
     /* A field looks like the actions, unless its form's look says otherwise */
@@ -63,18 +77,52 @@
         --mp-placeholder,
         color-mix(in srgb, var(--_mp-on-field) var(--_mp-hint-strength), transparent)
       );
+      /* What's on (fill, rim, and the mark or the text on it), what's off, and
+         the bar choices sit in */
+      --_mp-on-fill: var(--_mp-look-on, var(--_mp-accent));
+      --_mp-on-rim: var(--_mp-look-on-rim, transparent);
+      --_mp-mark: var(--_mp-look-mark, var(--_mp-on-accent));
+      --_mp-mark-text: var(--_mp-look-mark-text, var(--_mp-on-accent));
+      --_mp-off-fill: var(--_mp-look-off, transparent);
+      --_mp-off-rim: var(--_mp-look-off-rim, var(--_mp-outline));
+      --_mp-track-fill: var(--_mp-look-track, var(--_mp-track));
+      --_mp-track-rim: var(--_mp-look-track-rim, transparent);
+      --_mp-switch-fill: var(--_mp-look-track, var(--_mp-own-switch, var(--_mp-track)));
+      --_mp-switch-rim: var(--_mp-look-track-rim, var(--_mp-own-switch-rim, transparent));
+      --_mp-bar-fill: var(--_mp-look-bar, var(--_mp-faint));
+      --_mp-bar-rim: var(--_mp-look-bar-rim, transparent);
     }
 
     & [data-mp="form"]:is([data-look="soft"], [data-look="outline"]) {
-      --_mp-look-field: color-mix(in srgb, var(--_mp-on-surface) 13%, transparent);
+      --_mp-look-field: color-mix(in srgb, var(--_mp-on-surface) var(--_mp-soft-field), transparent);
       --_mp-look-on-field: var(--_mp-on-surface);
       --_mp-look-rim: transparent;
       --_mp-look-scheme: dark;
+      --_mp-look-on: color-mix(in srgb, var(--_mp-accent) var(--_mp-soft-on), transparent);
+      --_mp-look-on-rim: var(--_mp-soft-on-rim);
+      --_mp-look-mark: var(--_mp-accent);
+      --_mp-look-mark-text: var(--_mp-on-surface);
+      --_mp-look-off: var(--_mp-look-field);
+      --_mp-look-off-rim: color-mix(in srgb, var(--_mp-on-surface) 45%, transparent);
+      --_mp-look-chip-rim: transparent;
+      /* On a status colour, see-through fields have no contrast left to spend */
+      --_mp-hint-strength: var(--_mp-look-hint-strength, 70%);
+      --_mp-look-track: var(--_mp-look-field);
+      --_mp-look-track-rim: transparent;
+      --_mp-look-bar: var(--_mp-look-field);
+      --_mp-look-bar-rim: transparent;
     }
 
     & [data-mp="form"][data-look="outline"] {
       --_mp-look-field: transparent;
       --_mp-look-rim: color-mix(in srgb, var(--_mp-on-surface) 55%, transparent);
+      /* A hint of it, so what's on doesn't only differ by its outline */
+      --_mp-look-on: color-mix(in srgb, var(--_mp-accent) var(--_mp-outline-on), transparent);
+      --_mp-look-on-rim: var(--_mp-accent);
+      --_mp-look-off-rim: var(--_mp-outline);
+      --_mp-look-chip-rim: var(--_mp-outline);
+      --_mp-look-track-rim: var(--_mp-outline);
+      --_mp-look-bar-rim: var(--_mp-look-rim);
     }
 
     /* ─── Form ─────────────────────────────────────────────────────────────── */
@@ -493,8 +541,8 @@
     & [data-mp="field"][data-layout="inline"] > [data-mp="field-box"][data-type="select"] {
       --_mp-field-size: 2.25rem;
       max-inline-size: 12rem;
-      background: var(--_mp-faint);
-      box-shadow: none;
+      background: var(--_mp-bar-fill);
+      box-shadow: inset 0 0 0 1px var(--_mp-bar-rim);
       color: var(--_mp-on-surface);
 
       & select {
@@ -640,7 +688,8 @@
       block-size: var(--_mp-bar);
       overflow: hidden;
       border-radius: 99px;
-      background: var(--_mp-track);
+      background: var(--_mp-track-fill);
+      box-shadow: inset 0 0 0 1px var(--_mp-track-rim);
 
       &::before {
         content: "";
@@ -689,8 +738,11 @@
 
       & > span {
         border-radius: 99px;
-        background: var(--_mp-track);
-        transition: background-color var(--_mp-change) ease-in-out;
+        background: var(--_mp-switch-fill);
+        box-shadow: inset 0 0 0 1.5px var(--_mp-switch-rim);
+        transition:
+          background-color var(--_mp-change) ease-in-out,
+          box-shadow var(--_mp-change) ease-in-out;
 
         &::after {
           content: "";
@@ -708,11 +760,12 @@
       }
 
       & input:checked + span {
-        background: var(--_mp-accent);
+        background: var(--_mp-on-fill);
+        box-shadow: inset 0 0 0 1.5px var(--_mp-on-rim);
 
         &::after {
           margin-inline-start: 1.625rem;
-          background: var(--_mp-on-accent);
+          background: var(--_mp-mark);
         }
       }
 
@@ -726,12 +779,9 @@
       }
     }
 
-    &:is([data-variant="success"], [data-variant="danger"])
-      [data-mp="field-control"][data-type="switch"]
-      input:not(:checked)
-      + span {
-      background: color-mix(in srgb, var(--_mp-on-surface) 20%, transparent);
-      box-shadow: inset 0 0 0 1.5px var(--_mp-outline);
+    /* Off the rim */
+    & [data-mp="form"][data-look="outline"] [data-mp="field-control"][data-type="switch"] > span::after {
+      scale: 0.8;
     }
 
     /* ─── Checkboxes and choices ───────────────────────────────────────────── */
@@ -782,9 +832,9 @@
       inline-size: 1.5rem;
       block-size: 1.5rem;
       border-radius: 0.5rem;
-      background: transparent;
-      box-shadow: inset 0 0 0 2px var(--_mp-outline);
-      color: var(--_mp-on-accent);
+      background: var(--_mp-off-fill);
+      box-shadow: inset 0 0 0 2px var(--_mp-off-rim);
+      color: var(--_mp-mark);
       font-size: 1rem;
       transition:
         background-color 150ms ease-out,
@@ -804,15 +854,15 @@
         inline-size: 0.625rem;
         block-size: 0.625rem;
         border-radius: 50%;
-        background: var(--_mp-on-accent);
+        background: var(--_mp-mark);
         scale: 0;
         transition: scale var(--_mp-change) var(--_mp-ease-enter);
       }
     }
 
     & input:checked + :is([data-mp="field-tick"], [data-mp="field-dot"]) {
-      background: var(--_mp-accent);
-      box-shadow: none;
+      background: var(--_mp-on-fill);
+      box-shadow: inset 0 0 0 2px var(--_mp-on-rim);
 
       & > svg {
         scale: 1;
@@ -825,9 +875,9 @@
 
     & input:indeterminate + [data-mp="field-tick"] {
       background:
-        linear-gradient(var(--_mp-on-accent), var(--_mp-on-accent)) center / 0.8rem 3px no-repeat,
-        var(--_mp-accent);
-      box-shadow: none;
+        linear-gradient(var(--_mp-mark), var(--_mp-mark)) center / 0.8rem 3px no-repeat,
+        var(--_mp-on-fill);
+      box-shadow: inset 0 0 0 2px var(--_mp-on-rim);
 
       & > svg {
         scale: 0;
@@ -881,7 +931,8 @@
       gap: 0;
       padding: var(--_mp-inset);
       border-radius: calc(var(--_mp-field-radius) + var(--_mp-inset));
-      background: var(--_mp-faint);
+      background: var(--_mp-bar-fill);
+      box-shadow: inset 0 0 0 1px var(--_mp-bar-rim);
 
       & [data-mp="choice"] {
         justify-content: center;
@@ -901,12 +952,13 @@
       }
 
       & input:checked + [data-mp="choice-body"] {
-        color: var(--_mp-on-accent);
+        color: var(--_mp-mark-text);
       }
 
       /* Several can be chosen: each has its own */
       &:not([data-slides]) input:checked + [data-mp="choice-body"] {
-        background: var(--_mp-accent);
+        background: var(--_mp-on-fill);
+        box-shadow: inset 0 0 0 1.5px var(--_mp-on-rim);
       }
     }
 
@@ -919,7 +971,8 @@
       );
       inline-size: calc((100% - 2 * var(--_mp-inset)) / var(--_mp-count));
       border-radius: var(--_mp-field-radius);
-      background: var(--_mp-accent);
+      background: var(--_mp-on-fill);
+      box-shadow: inset 0 0 0 1.5px var(--_mp-on-rim);
       transition:
         inset-inline-start calc(var(--_mp-change) * 1.4) var(--_mp-ease-slide),
         scale var(--_mp-change) var(--_mp-ease-enter),
@@ -954,7 +1007,8 @@
         min-block-size: 2.5rem;
         padding-inline: 1rem;
         border-radius: var(--_mp-field-radius);
-        box-shadow: inset 0 0 0 1.5px var(--_mp-outline);
+        background: var(--_mp-off-fill);
+        box-shadow: inset 0 0 0 1.5px var(--_mp-look-chip-rim, var(--_mp-off-rim));
         transition:
           background-color var(--_mp-change) ease-in-out,
           box-shadow var(--_mp-change) ease-in-out,
@@ -962,9 +1016,9 @@
       }
 
       & input:checked + [data-mp="choice-body"] {
-        background: var(--_mp-accent);
-        box-shadow: none;
-        color: var(--_mp-on-accent);
+        background: var(--_mp-on-fill);
+        box-shadow: inset 0 0 0 1.5px var(--_mp-on-rim);
+        color: var(--_mp-mark-text);
       }
     }
 
@@ -1025,9 +1079,9 @@
         inline-size: 2.25rem;
         block-size: 2.25rem;
         border-radius: 50%;
-        background: var(--_mp-action);
-        box-shadow: inset 0 0 0 1px var(--_mp-action-rim);
-        color: var(--_mp-on-action);
+        background: var(--_mp-look-field, var(--_mp-action));
+        box-shadow: inset 0 0 0 1px var(--_mp-look-rim, var(--_mp-action-rim));
+        color: var(--_mp-look-on-field, var(--_mp-on-action));
         font-size: 1.05rem;
         transition:
           scale 150ms ease-out,
@@ -1124,7 +1178,8 @@
       position: relative;
       min-block-size: 4.5rem;
       border-radius: min(var(--_mp-field-radius), 1.375rem);
-      outline: 1.5px dashed var(--_mp-outline);
+      background: var(--_mp-off-fill);
+      outline: 1.5px dashed var(--_mp-off-rim);
       outline-offset: -1.5px;
       transition:
         background-color 150ms ease-out,

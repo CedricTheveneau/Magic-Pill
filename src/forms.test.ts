@@ -88,6 +88,17 @@ describe("forms.css", () => {
     expect(css).not.toMatch(/:is\([^)]*::/);
   });
 
+  it("gives every look to every kind of field, through the same values", () => {
+    // Arrange: everything that's on, off, or a bar
+    const values = ["on-fill", "on-rim", "mark", "mark-text", "off-fill", "off-rim", "track-fill", "track-rim", "switch-fill", "switch-rim", "bar-fill", "bar-rim"];
+    const rules = css.slice(css.indexOf('& [data-mp="form"]:is([data-look="soft"]'));
+
+    // Assert
+    for (const value of values) expect(rules).toContain(`var(--_mp-${value})`);
+    // The plain accent is for the look-less parts only: the slider, the submit action
+    expect(rules.match(/background: var\(--_mp-accent\)/g)).toHaveLength(2);
+  });
+
   it("follows reduced motion and forced colours", () => {
     // Assert
     expect(css).toContain("@media (prefers-reduced-motion: reduce)");
