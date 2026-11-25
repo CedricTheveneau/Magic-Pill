@@ -26,7 +26,7 @@ On top of it come ready-made **templates** (a notification, a navbar) and a **co
  - [X] Several named pills on one page, at any edge or corner, inline, or as a modal; pills that share a spot line up instead of overlapping
  - [X] Anything inside: messages, icons and panels are React content; build your own templates from the same parts
  - [X] Shape-changing animations (circle ↔ pill ↔ panel) at the pill's real size, notifications that slide into each other, a pill that travels when its placement changes, all respecting reduced motion
- - [X] Forms: fields on native controls, in a panel or in the pill, validated by the browser (optional)
+ - [X] Forms: fields on native controls, in a panel or in the pill, validated by the browser, and a calendar (optional)
  - [X] Accessible: screen reader announcements, keyboard focus pauses the countdown, focus handling for panels and modals
  - [X] Works in any React 18+ app, including React Server Components (Next.js App Router), with any router
  - [X] Styles you can override without `!important`, design tokens, no fonts loaded behind your back
@@ -400,6 +400,7 @@ async function send(data: FormData) {
 | `PillCode` | A one-time code of `length` digits (6): one input, drawn as slots, so pasting and SMS autofill work. `onComplete(code)` |
 | `PillFile` | Files: an area to click or drop them on, which names them. `multiple`, `accept`, `prompt` |
 | `PillColor` | A colour |
+| `PillDate` | A date, a month, a week, a time, or a date and time, in a calendar of the pill's instead of the browser's: see below |
 | `PillFields` | Fields that go together: a `label`, `columns={2}`, `separators` |
 | `PillSubmit` | The action that sends the form: a `PillAction` that says so meanwhile (`busyLabel`, `busyInterval`) |
 | `PillField` | The label, the hint and the error, wired to a control of yours: `{(control) => <input {...control} />}` |
@@ -448,6 +449,29 @@ async function send(data: FormData) {
 | `--mp-list` / `--mp-on-list` / `--mp-picker` | `#f9f9f9` / `#141414`: an open list, where the browser lets it be drawn (Chromium). `--mp-picker: none` keeps the system's |
 | `--mp-accent` / `--mp-on-accent` | the pill's text / its surface: switches, sliders, ticks, the submit action |
 | `--mp-track` / `--mp-track-size` / `--mp-thumb` | the pill's text at 48% / `4px` / `1.25rem`: what's off; a slider's thickness and thumb |
+
+### The calendar
+`PillInput type="date"` opens the browser's own calendar: the one people know on their device, and it costs nothing. `PillDate` draws one in the pill's language instead, with the same values, so one can replace the other. It's optional, with a stylesheet of its own:
+
+```tsx
+import "magic-pill/forms.css";
+import "magic-pill/calendar.css";
+
+<PillDate name="when" label="When" defaultValue="2026-12-24" min="2026-12-01" onChange={(value) => {}} />
+<PillDate name="slot" label="Slot" type="datetime-local" step={900} />
+```
+
+| Prop | |
+|---|---|
+| `type` | `"date"`, `"month"`, `"week"`, `"time"`, `"datetime-local"` |
+| `value` / `defaultValue` / `onChange(value)` | As the native input of that type writes it: `2026-12-24`, `2026-12`, `2026-W52`, `19:30`, `2026-12-24T19:30`. It's sent with the form the same way |
+| `min` / `max` / `step` / `required` / `disabled` | As on the native input (`step` in seconds: how far apart the times are, five minutes by default) |
+| `disabledDate(day)` | Days that can't be chosen, e.g. weekends |
+| `inline` | Always there, in the form, instead of in a popover |
+| `locale` / `firstDay` / `format` | The reader's by default: the language, the first day of the week, how the value is written (`Intl.DateTimeFormat` options) |
+| `labels` / `placeholder` | Its own words (`today`, `now`, `clear`, `done`, `previous`, `next`, `hours`, `minutes`…) |
+
+With the keyboard: the arrows, Home and End (the week), Page Up and Page Down (the month; the year with Shift), Enter, and Escape, which closes it alone. The title goes up to the months, then to the years. Its colours are those of open lists (`--mp-list`, `--mp-on-list`), the pill's own when it's `inline`; `--mp-calendar-cell` (`2.25rem`) is its days' size. Weeks start on Monday.
 
 > **Your app's resets:** CSS like `input { border: 1px solid }` that isn't in a layer also reaches the pill's fields. Their look is on what surrounds the controls, so they only need to stay bare: scope such rules, or put them in a layer.
 

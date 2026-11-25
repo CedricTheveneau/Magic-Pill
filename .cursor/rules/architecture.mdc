@@ -35,14 +35,15 @@ One folder per component, with its children, tests and local types next to it:
 src/
 ├── index.ts                  the public API: every export goes through here
 ├── Pill/                     layer 1, the primitive: Pill, parts, PillAction, PillPanel, usePill, types
-│                             (+ morph.ts, the size, swap and placement animations, modal.ts, the overlay's
+│                             (+ morph.ts, the size, swap and placement animations, scene.ts, going from one content to the next, modal.ts, the overlay's
 │                             <dialog>, zone.ts, pills sharing a placement, and themed.ts, the ones with a theme)
 ├── PillOptics/               what themes can't do in CSS (+ lens.ts, the refraction, light.ts, the pointer's
 │                             light, and adaptive.ts, the tinting)
 ├── PillNotification/         layer 2, a template
 ├── PillNavbar/               layer 2, a template (+ matchPath.ts, and room.ts, narrow screens)
 ├── PillForm/                 the forms: PillForm, one file per field, PillFormPanel (a template) (+ PillField, the
-│                             shell they share, validity.ts, the browser's validation, and keyboard.ts, phones)
+│                             shell they share, validity.ts, the browser's validation, send.ts, what a form does once it's valid,
+│                             keyboard.ts, phones, and for PillDate: Calendar, dates.ts and popover.ts)
 ├── MagicPill/                layer 3, the host (+ choreography.ts, its pure animation planning)
 ├── store/                    layer 3, the named-pill store, pill() and usePillQueue
 ├── icons/                    one component per icon (PascalCase, e.g. CheckIcon.tsx)
@@ -50,6 +51,7 @@ src/
 ├── styles.css                the stylesheet, shipped as-is
 ├── themes.css                the glass themes, optional, shipped as-is
 ├── forms.css                 the fields' look, optional, shipped as-is
+├── calendar.css              PillDate's look, optional, shipped as-is
 └── *.test.ts(x)              tests next to the code they test
 ```
 
@@ -78,7 +80,7 @@ src/
 - No compound statics (`Pill.Icon`): a Server Component can't dot into a client module. Export each part by name.
 
 ### Styling
-- `src/styles.css` is entirely inside `@layer magic-pill`, with the `look`, `theme`, `forms` and `behaviour` sub-layers (behaviour last, so hiding rules always win). `src/themes.css` fills `magic-pill.theme`, for pills with a `theme` or a `backdrop`: plain pills must not need it. `src/forms.css` fills `magic-pill.forms`, for the fields. The three declare the same order.
+- `src/styles.css` is entirely inside `@layer magic-pill`, with the `look`, `theme`, `forms` and `behaviour` sub-layers (behaviour last, so hiding rules always win). `src/themes.css` fills `magic-pill.theme`, for pills with a `theme` or a `backdrop`: plain pills must not need it. `src/forms.css` fills `magic-pill.forms`, for the fields. `src/calendar.css` adds `PillDate`'s to it. They all declare the same order.
 - Select parts with `[data-mp="…"]` and states with data attributes (`data-presence`, `data-placement`, `data-orientation`, `data-variant`, `data-theme`, `data-backdrop`). No class names of ours.
 - Public tokens (`--mp-*`) are only **read**, with fallbacks, never declared, so users can set them anywhere. Private values start with `--_mp-`.
 - Never load fonts or anything else from the network (no `@import`, no `url()`); `styles.test.ts` and `themes.test.ts` guard it.
@@ -135,7 +137,7 @@ src/
   - Rules:
     - Don't add an `.npmignore`: with `files`, it can only exclude things inside the allowlist. Check `npm pack --dry-run` (from a clean build) when the list changes.
 - **tsdown.config.mts**
-  - Purpose: Builds `dist/` (ESM + CJS, typings, unbundled so each module keeps its directive) and copies the three stylesheets as-is
+  - Purpose: Builds `dist/` (ESM + CJS, typings, unbundled so each module keeps its directive) and copies the stylesheets as-is
   - Rules:
     - tsdown is 0.x and pinned to an exact version: read its changelog before any upgrade.
 - **tsconfig.json**
