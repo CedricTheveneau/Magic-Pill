@@ -29,7 +29,7 @@ On top of it come ready-made **templates** (a notification, a navbar) and a **co
  - [X] Accessible: screen reader announcements, keyboard focus pauses the countdown, focus handling for panels and modals
  - [X] Works in any React 18+ app, including React Server Components (Next.js App Router), with any router
  - [X] Styles you can override without `!important`, design tokens, no fonts loaded behind your back
- - [X] Tiny: the quick start adds about **12 kB gzipped** to your app (9.2 kB of JavaScript + 2.7 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
+ - [X] Tiny: the quick start adds about **12.2 kB gzipped** to your app (9.3 kB of JavaScript + 2.9 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
  - [X] Written in TypeScript, zero runtime dependencies
 
 ## Installation
@@ -113,7 +113,7 @@ const id = pill().notify({
 | `message` | `ReactNode` | Required (unless you use `render`). Any content, e.g. `<>Total: <strong>768.99$</strong></>`. Never parsed as HTML. |
 | `icon` | `ReactNode` | The leading icon, followed by the divider. |
 | `action` | `{ icon?, label, onClick }` or `{ icon?, label, href }`, plus `expanded?` | The round button. Its label shows on hover and focus, or all the time with `expanded: true` (phones don't hover). Clicking it dismisses the notification; call `event.preventDefault()` in `onClick` to keep it open. |
-| `panel` | `{ title?, content, trigger?, closeLabel? }` | A "Learn more" action that grows the pill into a panel. `trigger` defaults to `{ icon: <PlusIcon />, label: "Learn more" }` and takes `expanded` too, `closeLabel` to `"Close"`. |
+| `panel` | `{ title?, content, trigger?, closeLabel?, closeExpanded? }` | A "Learn more" action that grows the pill into a panel. `trigger` defaults to `{ icon: <PlusIcon />, label: "Learn more" }` and takes `expanded` too, `closeLabel` to `"Close"`: like the other labels, it shows on hover and focus, or all the time with `closeExpanded`. |
 | `variant` | `"neutral"` · `"success"` · `"danger"` · any string | Defaults to the host's variant. |
 | `duration` | `number` (ms) | Defaults to the host's (5000). `Infinity` keeps it until dismissed. |
 | `id` | `string` | Notifying again with the same id updates the notification in place. |
@@ -213,6 +213,7 @@ export function AppPill() {
 - **Matching:** an item is active on its own path and below it, on whole segments: `/blog` is active on `/blog/my-post`, not on `/blogroll`. `/` is only active on `/`. When several items match, the longest `href` wins. Override with `match: "exact"` or `match: (pathname) => boolean`.
 - **The active link** shows its label and gets `aria-current="page"`.
 - **Without `pathname`**, the navbar reads `window.location.pathname` after mounting and on back/forward navigation. That misses client-side navigations, so pass `pathname` when you use a client-side router.
+- **On a narrow screen**, when there's no room for the current page's label and the one you point at (or focus), the current one folds meanwhile. A label that still has no room ends with an ellipsis.
 - **`aria-label`** defaults to `"Main"`.
 
 **React Router:** its `Link` takes `to` instead of `href`. Wrap it once:
@@ -278,7 +279,7 @@ Any other prop (`className`, `aria-label`, `ref`…) goes to the element.
 - `PillDivider`: the thin line after the icon.
 - `PillMessage`: the message, in the italic serif.
 - `PillActions` and `PillAction`: round buttons. `label` is required: it's the accessible name, and it shows on hover, on focus, with `expanded`, or at the `expanded` level. A `PillAction` is a `<button>` with `onClick`, or a link with `href` (through `linkComponent` if you pass one).
-- `PillPanel` and `PillPanelTrigger`: content shown at the `panel` level, and the action that opens it. The panel takes the focus when it opens, closes on Escape or with its close button, and gives the focus back to the trigger. One panel per pill.
+- `PillPanel` and `PillPanelTrigger`: content shown at the `panel` level, and the action that opens it. The panel takes the focus when it opens, closes on Escape or with its close button (`closeLabel`, `closeIcon`, and `closeExpanded` to always show the label), and gives the focus back to the trigger. One panel per pill.
 
 **Pills in the same spot:** pills with the same fixed `placement` make room for each other, `<MagicPill>` hosts included. The first one set up keeps its spot, and the next ones line up after it: below it at the top of the screen, above it at the bottom, further in from the edge on the `left` and `right`. Each one keeps its own `--mp-gap` from the one before it.
 - When a pill hides or unmounts, the ones after it take its place. A hidden pill keeps its turn, and takes its spot back when it shows again; one that unmounts comes back last.

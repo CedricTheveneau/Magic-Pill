@@ -79,6 +79,33 @@ describe("styles.css", () => {
     expect(rule).toContain(`--_mp-own-on-action: var(--mp-on-${variant}-action, var(--mp-on-action));`);
   });
 
+  it("leaves a panel's close button folded while the other actions show their label", () => {
+    // Assert
+    expect(withoutComments).toContain(
+      '&:is([data-presence="expanded"], [data-presence="panel"]) [data-mp="action"]:not([data-collapsed])',
+    );
+  });
+
+  it("changes the panel's footer, the text and the actions' colours at the pill's pace", () => {
+    // Arrange
+    const footer = withoutComments.split('[data-mp="panel-footer"] {')[1].split("/* ")[0];
+    const body = withoutComments.split('& [data-mp="action-body"] {\n        display: inline-flex;')[1].split("}")[0];
+
+    // Assert: a colour under a mask, since a gradient can't be transitioned
+    expect(footer).toMatch(/&::before {[^}]*background: var\(--_mp-surface\);\s*mask: linear-gradient/);
+    expect(footer).toContain("transition: background-color var(--_mp-change) ease-in-out;");
+    expect(body).toContain("background-color var(--_mp-change) ease-in-out");
+    expect(body).toContain("color var(--_mp-change) ease-in-out");
+    expect(withoutComments.match(/[^-]color var\(--_mp-change\) ease-in-out/g)?.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it("folds a tight navbar's open labels, except the one pointed at or focused", () => {
+    // Assert
+    expect(withoutComments).toContain(
+      '& [data-mp="navbar"][data-tight] [data-mp="action"]:not(:hover, :focus-visible)',
+    );
+  });
+
   it("follows prefers-reduced-motion", () => {
     // Assert
     expect(withoutComments).toContain("@media (prefers-reduced-motion: reduce)");

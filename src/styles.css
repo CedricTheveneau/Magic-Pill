@@ -113,6 +113,7 @@
         scale var(--_mp-enter) var(--_mp-ease-enter),
         border-radius var(--_mp-change) ease-in-out,
         background-color var(--_mp-change) ease-in-out,
+        color var(--_mp-change) ease-in-out,
         z-index 0s var(--_mp-lower),
         var(--_mp-also, visibility 0s),
         visibility 0s;
@@ -156,6 +157,7 @@
           scale var(--_mp-exit) ease-in calc(var(--_mp-fade) + var(--_mp-change)),
           border-radius var(--_mp-change) ease-in-out var(--_mp-fade),
           background-color var(--_mp-change) ease-in-out var(--_mp-fade),
+          color var(--_mp-change) ease-in-out var(--_mp-fade),
           z-index 0s var(--_mp-lower),
           var(--_mp-also, visibility 0s),
           visibility 0s linear calc(var(--_mp-fade) + var(--_mp-change) + var(--_mp-exit));
@@ -171,6 +173,7 @@
           scale var(--_mp-enter) var(--_mp-ease-enter),
           border-radius var(--_mp-change) ease-in-out var(--_mp-fade),
           background-color var(--_mp-change) ease-in-out var(--_mp-fade),
+          color var(--_mp-change) ease-in-out var(--_mp-fade),
           z-index 0s var(--_mp-lower),
           var(--_mp-also, visibility 0s),
           visibility 0s;
@@ -420,7 +423,10 @@
         font-style: normal;
         font-weight: 700;
         white-space: nowrap;
-        transition: padding var(--_mp-change) ease-in-out;
+        transition:
+          padding var(--_mp-change) ease-in-out,
+          background-color var(--_mp-change) ease-in-out,
+          color var(--_mp-change) ease-in-out;
       }
 
       & [data-mp="action"]:focus-visible {
@@ -466,21 +472,29 @@
           opacity var(--_mp-change) ease-in-out,
           margin var(--_mp-change) ease-in-out;
 
+        /* Cut short, it says so; not while it unfolds */
         & > * {
           min-inline-size: 0;
           overflow: hidden;
+          text-overflow: clip;
+          transition: text-overflow 0s allow-discrete;
         }
       }
 
       /* In a column, the pill is as wide as its widest item: a label folds
          only once the next one has unfolded, so the pill never narrows in
          between (and moving the pointer from item to item keeps it steady) */
-      &[data-orientation="vertical"] :is([data-mp="label"], [data-mp="action-body"]) {
+      &[data-orientation="vertical"] [data-mp="label"] {
         transition-delay: var(--_mp-change);
       }
 
+      /* Its padding, not its colours */
+      &[data-orientation="vertical"] [data-mp="action-body"] {
+        transition-delay: var(--_mp-change), 0s, 0s;
+      }
+
       & [data-mp="action"]:is(:focus-visible, [data-expanded], [aria-current="page"], [aria-current="true"]),
-      &:is([data-presence="expanded"], [data-presence="panel"]) [data-mp="action"] {
+      &:is([data-presence="expanded"], [data-presence="panel"]) [data-mp="action"]:not([data-collapsed]) {
         & [data-mp="action-body"] {
           padding-inline-end: calc(var(--_mp-action-size) / 2.5);
           transition-delay: 0s;
@@ -492,8 +506,46 @@
           transition-delay: 0s;
         }
 
+        & [data-mp="label"] > * {
+          text-overflow: ellipsis;
+          transition-delay: var(--_mp-change);
+        }
+
         & [data-mp="action-icon"] + [data-mp="label"] {
           margin-inline-start: 0.5rem;
+        }
+      }
+
+      /* A navbar stays in its pill: where it's too narrow, the open label is
+         cut short, rather than the last items */
+      &[data-orientation="horizontal"] [data-mp="navbar"] {
+        min-inline-size: 0;
+
+        & [data-mp="action"] {
+          flex: 0 1 auto;
+          min-inline-size: var(--_mp-action-size);
+        }
+
+        & :is([data-mp="action-body"], [data-mp="label"]) {
+          min-inline-size: 0;
+        }
+
+        & [data-mp="action-body"] {
+          inline-size: 100%;
+        }
+      }
+
+      /* No room for two labels (PillNavbar/room.ts): the one that was open
+         folds while another is pointed at or focused */
+      & [data-mp="navbar"][data-tight] [data-mp="action"]:not(:hover, :focus-visible) {
+        & [data-mp="action-body"] {
+          padding-inline-end: calc((var(--_mp-action-size) - 1.25rem) / 2);
+        }
+
+        & [data-mp="action-icon"] + [data-mp="label"] {
+          grid-template-columns: 0fr;
+          margin-inline-start: 0;
+          opacity: 0;
         }
       }
 
@@ -510,6 +562,11 @@
             grid-template-columns: 1fr;
             opacity: 1;
             transition-delay: 0s;
+          }
+
+          & [data-mp="label"] > * {
+            text-overflow: ellipsis;
+            transition-delay: var(--_mp-change);
           }
 
           & [data-mp="action-icon"] + [data-mp="label"] {
@@ -562,7 +619,20 @@
         display: flex;
         justify-content: center;
         padding-block-start: var(--_mp-gap);
-        background: linear-gradient(transparent, var(--_mp-surface) 50%);
+        isolation: isolate;
+
+        /* Fades the text out under it, down to the pill's edge. A masked
+           colour, which can be transitioned like the pill's own: a gradient
+           would jump */
+        &::before {
+          content: "";
+          position: absolute;
+          z-index: -1;
+          inset: 0 0 calc(var(--_mp-padding) * -2.5);
+          background: var(--_mp-surface);
+          mask: linear-gradient(transparent, #000 calc(var(--_mp-gap) + var(--_mp-action-size) / 4));
+          transition: background-color var(--_mp-change) ease-in-out;
+        }
       }
     }
 
@@ -612,7 +682,8 @@
         & [data-mp="label"],
         & [data-mp="action-body"],
         & [data-mp="message"],
-        & [data-mp="panel"] {
+        & [data-mp="panel"],
+        & [data-mp="panel-footer"]::before {
           transition: none;
         }
       }

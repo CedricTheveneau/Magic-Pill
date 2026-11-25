@@ -50,8 +50,9 @@ const PROBES = [
     // then from 12 kB for placement changes and held messages: 12.09 kB,
     // then from 12.5 kB for the modal's entry and exit and closeOnBackdropClick: 12.54 kB,
     // then from 12.75 kB for pills sharing a placement (Pill/zone.ts): 13.42 kB,
-    // then from 13.5 kB for the glass' optics (PillOptics/, only for apps that render it): 17.05 kB
-    budget: 17.25 * KB, // 9.07 kB at 9.0.0-next.0
+    // then from 13.5 kB for the glass' optics (PillOptics/, only for apps that render it): 17.05 kB,
+    // then from 17.25 kB for a navbar's narrow screens (PillNavbar/room.ts): 17.70 kB
+    budget: 18 * KB, // 9.07 kB at 9.0.0-next.0
   },
 ];
 const STYLESHEETS = [
@@ -60,8 +61,9 @@ const STYLESHEETS = [
     description: "the stylesheet",
     // Raised from 2.5 kB for pills sharing a placement: 2.51 kB,
     // then from 2.6 kB for the actions' rim and current page colours: 2.59 kB, the backdrop's blur: 2.62 kB,
-    // the variants' text and action colours: 2.71 kB
-    budget: 2.75 * KB, // 2.15 kB at 9.0.0-next.1 (3.89 kB with its comments, as shipped)
+    // the variants' text and action colours: 2.71 kB,
+    // then from 2.75 kB for a navbar's narrow screens and colours that change together: 2.90 kB
+    budget: 3 * KB, // 2.15 kB at 9.0.0-next.1 (3.89 kB with its comments, as shipped)
   },
   {
     name: "themes.css",

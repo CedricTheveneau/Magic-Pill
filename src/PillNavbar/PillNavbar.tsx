@@ -1,10 +1,12 @@
 "use client"
-import { forwardRef, useEffect, useState, type ComponentPropsWithoutRef, type ReactNode } from "react";
+import { forwardRef, useEffect, useMemo, useRef, useState, type ComponentPropsWithoutRef, type ReactNode } from "react";
 
 import { PillActions } from "../Pill/parts";
 import PillAction from "../Pill/PillAction";
 import type { LinkComponent } from "../Pill/types";
 import { findActiveIndex, type NavMatch } from "./matchPath";
+import { useRoom } from "./room";
+import { mergeRefs } from "../utils/react";
 
 export interface NavItem {
   href: string;
@@ -50,8 +52,11 @@ function useLocationPathname(enabled: boolean): string | undefined {
  */
 export const PillNavbar = forwardRef<HTMLElement, PillNavbarProps>(function PillNavbar(
   { items, pathname, linkComponent, "aria-label": ariaLabel = "Main", ...rest },
-  ref,
+  forwardedRef,
 ) {
+  const navRef = useRef<HTMLElement | null>(null);
+  const ref = useMemo(() => mergeRefs(navRef, forwardedRef), [forwardedRef]);
+  useRoom(navRef);
   const locationPathname = useLocationPathname(pathname === undefined);
   const activeIndex = findActiveIndex(pathname ?? locationPathname, items);
 

@@ -383,7 +383,7 @@ export function useSizeMorph(
       // The close button sticks to the bottom of a scrolling panel: while the
       // pill resizes, it stays with the content instead of riding the edge
       const footer = panel.element.querySelector<HTMLElement>('[data-mp="panel-footer"]');
-      if (footer) animations.push(footer.animate([{ position: "static" }, { position: "static" }], options));
+      if (footer) animations.push(footer.animate([{ position: "relative" }, { position: "relative" }], options));
     }
     // Growing into an open pill: its message is laid out at its final width
     // from the start (the pill clips it), instead of wrapping on many lines
