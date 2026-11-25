@@ -134,6 +134,8 @@ export interface PillPanelProps extends Omit<ComponentPropsWithoutRef<"div">, "t
   closeLabel?: string;
   /** Default <CloseIcon />. */
   closeIcon?: ReactNode;
+  /** Always show the close button's label, not only on hover and focus. Default `false`. */
+  closeExpanded?: boolean;
 }
 
 export interface PillContextValue {

@@ -479,8 +479,13 @@
         transition-delay: var(--_mp-change);
       }
 
+      /* Its padding, not its colours */
+      &[data-orientation="vertical"] [data-mp="action-body"] {
+        transition-delay: var(--_mp-change), 0s, 0s;
+      }
+
       & [data-mp="action"]:is(:focus-visible, [data-expanded], [aria-current="page"], [aria-current="true"]),
-      &:is([data-presence="expanded"], [data-presence="panel"]) [data-mp="action"] {
+      &:is([data-presence="expanded"], [data-presence="panel"]) [data-mp="action"]:not([data-collapsed]) {
         & [data-mp="action-body"] {
           padding-inline-end: calc(var(--_mp-action-size) / 2.5);
           transition-delay: 0s;

@@ -14,7 +14,7 @@ import { mergeRefs } from "../utils/react";
  * trigger when it closes.
  */
 export const PillPanel = forwardRef<HTMLDivElement, PillPanelProps>(function PillPanel(
-  { title, closeLabel = "Close", closeIcon, children, ...rest },
+  { title, closeLabel = "Close", closeIcon, closeExpanded = false, children, ...rest },
   forwardedRef,
 ) {
   const { presence, closePanel, panelId, panelTriggerRef, rootRef } = useInternalPill("<PillPanel>");
@@ -61,7 +61,13 @@ export const PillPanel = forwardRef<HTMLDivElement, PillPanelProps>(function Pil
       )}
       <div data-mp="panel-body">{children}</div>
       <div data-mp="panel-footer">
-        <PillAction icon={closeIcon ?? <CloseIcon />} label={closeLabel} onClick={closePanel} />
+        <PillAction
+          icon={closeIcon ?? <CloseIcon />}
+          label={closeLabel}
+          onClick={closePanel}
+          // The other actions of an open panel show their label
+          data-collapsed={closeExpanded ? undefined : ""}
+        />
       </div>
     </div>
   );

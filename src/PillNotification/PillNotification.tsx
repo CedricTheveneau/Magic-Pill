@@ -31,6 +31,8 @@ export interface NotificationPanel {
   trigger?: { icon?: ReactNode; label: string; expanded?: boolean };
   /** Default "Close". */
   closeLabel?: string;
+  /** Always show the close button's label, not only on hover and focus. */
+  closeExpanded?: boolean;
 }
 
 export interface PillNotificationClassNames {
@@ -125,7 +127,12 @@ export function NotificationContent({
         </PillActions>
       )}
       {panel && (
-        <PillPanel title={panel.title} closeLabel={panel.closeLabel} className={classNames.panel}>
+        <PillPanel
+          title={panel.title}
+          closeLabel={panel.closeLabel}
+          closeExpanded={panel.closeExpanded}
+          className={classNames.panel}
+        >
           {panel.content}
         </PillPanel>
       )}

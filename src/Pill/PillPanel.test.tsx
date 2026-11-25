@@ -74,6 +74,21 @@ describe("PillPanel and PillPanelTrigger", () => {
     expect(document.activeElement).toBe(trigger);
   });
 
+  it("show the close button's icon, its label coming on hover and focus, unless asked for", () => {
+    // Act
+    const { rerender } = render(<ExpandablePill />);
+    const collapsed = screen.getByRole("button", { name: "Close" }).hasAttribute("data-collapsed");
+    rerender(
+      <Pill>
+        <PillPanel closeExpanded>Body</PillPanel>
+      </Pill>,
+    );
+
+    // Assert
+    expect(collapsed).toBe(true);
+    expect(screen.getByRole("button", { name: "Close" }).hasAttribute("data-collapsed")).toBe(false);
+  });
+
   it("give the focus back as non-keyboard focus after a tap (L22)", () => {
     // Arrange
     render(<ExpandablePill />);
