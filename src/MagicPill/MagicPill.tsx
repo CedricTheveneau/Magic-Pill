@@ -205,6 +205,20 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
       setFocused(false);
     }
   }, [displayed.presence]);
+  // Content that leaves takes the focus with it (a base layer's action that
+  // notifies, a form that closes), and React hears no blur for an element it
+  // removes itself: without this, the pill would stay paused (L29)
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!focused || !root) return;
+    const update = () => {
+      if (!root.contains(document.activeElement)) setFocused(false);
+    };
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(root, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [focused]);
 
   const shown: QueuedNotification | null =
     displayed.scene.kind === "notification" && isOpen(displayed.presence) ? displayed.scene.item : null;
