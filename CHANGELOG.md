@@ -11,6 +11,7 @@
   - Solid when the system asks for less transparency, more contrast or forced colours, and where the browser can't draw it
 - The modal's backdrop: `--mp-backdrop-blur` blurs the page behind it, and `backdrop="glow"` (with `magic-pill/themes.css`) adds two soft lights drifting over it (`--mp-glow-1`, `--mp-glow-2`, `--mp-glow-duration`), still with reduced motion. Any other `backdrop` is written to `data-backdrop`, for one of your own
 - `--mp-action-rim`, `--mp-action-current` and `--mp-on-action-current`: an outline for the actions, and the current page's own colours. Together with `--mp-action`, they make actions solid or see-through on any theme
+- Text and action colours for each variant: `--mp-on-neutral`, `--mp-on-success`, `--mp-on-danger` (the text), `--mp-neutral-action`, `--mp-success-action`, `--mp-danger-action` (the actions) and `--mp-on-neutral-action`, `--mp-on-success-action`, `--mp-on-danger-action` (the actions' text), on every theme. They default to `--mp-on-surface`, `--mp-action` and `--mp-on-action`, so nothing changes without them
 
 ### Changed
 - A pill's open panel sits one level above the other pills (`--mp-z-index` + 1) until it has closed

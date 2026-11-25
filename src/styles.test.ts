@@ -69,6 +69,16 @@ describe("styles.css", () => {
     expect(withoutComments).toContain("--_mp-on-action-current: var(--mp-on-action-current, var(--_mp-on-action));");
   });
 
+  it.each(["neutral", "success", "danger"])("gives %s pills their own text and action colours (L28)", (variant) => {
+    // Arrange
+    const rule = withoutComments.split(`&[data-variant="${variant}"] {`)[1]?.split("}")[0];
+
+    // Assert
+    expect(rule).toContain(`--_mp-own-on-surface: var(--mp-on-${variant}, var(--mp-on-surface));`);
+    expect(rule).toContain(`--_mp-own-action: var(--mp-${variant}-action, var(--mp-action));`);
+    expect(rule).toContain(`--_mp-own-on-action: var(--mp-on-${variant}-action, var(--mp-on-action));`);
+  });
+
   it("follows prefers-reduced-motion", () => {
     // Assert
     expect(withoutComments).toContain("@media (prefers-reduced-motion: reduce)");

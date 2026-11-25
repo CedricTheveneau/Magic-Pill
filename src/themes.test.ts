@@ -103,8 +103,6 @@ describe("themes.css", () => {
     "adaptive-surface",
     "adaptive-on-surface",
     "readable",
-    "action",
-    "on-action",
     "action-rim",
     "action-current",
     "on-action-current",
@@ -115,6 +113,13 @@ describe("themes.css", () => {
   ])("reads --mp-%s", (token) => {
     // Assert
     expect(css).toMatch(new RegExp(`var\\(\\s*--mp-${token},`));
+  });
+
+  it("reads the actions' colours from what the app set for the variant, not from the overall tokens (L28)", () => {
+    // Assert
+    expect(css).toMatch(/var\(\s*--_mp-own-action,/);
+    expect(css).toMatch(/var\(\s*--_mp-own-on-action,/);
+    expect(css).not.toMatch(/var\(\s*--mp-(on-)?action\s*[,)]/);
   });
 
   it("frosts an open panel more, whether or not the text is kept readable", () => {
