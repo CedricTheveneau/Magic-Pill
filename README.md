@@ -29,7 +29,7 @@ On top of it come ready-made **templates** (a notification, a navbar) and a **co
  - [X] Accessible: screen reader announcements, keyboard focus pauses the countdown, focus handling for panels and modals
  - [X] Works in any React 18+ app, including React Server Components (Next.js App Router), with any router
  - [X] Styles you can override without `!important`, design tokens, no fonts loaded behind your back
- - [X] Tiny: the quick start adds about **11.7 kB gzipped** to your app (9.1 kB of JavaScript + 2.5 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
+ - [X] Tiny: the quick start adds about **11.9 kB gzipped** to your app (9.2 kB of JavaScript + 2.6 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
  - [X] Written in TypeScript, zero runtime dependencies
 
 ## Installation
@@ -321,7 +321,7 @@ pill().notify({
 
 ### React Server Components
 - The parts, `PillAction`, `PillNotification`, the icons and `pill()` have no `"use client"`. A Server Component can render them (and pass `linkComponent={Link}`) without shipping them to the browser.
-- `Pill`, `MagicPill`, `PillPanel`, `PillPanelTrigger`, `PillNavbar`, `usePill` and `usePillQueue` are Client Components. You can still render them from a Server Component.
+- `Pill`, `MagicPill`, `PillPanel`, `PillPanelTrigger`, `PillNavbar`, `PillOptics`, `usePill` and `usePillQueue` are Client Components. You can still render them from a Server Component.
 - Call `pill()` from client code: event handlers, effects, client-side stores.
 
 ### Headless: `usePillQueue`
@@ -334,7 +334,7 @@ Twelve built-in icons, drawn in `currentColor` and decorative by default (`aria-
 
 ## Styling
 - **Easy to override:** every rule sits in a `magic-pill` cascade layer. Any CSS of yours that isn't in a layer wins, whatever its specificity, with no `!important`.
-- **No collisions:** parts are selected by `data-mp` attributes (`[data-mp="pill"]`, `"icon"`, `"divider"`, `"message"`, `"actions"`, `"action"`, `"action-body"`, `"action-icon"`, `"label"`, `"panel"`, `"panel-title"`, `"panel-body"`, `"panel-footer"`, `"navbar"`), and states by `data-presence`, `data-placement`, `data-orientation`, `data-variant`, `data-theme` and `data-backdrop`. There are no class names of ours to clash with yours.
+- **No collisions:** parts are selected by `data-mp` attributes (`[data-mp="pill"]`, `"icon"`, `"divider"`, `"message"`, `"actions"`, `"action"`, `"action-body"`, `"action-icon"`, `"label"`, `"panel"`, `"panel-title"`, `"panel-body"`, `"panel-footer"`, `"navbar"`), and states by `data-presence`, `data-placement`, `data-orientation`, `data-variant`, `data-theme`, `data-backdrop` and `data-scheme`. There are no class names of ours to clash with yours.
 - **Classes:** every part takes a `className`; templates and `<MagicPill>` take `classNames`.
 - **Global resets are safe:** an action's look lives on its inner `[data-mp="action-body"]`, so app-wide rules such as `a { color: inherit }` or `button { background: none }` don't break it. To restyle an action, target `[data-mp="action-body"]`.
 - **Tailwind CSS v4:** declare the layer order once, before your imports, so utilities win: `@layer theme, base, magic-pill, components, utilities;`.
@@ -384,10 +384,15 @@ Set these tokens like the others, on `:root`, on one pill, or anywhere in betwee
 | `--mp-status-tint` | The least a `success` or `danger` pill keeps, so it still reads as one | `0.75` | `0.75` |
 | `--mp-frost` | The blur of what's behind | `14px` | `3px` |
 | `--mp-panel-frost` | The least blur behind an open panel (more text, more frosting); `0px` for none | `12px` | `12px` |
-| `--mp-rays` | Ray casting: `0` turns the light and the vibrancy off | `1` | `1` |
+| `--mp-rays` | Ray casting: `0` turns refraction, the light and the tinting (vibrancy, adaptive) off | `1` | `1` |
 | `--mp-light` | The strength of the light on the edges, 0 to 1 | `0.7` | `0.7` |
 | `--mp-light-angle` / `--mp-light-color` | Where the light comes from, and its colour | `235deg` (top left) / `#fff` | same |
 | `--mp-vibrancy` | How much the page's colours glow through (`1` is off) | `1.9` | `1.9` |
+| `--mp-refraction` | With `<PillOptics>`: how much the edge bends what's behind, 0 to 1 | `0.16` | `0.55` |
+| `--mp-edge` / `--mp-fringe` | With `<PillOptics>`: how wide that edge is, and how much it splits colours, 0 to 1 | `10px` / `0` | `22px` / `0.15` |
+| `--mp-light-follow` | With `<PillOptics>`: `1` has the light follow the pointer | `0` | `0` |
+| `--mp-adaptive` | With `<PillOptics>`: `1` tints the pill after the page behind it, and turns a neutral pill light over light pages | `0` | `0` |
+| `--mp-adaptive-surface` / `--mp-adaptive-on-surface` | The colours of that light pill | `#f9f9f9` / `#141414` | same |
 | `--mp-readable` | Keeps the text readable over any page: see below | `1` | `1` |
 
 - **Readable by default:** a veil, worked out in CSS from the surface's colour and tint, keeps Magic Pill's colours at 4.5:1 or more over any page. `--mp-readable: 0` turns it off; the contrast is then yours to check, as it is for your own `--mp-action` colours.
@@ -410,7 +415,19 @@ Set these tokens like the others, on `:root`, on one pill, or anywhere in betwee
 [data-mp="pill"][data-theme="paper"][data-variant="neutral"] { --mp-surface: #fffaf0; --mp-on-surface: #2b2118; }
 ```
 
-- **Where it can't be drawn** (a browser without relative colours or `pow()` in CSS, less transparency, more contrast, forced colours), the pill has its plain look.
+- **Refraction and adaptive tinting** need a script: render `<PillOptics />` once, anywhere, e.g. in your root layout. It has no props: each pill's tokens decide, and it costs nothing to the pills that don't use it.
+
+```tsx
+import { MagicPill, PillOptics } from "magic-pill";
+
+<MagicPill theme="liquid" style={{ "--mp-adaptive": 1 } as React.CSSProperties} />
+<PillOptics />
+```
+
+  - **Refraction** is drawn by Chromium browsers (Chrome, Edge, Arc, Dia…) that use the GPU. Safari and Firefox show the same glass without the bending. A Content Security Policy needs `img-src data:` for it.
+  - **Adaptive** reads colours, gradients, images, videos and canvases behind the pill. It can't read `url()` backgrounds, pictures from other sites (without CORS), or elements that ignore the pointer. It writes `data-scheme="light"` or `"dark"` on the pill. Status pills keep their colours.
+  - The light doesn't follow a finger, nor anything with reduced motion.
+- **Where the glass can't be drawn** (a browser without relative colours or `pow()` in CSS, less transparency, more contrast, forced colours), the pill has its plain look.
 
 ## Accessibility
 - **Announcements:** each `<MagicPill>` has a polite live region that reads notifications out (or your `announce` text). A hidden pill leaves the accessibility tree.

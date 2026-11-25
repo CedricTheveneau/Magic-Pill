@@ -24,6 +24,9 @@ export type {
   LinkComponent,
 } from './Pill/types';
 
+// What themes can't do in CSS: refraction
+export { PillOptics } from './PillOptics/PillOptics';
+
 // 2. Templates: arrangements of the parts above
 export { PillNotification } from './PillNotification/PillNotification';
 export type {

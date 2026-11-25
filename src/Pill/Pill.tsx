@@ -17,6 +17,7 @@ import { isOnBackdrop, useModal } from "./modal";
 import { PlacementWatch, useSizeMorph, type Size } from "./morph";
 import { PillContext, type InternalPillContextValue } from "./PillContext";
 import type { PillOrientation, PillPresence, PillProps } from "./types";
+import { useThemed } from "./themed";
 import { useZone } from "./zone";
 import { inertProps, mergeRefs } from "../utils/react";
 
@@ -64,6 +65,8 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
   useSizeMorph(rootRef, presence, !unstyled, lastSize);
   // Pills with the same fixed placement make room for each other
   useZone(rootRef, ladder && !unstyled && !isOverlay && placement !== "inline" ? placement : undefined, presence);
+  // For <PillOptics> to find
+  useThemed(rootRef, unstyled ? undefined : theme, presence, isOverlay);
 
   // Where closing the panel goes back to: the last visible level other than the panel
   const returnPresenceRef = useRef<PillPresence>("compact");

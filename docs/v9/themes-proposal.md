@@ -1,6 +1,6 @@
 # Themes: API proposal
 
-> **Status: approved by the maintainer on 2026-11-25** (§11). **Implementation:** the material (§10, 1) in #89, the backdrop (§10, 2). The looks were tried in a throwaway prototype, the **Glass lab**, which the maintainer validated. The three action tokens marked *added* in §4 came after that OK, to make any action work on any theme: merging this file approves them.
+> **Status: approved by the maintainer on 2026-11-25** (§11). **Implementation:** the material (§10, 1) in #89, the backdrop (§10, 2) in #90, `<PillOptics>` (§10, 3). The looks were tried in a throwaway prototype, the **Glass lab**, which the maintainer validated. The three action tokens marked *added* in §4 came after that OK, to make any action work on any theme: merging this file approves them.
 
 ## 1. What was decided
 
@@ -126,6 +126,7 @@ A client component, rendered once, with no props: the tokens decide. It does the
 
 - **Refraction** is one hidden SVG filter per combination of tokens. Its map is drawn with percentages, so it follows the pill's size in every morph with no script.
 - **Adaptive** samples the page behind each visible pill as it scrolls (background colours, gradients, images and canvases it's allowed to read), takes their hue for the light, and turns the pill light over light pages, with a margin so it doesn't flicker. Pills without `--mp-adaptive: 1` cost nothing.
+- *As built:* it reads see-through layers, gradients (their mean) and the page's own background too, and rewrites a pill only for a change that can be seen. While scrolling, with 4 adaptive pills and a CPU slowed down 4 times, the main thread is busy 8% of the time on a calm page and 27% over bands of alternating colours (mostly the pills' own fades; reading the page is about 2%), against under 1% without. A change of token is heard through a 1ms transition of the registered properties it feeds, so nothing is polled.
 - `Pill` keeps a small list of the themed pills on the page for it. Plain pills aren't in it.
 
 ## 6. The modal's backdrop
@@ -155,7 +156,7 @@ Measured in Chromium, on 8 extreme backdrops (white, black, pure colours, grey) 
 | Situation | Result |
 |---|---|
 | Safari, Firefox | Everything but refraction. A `url()` in `backdrop-filter` makes Safari drop the whole filter while `@supports` says yes, so they're left out by name; lifted when they support it |
-| Chromium without GPU compositing | Refraction would be drawn off-centre (by the size of the shadow): `<PillOptics>` leaves it out when it can tell |
+| Chromium without GPU compositing | Refraction would be drawn off-centre (by the size of the shadow): `<PillOptics>` leaves it out when the browser has no hardware WebGL, which is how it can tell |
 | `prefers-reduced-transparency`, `prefers-contrast: more`, forced colours | The plain look |
 | `prefers-reduced-motion` | No drifting glow, no light following the pointer |
 | No relative colours or `pow()` in CSS | The plain look |
@@ -169,7 +170,7 @@ Measured in Chromium, on 8 extreme backdrops (white, black, pure colours, grey) 
 |---|---|---|---|
 | Quick start | 9.14 kB | +0.1 kB | 9.25 → 9.4 kB |
 | Primitive | 4.69 kB | +0.1 kB | 4.75 → 4.9 kB |
-| Everything | 13.42 kB | +2.1 kB (`PillOptics` and the above) | 13.5 → 15.75 kB |
+| Everything | 13.42 kB | +2.1 kB (`PillOptics` and the above); *as built: 17.05 kB* | 13.5 → 17.25 kB (*15.75 kB first; the maintainer, 2026-11-25: "use as much space as you need"*) |
 | `styles.css` | 2.51 kB | +0.1 kB | 2.6 → 2.75 kB |
 | `themes.css` | | 2 kB, only if imported | new: 2.25 kB |
 

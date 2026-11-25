@@ -27,6 +27,44 @@
   initial-value: 0px;
 }
 
+/* Read by <PillOptics>: registered, their computed values are numbers and px */
+@property --_mp-refraction {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --_mp-edge {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --_mp-fringe {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --_mp-follow {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --_mp-adaptive {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+/* Tinted by <PillOptics>: registered so it can be transitioned */
+@property --_mp-light-color {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: white;
+}
+
 @property --_mp-drift {
   syntax: "<angle>";
   inherits: false;
@@ -77,6 +115,11 @@
       --_mp-rays: var(--mp-rays, var(--_mp-clear));
       --_mp-own-frost: var(--mp-frost, 14px);
       --_mp-frost: var(--_mp-own-frost);
+      --_mp-refraction: calc(var(--_mp-rays) * var(--mp-refraction, 0));
+      --_mp-edge: var(--mp-edge, 10px);
+      --_mp-fringe: var(--mp-fringe, 0);
+      --_mp-follow: calc(var(--_mp-rays) * var(--mp-light-follow, 0));
+      --_mp-adaptive: calc(var(--_mp-rays) * var(--mp-adaptive, 0));
       --_mp-light: calc(var(--_mp-rays) * var(--mp-light, 0.7));
       --_mp-light-color: var(--mp-light-color, #fff);
       --_mp-drop: 0 0.5rem 0.5rem rgb(20 20 20 / 0.45);
@@ -84,8 +127,10 @@
       --_mp-thick: 0;
       --_mp-edge-light: 0.5;
       /* Where the light comes from, as a direction */
-      --_mp-light-x: cos(var(--mp-light-angle, 235deg));
-      --_mp-light-y: sin(var(--mp-light-angle, 235deg));
+      /* (--_mp-angle and --_mp-sheen-*: <PillOptics>, following the pointer) */
+      --_mp-toward: var(--_mp-angle, var(--mp-light-angle, 235deg));
+      --_mp-light-x: cos(var(--_mp-toward));
+      --_mp-light-y: sin(var(--_mp-toward));
 
       /* Keeps the text readable whatever the page shows: a black veil under
          light text, a white one under dark text (the surface's lightness
@@ -108,13 +153,16 @@
           )
       );
 
-      /* Joins the pill's own transitions (styles.css) */
+      /* Joins the pill's own transitions (styles.css). The 1ms ones only tell
+         <PillOptics> that a token has changed */
       --_mp-also: color var(--_mp-change) ease-in-out, --_mp-veil var(--_mp-change) ease-in-out,
-        --_mp-frost var(--_mp-change) ease-in-out;
+        --_mp-frost var(--_mp-change) ease-in-out, --_mp-refraction 1ms, --_mp-edge 1ms, --_mp-fringe 1ms,
+        --_mp-follow 1ms, --_mp-adaptive 1ms, --_mp-light-color var(--_mp-change) ease-in-out;
 
       background:
         radial-gradient(
-          circle 13rem at calc(50% + var(--_mp-light-x) * 45%) calc(50% + var(--_mp-light-y) * 160%),
+          circle 13rem at var(--_mp-sheen-x, calc(50% + var(--_mp-light-x) * 45%))
+            var(--_mp-sheen-y, calc(50% + var(--_mp-light-y) * 160%)),
           rgb(from var(--_mp-light-color) r g b / calc(0.1 * var(--_mp-light))),
           transparent
         ),
@@ -122,7 +170,8 @@
         color-mix(in srgb, var(--_mp-surface) calc(var(--_mp-tint) * 100%), transparent);
       --_mp-filter: blur(var(--_mp-frost)) saturate(calc(1 + var(--_mp-rays) * (var(--mp-vibrancy, 1.9) - 1)));
       -webkit-backdrop-filter: var(--_mp-filter);
-      backdrop-filter: var(--_mp-filter);
+      /* The lens comes last: blurring after it would blur its edge */
+      backdrop-filter: var(--_mp-filter) var(--_mp-lens,);
       /* The drop shadow, a rim all around, the light on the edge that faces
          it and through the opposite one, then the glow inside */
       box-shadow:
@@ -140,6 +189,7 @@
       &:is([data-theme="glass"], [data-theme="liquid"]) {
         --_mp-own-tint: var(--mp-tint, 0.35);
         --_mp-rays: var(--mp-rays, 1);
+        --_mp-refraction: calc(var(--_mp-rays) * var(--mp-refraction, 0.16));
         --_mp-drop: 0 0.5rem 1.25rem rgb(20 20 20 / 0.28);
         /* Actions made of the same glass, unless the app colours them. Filled
            with the lightest (under dark text, the darkest) grey the text can
@@ -157,8 +207,31 @@
       &[data-theme="liquid"] {
         --_mp-own-tint: var(--mp-tint, 0.18);
         --_mp-own-frost: var(--mp-frost, 3px);
+        --_mp-refraction: calc(var(--_mp-rays) * var(--mp-refraction, 0.55));
+        --_mp-edge: var(--mp-edge, 22px);
+        --_mp-fringe: var(--mp-fringe, 0.15);
         --_mp-thick: 1;
         --_mp-edge-light: 1;
+      }
+
+      /* Adaptive: the light takes the hue of what's behind, and so does a
+         neutral pill, which turns light over light pages */
+      &[data-scheme] {
+        --_mp-light-color: color-mix(in oklab, var(--_mp-ambient) 45%, var(--mp-light-color, #fff));
+      }
+
+      &[data-scheme][data-variant="neutral"] {
+        --_mp-surface: color-mix(in oklab, var(--_mp-ambient) 14%, var(--mp-surface, #141414));
+      }
+
+      &[data-scheme="light"][data-variant="neutral"] {
+        --_mp-surface: color-mix(in oklab, var(--_mp-ambient) 14%, var(--mp-adaptive-surface, #f9f9f9));
+        --_mp-on-surface: var(--mp-adaptive-on-surface, #141414);
+
+        &:not([data-theme="glass"], [data-theme="liquid"]) {
+          --_mp-action: var(--mp-action, var(--_mp-on-surface));
+          --_mp-on-action: var(--mp-on-action, var(--_mp-surface));
+        }
       }
 
       /* A status must still read as one */
@@ -193,6 +266,13 @@
           -webkit-backdrop-filter: blur(8px);
           backdrop-filter: blur(8px);
         }
+      }
+    }
+
+    /* Nothing moves by itself with reduced motion: the light stays put */
+    @media (prefers-reduced-motion: reduce) {
+      [data-mp="pill"][data-theme]:not([data-theme="plain"], [data-unstyled]) {
+        --_mp-follow: 0;
       }
     }
 

@@ -27,12 +27,20 @@ describe("themes.css", () => {
     });
 
     // Assert
-    expect(topLevel).toEqual([
-      "@property --_mp-veil",
-      "@property --_mp-frost",
-      "@property --_mp-drift",
-      "@layer magic-pill.theme",
-    ]);
+    expect(topLevel.filter((block) => !/^@property --_mp-[\w-]+$/.test(block))).toEqual(["@layer magic-pill.theme"]);
+  });
+
+  it.each(["refraction", "edge", "fringe", "follow", "adaptive"])("registers --_mp-%s and gives it a transition, for <PillOptics>", (name) => {
+    // Assert
+    expect(css).toMatch(new RegExp(`@property --_mp-${name} {`));
+    expect(css).toMatch(new RegExp(`--_mp-also:[^;]*--_mp-${name} 1ms`));
+  });
+
+  it("puts the lens last in the filters, and Safari's prefixed one has none", () => {
+    // Assert
+    expect(css).toMatch(
+      /-webkit-backdrop-filter: var\(--_mp-filter\);\s*backdrop-filter: var\(--_mp-filter\) var\(--_mp-lens,\);/,
+    );
   });
 
   it("sits between the look and the behaviour, whichever stylesheet is imported first", () => {
@@ -57,6 +65,13 @@ describe("themes.css", () => {
     "light-angle",
     "light-color",
     "vibrancy",
+    "refraction",
+    "edge",
+    "fringe",
+    "light-follow",
+    "adaptive",
+    "adaptive-surface",
+    "adaptive-on-surface",
     "readable",
     "action",
     "on-action",
@@ -108,6 +123,13 @@ describe("themes.css", () => {
   it("selects by data attributes, never by class names that could collide", () => {
     // Assert
     expect(css).not.toMatch(/(^|[\s,>+~(])\.[a-zA-Z_-]/m);
+  });
+});
+
+describe("the light that follows the pointer", () => {
+  it("stays put with reduced motion", () => {
+    // Assert
+    expect(withoutComments(themes)).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*{[^}]*--_mp-follow: 0;/);
   });
 });
 
