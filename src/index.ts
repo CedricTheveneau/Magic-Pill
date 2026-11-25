@@ -67,6 +67,12 @@ export { PillStepper } from './PillForm/PillStepper';
 export type { PillStepperProps } from './PillForm/PillStepper';
 export { PillFields } from './PillForm/PillFields';
 export type { PillFieldsProps } from './PillForm/PillFields';
+export { PillCode } from './PillForm/PillCode';
+export type { PillCodeProps } from './PillForm/PillCode';
+export { PillFile } from './PillForm/PillFile';
+export type { PillFileProps } from './PillForm/PillFile';
+export { PillColor } from './PillForm/PillColor';
+export type { PillColorProps } from './PillForm/PillColor';
 
 // 3. Controllers: a host per named pill, driven from anywhere
 export { default as MagicPill } from './MagicPill/MagicPill';

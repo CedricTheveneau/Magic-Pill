@@ -376,6 +376,9 @@ import "magic-pill/forms.css"; // in any order
 | `PillCheckbox` | Something to agree to, sent with the form. `indeterminate` |
 | `PillChoices` | One of several (radios), or several with `multiple` (checkboxes). `look`: `"list"`, `"segmented"` (one bar, where the choice slides) or `"chips"`. `options`: strings or `{ value, label, icon?, hint?, disabled? }`. `onChange(value)` |
 | `PillStepper` | A number, one step at a time, with a `unit` |
+| `PillCode` | A one-time code of `length` digits (6): one input, drawn as slots, so pasting and SMS autofill work. `onComplete(code)` |
+| `PillFile` | Files: an area to click or drop them on, which names them. `multiple`, `accept`, `prompt` |
+| `PillColor` | A colour |
 | `PillFields` | Fields that go together: a `label`, `columns={2}`, `separators` |
 | `PillField` | The label, the hint and the error, wired to a control of yours: `{(control) => <input {...control} />}` |
 
