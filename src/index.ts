@@ -16,6 +16,7 @@ export type {
   PillOrientation,
   PillVariant,
   PillTheme,
+  SceneChange,
   PillActionProps,
   PillButtonActionProps,
   PillLinkActionProps,
