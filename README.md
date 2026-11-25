@@ -29,7 +29,7 @@ On top of it come ready-made **templates** (a notification, a navbar) and a **co
  - [X] Accessible: screen reader announcements, keyboard focus pauses the countdown, focus handling for panels and modals
  - [X] Works in any React 18+ app, including React Server Components (Next.js App Router), with any router
  - [X] Styles you can override without `!important`, design tokens, no fonts loaded behind your back
- - [X] Tiny: the quick start adds about **11.9 kB gzipped** to your app (9.2 kB of JavaScript + 2.6 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
+ - [X] Tiny: the quick start adds about **12 kB gzipped** to your app (9.2 kB of JavaScript + 2.7 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
  - [X] Written in TypeScript, zero runtime dependencies
 
 ## Installation
@@ -338,14 +338,25 @@ Twelve built-in icons, drawn in `currentColor` and decorative by default (`aria-
 - **Classes:** every part takes a `className`; templates and `<MagicPill>` take `classNames`.
 - **Global resets are safe:** an action's look lives on its inner `[data-mp="action-body"]`, so app-wide rules such as `a { color: inherit }` or `button { background: none }` don't break it. To restyle an action, target `[data-mp="action-body"]`.
 - **Tailwind CSS v4:** declare the layer order once, before your imports, so utilities win: `@layer theme, base, magic-pill, components, utilities;`.
-- **Your own variants:** `variant="brand"` gives `data-variant="brand"`, so you can write `[data-variant="brand"] { --mp-surface: #4b2bd6; }`.
+- **Your own variants:** `variant="brand"` gives `data-variant="brand"`, so you can write `[data-variant="brand"] { --mp-surface: #4b2bd6; }` (and `--mp-on-surface`, `--mp-action`… for its text and actions).
 
-**Tokens:** set them on `:root`, on one pill, or anywhere in between.
+**Tokens:** set them on `:root`, on one pill, or anywhere in between. The text and action colours can be set for every pill at once, or for one variant:
+
+```css
+:root {
+  --mp-surface: #fffaf0; --mp-on-neutral: #2b2118;                          /* a light neutral pill, with dark text… */
+  --mp-neutral-action: #2b2118; --mp-on-neutral-action: #fffaf0;            /* …and dark actions: success and danger stay as they are */
+  --mp-danger-action: #ffd7db; --mp-on-danger-action: #7a1420;              /* pink actions on danger pills */
+}
+```
 
 | Token | Default |
 |---|---|
 | `--mp-surface` / `--mp-on-surface` | `#141414` / `#f9f9f9` |
 | `--mp-action` / `--mp-on-action` | `#f9f9f9` / `#141414` |
+| `--mp-on-neutral` / `--mp-on-success` / `--mp-on-danger` | `--mp-on-surface`: the text of one variant |
+| `--mp-neutral-action` / `--mp-success-action` / `--mp-danger-action` | `--mp-action`: the actions of one variant |
+| `--mp-on-neutral-action` / `--mp-on-success-action` / `--mp-on-danger-action` | `--mp-on-action`: the text of one variant's actions |
 | `--mp-action-rim` | `transparent`: a thin outline on the actions |
 | `--mp-action-current` / `--mp-on-action-current` | the action's own colours: the action with `aria-current` (a navbar's current page) |
 | `--mp-success` / `--mp-danger` | `#3f7253` / `#c2303e` |
@@ -411,9 +422,11 @@ Set these tokens like the others, on `:root`, on one pill, or anywhere in betwee
 - **Your own theme:** any other name. With colours only, `themes.css` isn't needed. With `--mp-tint` below 1, it's built on the same glass:
 
 ```css
-[data-mp="pill"][data-theme="paper"] { --mp-tint: 0.8; --mp-frost: 24px; --mp-light: 0; }
-/* --mp-on-surface is the text of every variant: keep dark text for the neutral one */
-[data-mp="pill"][data-theme="paper"][data-variant="neutral"] { --mp-surface: #fffaf0; --mp-on-surface: #2b2118; }
+[data-mp="pill"][data-theme="paper"] {
+  --mp-tint: 0.8; --mp-frost: 24px; --mp-light: 0;
+  --mp-surface: #fffaf0;
+  --mp-on-neutral: #2b2118; /* --mp-on-surface would also darken the text of success and danger */
+}
 ```
 
 - **Refraction and adaptive tinting** need a script: render `<PillOptics />` once, anywhere, e.g. in your root layout. It has no props: each pill's tokens decide, and it costs nothing to the pills that don't use it.
