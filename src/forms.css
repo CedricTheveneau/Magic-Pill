@@ -26,6 +26,8 @@
     --_mp-thumb: var(--mp-thumb, 1.25rem);
     --_mp-error: var(--mp-error, color-mix(in oklab, var(--mp-danger, #c2303e) 38%, var(--_mp-on-surface)));
     --_mp-label-font: var(--mp-label-font, var(--mp-font-accent, inherit));
+    /* A hint of the pop: more would leave the bar */
+    --_mp-ease-slide: cubic-bezier(0.3, 1.2, 0.5, 1);
 
     /* Less contrast to spend: on the status colours, and on glass, whose veil
        leaves 4.5:1 to the plain text */
@@ -593,9 +595,499 @@
       }
     }
 
+    /* ─── Sliders ──────────────────────────────────────────────────────────── */
+
+    & [data-mp="field-control"][data-type="slider"] {
+      --_mp-bar: var(--mp-track-size, 4px);
+      --_mp-run: calc(100% - var(--_mp-thumb));
+      position: relative;
+      display: grid;
+      align-items: center;
+      block-size: max(1.75rem, var(--_mp-thumb));
+
+      /* Transparent, over the drawing: its thumb has the same size, so it's
+         under the finger */
+      & input {
+        appearance: none;
+        position: relative;
+        z-index: 1;
+        inline-size: 100%;
+        block-size: 100%;
+        margin: 0;
+        padding: 0;
+        background: none;
+        cursor: pointer;
+        opacity: 0;
+        touch-action: pan-y;
+      }
+
+      & input::-webkit-slider-thumb {
+        appearance: none;
+        inline-size: var(--_mp-thumb);
+        block-size: var(--_mp-thumb);
+      }
+
+      & input::-moz-range-thumb {
+        inline-size: var(--_mp-thumb);
+        block-size: var(--_mp-thumb);
+        border: 0;
+      }
+    }
+
+    & [data-mp="slider-track"] {
+      position: absolute;
+      inset-inline: 0;
+      block-size: var(--_mp-bar);
+      overflow: hidden;
+      border-radius: 99px;
+      background: var(--_mp-track);
+
+      &::before {
+        content: "";
+        position: absolute;
+        inset-block: 0;
+        inset-inline-start: 0;
+        inline-size: calc(var(--_mp-thumb) / 2 + var(--_mp-run) * var(--_mp-at));
+        background: var(--_mp-accent);
+      }
+    }
+
+    & [data-mp="slider-thumb"] {
+      position: absolute;
+      inset-inline-start: calc(var(--_mp-run) * var(--_mp-at));
+      inline-size: var(--_mp-thumb);
+      block-size: var(--_mp-thumb);
+      border-radius: 50%;
+      background: var(--_mp-accent);
+      transition: scale var(--_mp-change) var(--_mp-ease-enter);
+    }
+
+    & input:active ~ [data-mp="slider-thumb"] {
+      scale: 1.2;
+    }
+
+    /* ─── Switches ─────────────────────────────────────────────────────────── */
+
+    & [data-mp="field-control"][data-type="switch"] {
+      position: relative;
+      display: inline-grid;
+      inline-size: 3.125rem;
+      block-size: 1.625rem;
+
+      /* Easier to reach than it looks */
+      & input {
+        appearance: none;
+        position: absolute;
+        z-index: 1;
+        inset: -0.6rem -0.3rem;
+        inline-size: auto;
+        block-size: auto;
+        margin: 0;
+        cursor: pointer;
+        opacity: 0;
+      }
+
+      & > span {
+        border-radius: 99px;
+        background: var(--_mp-track);
+        transition: background-color var(--_mp-change) ease-in-out;
+
+        &::after {
+          content: "";
+          display: block;
+          inline-size: 1.375rem;
+          block-size: 1.375rem;
+          margin: 0.125rem;
+          border-radius: 99px;
+          background: var(--_mp-on-surface);
+          transition:
+            margin var(--_mp-change) var(--_mp-ease-enter),
+            inline-size 150ms ease-out,
+            background-color var(--_mp-change) ease-in-out;
+        }
+      }
+
+      & input:checked + span {
+        background: var(--_mp-accent);
+
+        &::after {
+          margin-inline-start: 1.625rem;
+          background: var(--_mp-on-accent);
+        }
+      }
+
+      /* It stretches under the finger, towards where it's going */
+      & input:active + span::after {
+        inline-size: 1.625rem;
+      }
+
+      & input:checked:active + span::after {
+        margin-inline-start: 1.375rem;
+      }
+    }
+
+    &:is([data-variant="success"], [data-variant="danger"])
+      [data-mp="field-control"][data-type="switch"]
+      input:not(:checked)
+      + span {
+      background: color-mix(in srgb, var(--_mp-on-surface) 20%, transparent);
+      box-shadow: inset 0 0 0 1.5px var(--_mp-outline);
+    }
+
+    /* ─── Checkboxes and choices ───────────────────────────────────────────── */
+
+    & [data-mp="field"][data-layout="leading"] {
+      grid-template-columns: auto minmax(0, 1fr);
+      column-gap: 0.75rem;
+
+      & > [data-mp="field-control"] {
+        grid-column: 1;
+        grid-row: 1;
+        align-self: start;
+      }
+
+      & > [data-mp="field-label"] {
+        grid-column: 2;
+        grid-row: 1;
+        align-content: center;
+        min-block-size: 1.5rem;
+        padding: 0;
+      }
+
+      & > :is([data-mp="field-hint"], [data-mp="field-error"]) {
+        grid-column: 2;
+      }
+    }
+
+    & [data-mp="field-control"][data-type="checkbox"] {
+      position: relative;
+      display: grid;
+
+      & input {
+        position: absolute;
+        z-index: 1;
+        inset: -0.5rem;
+        inline-size: calc(100% + 1rem);
+        block-size: calc(100% + 1rem);
+        margin: 0;
+        cursor: pointer;
+        opacity: 0;
+      }
+    }
+
+    & :is([data-mp="field-tick"], [data-mp="field-dot"]) {
+      flex: none;
+      display: grid;
+      place-items: center;
+      inline-size: 1.5rem;
+      block-size: 1.5rem;
+      border-radius: 0.5rem;
+      background: transparent;
+      box-shadow: inset 0 0 0 2px var(--_mp-outline);
+      color: var(--_mp-on-accent);
+      font-size: 1rem;
+      transition:
+        background-color 150ms ease-out,
+        box-shadow 150ms ease-out;
+
+      & > svg {
+        scale: 0;
+        transition: scale var(--_mp-change) var(--_mp-ease-enter);
+      }
+    }
+
+    & [data-mp="field-dot"] {
+      border-radius: 50%;
+
+      &::after {
+        content: "";
+        inline-size: 0.625rem;
+        block-size: 0.625rem;
+        border-radius: 50%;
+        background: var(--_mp-on-accent);
+        scale: 0;
+        transition: scale var(--_mp-change) var(--_mp-ease-enter);
+      }
+    }
+
+    & input:checked + :is([data-mp="field-tick"], [data-mp="field-dot"]) {
+      background: var(--_mp-accent);
+      box-shadow: none;
+
+      & > svg {
+        scale: 1;
+      }
+
+      &::after {
+        scale: 1;
+      }
+    }
+
+    & input:indeterminate + [data-mp="field-tick"] {
+      background:
+        linear-gradient(var(--_mp-on-accent), var(--_mp-on-accent)) center / 0.8rem 3px no-repeat,
+        var(--_mp-accent);
+      box-shadow: none;
+
+      & > svg {
+        scale: 0;
+      }
+    }
+
+    & [data-mp="choices"] {
+      position: relative;
+      display: grid;
+      gap: 0.15rem;
+      clear: both;
+    }
+
+    & [data-mp="choice"] {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-block-size: 2.5rem;
+      line-height: 1.3;
+      cursor: pointer;
+
+      & > input {
+        position: absolute;
+        z-index: 1;
+        inset: 0;
+        inline-size: 100%;
+        block-size: 100%;
+        margin: 0;
+        cursor: pointer;
+        opacity: 0;
+      }
+
+      & small {
+        display: block;
+        font-size: 0.8125rem;
+        opacity: var(--_mp-quiet);
+      }
+    }
+
+    & [data-mp="choice-body"] {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* In one bar */
+    & [data-mp="choices"][data-look="segmented"] {
+      --_mp-inset: 0.2rem;
+      grid-template-columns: repeat(var(--_mp-count), minmax(0, 1fr));
+      gap: 0;
+      padding: var(--_mp-inset);
+      border-radius: calc(var(--_mp-field-radius) + var(--_mp-inset));
+      background: var(--_mp-faint);
+
+      & [data-mp="choice"] {
+        justify-content: center;
+        min-block-size: calc(var(--_mp-field-size) - 2 * var(--_mp-inset));
+        text-align: center;
+      }
+
+      & [data-mp="choice-body"] {
+        justify-content: center;
+        inline-size: 100%;
+        block-size: 100%;
+        padding-inline: 0.4rem;
+        border-radius: var(--_mp-field-radius);
+        transition:
+          background-color var(--_mp-change) ease-in-out,
+          color var(--_mp-change) ease-in-out;
+      }
+
+      & input:checked + [data-mp="choice-body"] {
+        color: var(--_mp-on-accent);
+      }
+
+      /* Several can be chosen: each has its own */
+      &:not([data-slides]) input:checked + [data-mp="choice-body"] {
+        background: var(--_mp-accent);
+      }
+    }
+
+    /* The choice, sliding from one to the next */
+    & [data-mp="choices-thumb"] {
+      position: absolute;
+      inset-block: var(--_mp-inset);
+      inset-inline-start: calc(
+        var(--_mp-inset) + (100% - 2 * var(--_mp-inset)) / var(--_mp-count) * var(--_mp-at)
+      );
+      inline-size: calc((100% - 2 * var(--_mp-inset)) / var(--_mp-count));
+      border-radius: var(--_mp-field-radius);
+      background: var(--_mp-accent);
+      transition:
+        inset-inline-start calc(var(--_mp-change) * 1.4) var(--_mp-ease-slide),
+        scale var(--_mp-change) var(--_mp-ease-enter),
+        opacity var(--_mp-change) ease-out;
+
+      &[data-empty] {
+        opacity: 0;
+        scale: 0.8;
+      }
+
+      &[data-appearing] {
+        transition-property: opacity, scale;
+      }
+    }
+
+    /* It gives under the finger */
+    & [data-mp="choices"]:active > [data-mp="choices-thumb"]:not([data-empty]) {
+      scale: 0.96 0.92;
+    }
+
+    /* As chips */
+    & [data-mp="choices"][data-look="chips"] {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+
+      & [data-mp="choice"] {
+        min-block-size: 0;
+      }
+
+      & [data-mp="choice-body"] {
+        min-block-size: 2.5rem;
+        padding-inline: 1rem;
+        border-radius: var(--_mp-field-radius);
+        box-shadow: inset 0 0 0 1.5px var(--_mp-outline);
+        transition:
+          background-color var(--_mp-change) ease-in-out,
+          box-shadow var(--_mp-change) ease-in-out,
+          color var(--_mp-change) ease-in-out;
+      }
+
+      & input:checked + [data-mp="choice-body"] {
+        background: var(--_mp-accent);
+        box-shadow: none;
+        color: var(--_mp-on-accent);
+      }
+    }
+
+    /* ─── Steppers ─────────────────────────────────────────────────────────── */
+
+    & [data-mp="field-control"][data-type="stepper"] {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+
+      & input {
+        appearance: textfield;
+        field-sizing: content;
+        min-inline-size: 1ch;
+        max-inline-size: 5rem;
+        margin: 0;
+        padding: 0.35rem 0;
+        border: 0;
+        outline: 0;
+        background: none;
+        color: inherit;
+        font: inherit;
+        font-size: max(1rem, 16px);
+        text-align: center;
+      }
+
+      & ::-webkit-inner-spin-button,
+      & ::-webkit-outer-spin-button {
+        appearance: none;
+        margin: 0;
+      }
+    }
+
+    & [data-mp="stepper-value"] {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 0.25rem;
+      min-inline-size: 3rem;
+      padding-inline: 0.25rem;
+      border-radius: 0.6rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    & [data-mp="stepper-button"] {
+      appearance: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: none;
+      color: inherit;
+      cursor: pointer;
+
+      & > span {
+        display: grid;
+        place-items: center;
+        inline-size: 2.25rem;
+        block-size: 2.25rem;
+        border-radius: 50%;
+        background: var(--_mp-action);
+        box-shadow: inset 0 0 0 1px var(--_mp-action-rim);
+        color: var(--_mp-on-action);
+        font-size: 1.05rem;
+        transition:
+          scale 150ms ease-out,
+          opacity var(--_mp-change) ease-in-out;
+      }
+
+      &:active > span {
+        scale: 0.9;
+      }
+
+      &:disabled {
+        cursor: not-allowed;
+
+        & > span {
+          opacity: 0.4;
+        }
+      }
+    }
+
+    /* ─── Groups ───────────────────────────────────────────────────────────── */
+
+    & [data-mp="fields"] {
+      min-inline-size: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+
+      & > div {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--_mp-field-gap);
+      }
+
+      &[data-columns="2"] > div {
+        grid-template-columns: repeat(auto-fit, minmax(min(11rem, 100%), 1fr));
+        align-items: start;
+      }
+
+      &[data-separators] > div > * + * {
+        border-block-start: 1px solid color-mix(in srgb, var(--_mp-on-surface) 20%, transparent);
+        padding-block-start: var(--_mp-field-gap);
+      }
+    }
+
+    & [data-mp="fields-label"] {
+      padding: 0 0 0.6rem;
+      font: italic 700 1.125rem / 1.3 var(--mp-font-text, inherit);
+    }
+
     /* ─── States ───────────────────────────────────────────────────────────── */
 
     & [data-mp="field-box"]:has(> :is(input, textarea, select):focus-visible) {
+      outline: 2px solid var(--_mp-on-surface);
+      outline-offset: 2px;
+    }
+
+    & [data-mp="field-control"]:is([data-type="switch"], [data-type="checkbox"]) > input:focus-visible + span,
+    & input:focus-visible ~ [data-mp="slider-thumb"],
+    & [data-mp="choice"] > input:focus-visible + span,
+    & [data-mp="stepper-value"]:focus-within {
       outline: 2px solid var(--_mp-on-surface);
       outline-offset: 2px;
     }
@@ -618,6 +1110,10 @@
         0 0 0 1px var(--_mp-error);
     }
 
+    & [data-mp="field"][data-invalid] :is([data-mp="field-tick"], [data-mp="field-dot"]) {
+      box-shadow: inset 0 0 0 2px var(--_mp-error);
+    }
+
     /* Read only: still there to be read, not to be filled in */
     & [data-mp="field-box"]:has(> :is(input, textarea)[readonly]) {
       background: transparent;
@@ -625,7 +1121,9 @@
       color: var(--_mp-on-surface);
     }
 
-    & [data-mp="field"]:has(> [data-mp="field-box"] > :is(input, textarea, select):disabled) {
+    & [data-mp="field"]:has(> :is([data-mp="field-box"], [data-mp="field-control"]) > :is(input, textarea, select):disabled),
+    & [data-mp="field"]:has(> [data-mp="field-control"] > [data-mp="stepper-value"] > input:disabled),
+    & [data-mp="choice"]:has(> input:disabled) {
       opacity: 0.5;
 
       & :disabled {
@@ -657,15 +1155,42 @@
     /* ─── Preferences ──────────────────────────────────────────────────────── */
 
     @media (prefers-reduced-motion: reduce) {
-      & :is([data-mp^="field"], [data-mp="form"]),
+      & :is([data-mp^="field"], [data-mp="form"], [data-mp^="slider"], [data-mp^="choice"], [data-mp="stepper-button"] > span),
+      & [data-mp="field-control"] > span,
+      & [data-mp="field-control"] > span::after,
+      & [data-mp="field-tick"] > svg,
+      & [data-mp="field-dot"]::after,
       & [data-mp="field-box"] ::picker(select) {
         transition: none;
       }
     }
 
     @media (forced-colors: active) {
-      & [data-mp="field-box"] {
+      & :is([data-mp="field-box"], [data-mp="choice-body"], [data-mp="stepper-button"] > span) {
         border: 1px solid CanvasText;
+      }
+
+      /* As the system draws them */
+      & [data-mp="field-control"]:is([data-type="slider"], [data-type="switch"], [data-type="checkbox"]) input {
+        appearance: auto;
+        position: static;
+        opacity: 1;
+      }
+
+      & [data-mp="field-control"][data-type="checkbox"] input {
+        inline-size: 1.5rem;
+        block-size: 1.5rem;
+      }
+
+      & :is([data-mp="slider-track"], [data-mp="slider-thumb"], [data-mp="choices-thumb"]),
+      & [data-mp="field-control"]:is([data-type="switch"], [data-type="checkbox"]) > span {
+        display: none;
+      }
+
+      & input:checked + :is([data-mp="choice-body"], [data-mp="field-tick"], [data-mp="field-dot"]) {
+        forced-color-adjust: none;
+        background: Highlight;
+        color: HighlightText;
       }
     }
   }
