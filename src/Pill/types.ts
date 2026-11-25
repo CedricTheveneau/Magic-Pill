@@ -79,6 +79,13 @@ export interface PillProps extends Omit<ComponentPropsWithoutRef<"div">, "childr
    * the panel if it's open, the modal otherwise). Default `false`.
    */
   closeOnBackdropClick?: boolean;
+  /**
+   * `overlay` only. `glow` is an animated backdrop, and needs
+   * `magic-pill/themes.css`. Any other string is written to `data-backdrop` so
+   * you can define your own:
+   * `[data-mp="pill"][data-backdrop="dots"]::backdrop { … }`. Default `plain`.
+   */
+  backdrop?: "plain" | "glow" | (string & {});
   orientation?: PillOrientation;
   /** Default `neutral`. */
   variant?: PillVariant;

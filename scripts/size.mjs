@@ -56,7 +56,7 @@ const STYLESHEETS = [
     name: "styles.css",
     description: "the stylesheet",
     // Raised from 2.5 kB for pills sharing a placement: 2.51 kB,
-    // then from 2.6 kB for the actions' rim and current page colours: 2.59 kB
+    // then from 2.6 kB for the actions' rim and current page colours: 2.59 kB, the backdrop's blur: 2.62 kB
     budget: 2.75 * KB, // 2.15 kB at 9.0.0-next.1 (3.89 kB with its comments, as shipped)
   },
   {

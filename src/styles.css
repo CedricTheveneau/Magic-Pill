@@ -252,6 +252,9 @@
          the content has faded out */
       &::backdrop {
         background: var(--mp-backdrop, rgb(20 20 20 / 0.4));
+        /* Without the token, these aren't valid: there's no filter at all */
+        -webkit-backdrop-filter: blur(var(--mp-backdrop-blur));
+        backdrop-filter: blur(var(--mp-backdrop-blur));
         transition: opacity var(--_mp-change) ease-out;
       }
 

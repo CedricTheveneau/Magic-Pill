@@ -27,7 +27,12 @@ describe("themes.css", () => {
     });
 
     // Assert
-    expect(topLevel).toEqual(["@property --_mp-veil", "@property --_mp-frost", "@layer magic-pill.theme"]);
+    expect(topLevel).toEqual([
+      "@property --_mp-veil",
+      "@property --_mp-frost",
+      "@property --_mp-drift",
+      "@layer magic-pill.theme",
+    ]);
   });
 
   it("sits between the look and the behaviour, whichever stylesheet is imported first", () => {
@@ -58,6 +63,10 @@ describe("themes.css", () => {
     "action-rim",
     "action-current",
     "on-action-current",
+    "backdrop",
+    "glow-1",
+    "glow-2",
+    "glow-duration",
   ])("reads --mp-%s", (token) => {
     // Assert
     expect(css).toMatch(new RegExp(`var\\(\\s*--mp-${token},`));
@@ -70,7 +79,10 @@ describe("themes.css", () => {
 
   it("leaves plain, unstyled and theme-less pills alone", () => {
     // Arrange
-    const selectors = [...css.matchAll(/\[data-mp="pill"\][^{]*/g)].map(([selector]) => selector.trim());
+    const glow = '[data-mp="pill"][data-backdrop="glow"]:not([data-unstyled])::backdrop';
+    const selectors = [...css.matchAll(/\[data-mp="pill"\][^{]*/g)]
+      .map(([selector]) => selector.trim())
+      .filter((selector) => selector !== glow);
 
     // Assert
     expect(selectors.length).toBeGreaterThan(0);
@@ -81,14 +93,16 @@ describe("themes.css", () => {
 
   it("only applies where the browser can work out the readable veil", () => {
     // Assert
-    expect(css).toMatch(/@layer magic-pill\.theme\s*{\s*@supports \(color: oklch\(from red l c h \/ calc\(pow\(l, 2\)\)\)\)/);
+    const supports = css.indexOf("@supports (color: oklch(from red l c h / calc(pow(l, 2)))) {");
+    expect(supports).toBeGreaterThan(-1);
+    expect(css.indexOf('[data-mp="pill"][data-theme]')).toBeGreaterThan(supports);
   });
 
   it("goes back to the plain look with less transparency, more contrast or forced colours", () => {
-    // Assert
-    expect(css).toContain(
-      "@media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active)",
-    );
+    // Assert: the glow, then the material
+    expect(
+      css.split("@media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active)"),
+    ).toHaveLength(3);
   });
 
   it("selects by data attributes, never by class names that could collide", () => {
@@ -97,8 +111,22 @@ describe("themes.css", () => {
   });
 });
 
+describe("the modal's glow", () => {
+  it("stands still with reduced motion", () => {
+    // Assert
+    expect(withoutComments(themes)).toMatch(
+      /animation: mp-drift [^;]+;\s*@media \(prefers-reduced-motion: reduce\)\s*{\s*animation: none;/,
+    );
+  });
+});
+
 describe("styles.css", () => {
   const css = withoutComments(styles);
+
+  it("blurs the modal's backdrop only when asked to: no fallback, so no filter by default", () => {
+    // Assert
+    expect(css).toContain("backdrop-filter: blur(var(--mp-backdrop-blur));");
+  });
 
   it("lets a theme join the pill's transitions, in every state", () => {
     // Assert

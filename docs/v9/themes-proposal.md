@@ -1,6 +1,6 @@
 # Themes: API proposal
 
-> **Status: approved by the maintainer on 2026-11-25** (§11). **Implementation:** the material (§10, 1). The looks were tried in a throwaway prototype, the **Glass lab**, which the maintainer validated. The three action tokens marked *added* in §4 came after that OK, to make any action work on any theme: merging this file approves them.
+> **Status: approved by the maintainer on 2026-11-25** (§11). **Implementation:** the material (§10, 1) in #89, the backdrop (§10, 2). The looks were tried in a throwaway prototype, the **Glass lab**, which the maintainer validated. The three action tokens marked *added* in §4 came after that OK, to make any action work on any theme: merging this file approves them.
 
 ## 1. What was decided
 
@@ -131,7 +131,7 @@ A client component, rendered once, with no props: the tokens decide. It does the
 ## 6. The modal's backdrop
 
 - **Colour:** `--mp-backdrop`, as today. **Blur:** `--mp-backdrop-blur: 10px`. They fade with the pill.
-- **Glow:** `backdrop="glow"`, two soft lights drifting slowly over the colour (in `themes.css`). It stands still with reduced motion.
+- **Glow:** `backdrop="glow"`, two soft lights drifting slowly over the colour (in `themes.css`). It stands still with reduced motion, and is the plain colour with less transparency or more contrast. Measured with a CPU slowed down 4 times, it keeps the main thread busy under 2% of the time (repainted each frame; a rotating layer would cost nothing, but would spin an app's own `--mp-backdrop` too).
 
 ## 7. Readable by default
 

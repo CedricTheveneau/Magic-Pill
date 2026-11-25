@@ -1,7 +1,8 @@
 /*
- * Magic Pill v9 themes: glass and liquid (Liquid Glass), and the material
- * custom themes are built on. Optional: import it next to styles.css, in any
- * order, for pills with a `theme`. Plain pills don't use it.
+ * Magic Pill v9 themes: glass and liquid (Liquid Glass), the material custom
+ * themes are built on, and the modal's glow. Optional: import it next to
+ * styles.css, in any order, for pills with a `theme` or a `backdrop`. Others
+ * don't use it.
  *
  * - Same rules as styles.css: everything is in the magic-pill layer (your
  *   unlayered CSS wins), public tokens (--mp-*) are only read, and nothing is
@@ -26,7 +27,46 @@
   initial-value: 0px;
 }
 
+@property --_mp-drift {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
 @layer magic-pill.theme {
+  /* The modal's glow, for any theme: two soft lights drifting around the
+     centre, over the backdrop's own colour and blur (styles.css) */
+  [data-mp="pill"][data-backdrop="glow"]:not([data-unstyled])::backdrop {
+    background:
+      radial-gradient(
+        60vmax 60vmax at calc(50% + 30% * cos(var(--_mp-drift))) calc(50% + 30% * sin(var(--_mp-drift))),
+        var(--mp-glow-1, rgb(213 210 232 / 0.45)),
+        transparent 70%
+      ),
+      radial-gradient(
+        50vmax 50vmax at calc(50% - 35% * cos(var(--_mp-drift))) calc(50% - 25% * sin(var(--_mp-drift))),
+        var(--mp-glow-2, rgb(63 114 83 / 0.4)),
+        transparent 70%
+      ),
+      var(--mp-backdrop, rgb(20 20 20 / 0.4));
+    animation: mp-drift var(--mp-glow-duration, 14s) linear infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+
+    @media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
+      background: var(--mp-backdrop, rgb(20 20 20 / 0.4));
+      animation: none;
+    }
+  }
+
+  @keyframes mp-drift {
+    to {
+      --_mp-drift: 360deg;
+    }
+  }
+
   @supports (color: oklch(from red l c h / calc(pow(l, 2)))) {
     [data-mp="pill"][data-theme]:not([data-theme="plain"], [data-unstyled]) {
       /* How much of the surface's colour stays: 1 is solid. A custom theme
