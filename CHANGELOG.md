@@ -20,6 +20,8 @@
   - Tokens that follow the actions by default: `--mp-field`, `--mp-on-field`, `--mp-field-rim`, `--mp-field-size`, `--mp-field-radius`, `--mp-field-gap`, `--mp-field-scheme`, `--mp-placeholder`, `--mp-label-font`, `--mp-label-style`, `--mp-label-weight`, `--mp-error`, `--mp-list`, `--mp-on-list`, `--mp-picker`
   - `PillSlider`, `PillSwitch`, `PillCheckbox`, `PillChoices` (a list, one bar where the choice slides, chips; one or several), `PillStepper` and `PillFields`. Tokens: `--mp-track`, `--mp-track-size`, `--mp-thumb`
   - `PillCode` (a one-time code), `PillFile` and `PillColor`
+  - `PillFormPanel`: a panel that is a form. It sends, waits, closes, or says what went wrong
+  - A form of the base layer that's being filled in isn't replaced by a notification, which waits for its panel to close
 
 ### Changed
 - A pill's open panel sits one level above the other pills (`--mp-z-index` + 1) until it has closed

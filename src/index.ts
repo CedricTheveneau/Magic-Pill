@@ -42,6 +42,8 @@ export type { PillNavbarProps, NavItem, NavLinkItem, NavActionItem, NavPanelItem
 // Forms: fields on native controls, for panels and pills. They need magic-pill/forms.css
 export { PillForm } from './PillForm/PillForm';
 export type { PillFormProps } from './PillForm/PillForm';
+export { PillFormPanel } from './PillForm/PillFormPanel';
+export type { PillFormPanelProps } from './PillForm/PillFormPanel';
 export { PillField } from './PillForm/PillField';
 export type { PillFieldProps, FieldProps, FieldControlProps } from './PillForm/PillField';
 export { PillInput } from './PillForm/PillInput';
