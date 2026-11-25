@@ -1,6 +1,6 @@
 # Themes: API proposal
 
-> **Status: waiting for the maintainer's OK.** Written 2026-11-25. Nothing here is implemented: the looks were tried in a throwaway prototype, the **Glass lab**, which the maintainer validated the same day. Names and defaults can still change.
+> **Status: approved by the maintainer on 2026-11-25** (§11), not implemented yet. The looks were tried in a throwaway prototype, the **Glass lab**, which the maintainer validated. The three action tokens marked *added* in §4 came after that OK, to make any action work on any theme: merging this file approves them.
 
 ## 1. What was decided
 
@@ -76,6 +76,8 @@ Set on `:root`, on one pill, or anywhere in between, like the existing ones. Boo
 | Dynamic tinting: adaptive | `--mp-adaptive` | 1 / 0 | `0` | `0` |
 | (adaptive's light pill) | `--mp-adaptive-surface` / `--mp-adaptive-on-surface` | colours | `#f9f9f9` / `#141414` | same |
 | Actions | `--mp-action` / `--mp-on-action` (existing) | colours | see-through / the pill's text | same |
+| (their outline) | `--mp-action-rim` (*added*) | colour | the pill's text at 20% | same |
+| (the current page's action) | `--mp-action-current` / `--mp-on-action-current` (*added*) | colours | the pill's text / its opposite | same |
 | Keep text readable | `--mp-readable` | 1 / 0 | `1` | `1` |
 | (more text, more frosting) | `--mp-panel-frost` | length, the least a panel has | `12px` | `12px` |
 | Modal backdrop: colour | `--mp-backdrop` (existing) | any background | a dark veil | same |
@@ -83,8 +85,26 @@ Set on `:root`, on one pill, or anywhere in between, like the existing ones. Boo
 | Modal backdrop: glow | `--mp-glow-1` / `--mp-glow-2` / `--mp-glow-duration` | colours, time | lavender, green, `14s` | same |
 
 - **`--mp-rays: 0`** turns refraction, highlights and dynamic tinting off together. Each can also be turned off alone (`--mp-refraction: 0`, `--mp-light: 0`, `--mp-vibrancy: 1`).
-- **Solid actions on glass:** `--mp-action: #f9f9f9; --mp-on-action: #141414`. No new token needed.
+- On **plain**, `--mp-action-rim` is `transparent` and the current action looks like the others, as today.
 - **The backdrop's tokens work with every theme**, plain included, so the blur goes in `styles.css`.
+
+### Any action on any theme
+
+The theme only sets the actions' defaults. Both swaps were rendered on the real pills:
+
+```css
+/* Solid actions on glass: any colour */
+.my-pill { --mp-action: #f4c542; --mp-on-action: #141414; --mp-action-rim: transparent;
+  --mp-action-current: #f4c542; --mp-on-action-current: #141414 }
+
+/* Glass actions on a plain pill */
+.my-pill { --mp-action: rgb(249 249 249 / 0.12); --mp-on-action: #f9f9f9; --mp-action-rim: rgb(249 249 249 / 0.2) }
+
+/* …with less white on the status colours, so the label keeps 4.5:1 */
+.my-pill:is([data-variant="success"], [data-variant="danger"]) { --mp-action: rgb(249 249 249 / 0.06) }
+```
+
+On a plain pill, 12% white gives 12.6:1 on neutral, but 4.2:1 on success and 4.4:1 on danger; 6% gives 4.7:1 and 4.8:1. There's nothing behind a plain pill's action to blur or bend, so there it's a see-through fill with a rim. The glass themes' veil (§7) accounts for their own actions; `--mp-readable` can't check an app's own colours.
 
 ### Custom themes
 
@@ -150,7 +170,7 @@ Measured in Chromium, on 8 extreme backdrops (white, black, pure colours, grey) 
 
 ## 9. Cost
 
-| | Now | After, estimated | Budget asked |
+| | Now | After, estimated | Budget |
 |---|---|---|---|
 | Quick start | 9.14 kB | +0.1 kB | 9.25 → 9.4 kB |
 | Primitive | 4.69 kB | +0.1 kB | 4.75 → 4.9 kB |
@@ -168,11 +188,12 @@ Each its own PR, with tests that fail without it, the README, the CHANGELOG and 
 2. **The backdrop:** `--mp-backdrop-blur`, `backdrop="glow"`.
 3. **`<PillOptics>`:** refraction, then the pointer, then adaptive (one commit each).
 
-## 11. For you to decide
+## 11. Decisions (the maintainer, 2026-11-25)
 
-| | Proposed |
+| | Decided |
 |---|---|
 | 1. Names | `theme`, `backdrop`, `<PillOptics>`, and the tokens of §4 |
-| 2. Ray casting on glass | On, as in the lab (`--mp-rays: 0` turns it off) |
+| 2. Ray casting on glass | On by default, as in the lab (`--mp-rays: 0` turns it off) |
 | 3. Files | One `themes.css` for both |
 | 4. Budgets | §9 |
+| 5. Actions | Glass or solid on any theme (§4) |
