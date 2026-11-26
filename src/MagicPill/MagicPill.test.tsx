@@ -315,6 +315,43 @@ describe("MagicPill", () => {
       expect([presence(), orientation()]).toEqual(["compact", "vertical"]);
     });
 
+    it("shows a sidebar's notification as a card in its column, through the circle, or sliding", () => {
+      // Arrange
+      const orientation = () => root().dataset.orientation;
+      const { rerender } = render(
+        <MagicPill placement="left" notificationLayout="card">
+          <PillNavbar items={items} pathname="/" />
+        </MagicPill>,
+      );
+
+      // Act + Assert: it stays vertical, through the circle by default
+      notify({ message: "Hello" });
+      expect([presence(), orientation()]).toEqual(["rest", "vertical"]);
+      advance(FADE + CHANGE);
+      expect([presence(), orientation(), root().dataset.layout]).toEqual(["compact", "vertical", "card"]);
+      expect(root().querySelector('[data-mp="card"]')).not.toBeNull();
+      advance(DURATION + FADE + CHANGE);
+
+      // With swap="always", it slides
+      rerender(
+        <MagicPill placement="left" notificationLayout="card" swap="always">
+          <PillNavbar items={items} pathname="/" />
+        </MagicPill>,
+      );
+      notify({ message: "Again" });
+      expect([presence(), orientation(), message()]).toEqual(["compact", "vertical", "Again"]);
+    });
+
+    it("shows a card in one row on a horizontal host", () => {
+      // Act
+      render(<MagicPill notificationLayout="card" />);
+      show({ message: "Hello" });
+
+      // Assert
+      expect(root().dataset.layout).toBe("pill");
+      expect(root().querySelector('[data-mp="card"]')).toBeNull();
+    });
+
     it("lets a notification take the pill over, then returns to the base", () => {
       // Arrange
       render(

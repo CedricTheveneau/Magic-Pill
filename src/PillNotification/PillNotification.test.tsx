@@ -53,6 +53,29 @@ describe("PillNotification", () => {
     expect(body).toEqual(["message", "actions"]);
   });
 
+  it("stacks everything in a column as a card, its actions showing their labels", () => {
+    // Act
+    render(
+      <Pill orientation="vertical">
+        <PillNotification
+          layout="card"
+          icon={<CheckIcon />}
+          message="Saved"
+          action={{ label: "Undo", onClick: () => {} }}
+          panel={{ title: "Details", content: "More", trigger: { label: "Details" } }}
+        />
+      </Pill>,
+    );
+
+    // Assert
+    const order = [...part("pill")!.children].map((child) => (child as HTMLElement).dataset.mp);
+    expect(order).toEqual(["card", "panel"]);
+    const card = [...part("card")!.children].map((child) => (child as HTMLElement).dataset.mp);
+    expect(card).toEqual(["icon", "divider", "message", "actions"]);
+    const actions = [...part("actions")!.querySelectorAll<HTMLElement>('[data-mp="action"]')];
+    expect(actions.every((action) => action.hasAttribute("data-expanded"))).toBe(true);
+  });
+
   it("renders any content as React nodes, never as HTML (L3)", () => {
     // Act
     render(

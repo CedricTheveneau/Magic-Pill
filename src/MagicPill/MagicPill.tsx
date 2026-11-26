@@ -7,6 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type FocusEvent,
   type MouseEvent,
   type ReactNode,
@@ -68,8 +69,9 @@ export interface MagicPillProps
    */
   swap?: SwapMode;
   /**
-   * How notifications are laid out: in one row (default), or with their
-   * actions under the message when they need the room (`rows`). A
+   * How notifications are laid out: in one row (default), with their actions
+   * under the message when they need the room (`rows`), or, in a sidebar, as
+   * a card in its column (`card`; a horizontal host shows it in one row). A
    * notification's own `layout` wins.
    */
   notificationLayout?: NotificationLayout;
@@ -180,20 +182,28 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
   // so between its base layer and a notification it goes through the circle
   const onSide = placement === "left" || placement === "right";
   const isVertical = orientation === "vertical" || (orientation === undefined && onSide);
-  // A notification's layout: its own, or the host's
-  const layoutOf = (scene: Scene): NotificationLayout | undefined =>
-    scene.kind === "notification" ? (scene.item.input.layout ?? notificationLayout) : undefined;
+  // A notification's layout: its own, or the host's. A card is a sidebar's
+  const layoutOf = (scene: Scene): NotificationLayout | undefined => {
+    if (scene.kind !== "notification") return undefined;
+    const layout = scene.item.input.layout ?? notificationLayout;
+    return layout === "card" && !isVertical ? "pill" : layout;
+  };
+  // A sidebar turns horizontal for its notifications, but for a card, in its column
+  const orientationOf = (scene: Scene) =>
+    isVertical && scene.kind === "notification" && layoutOf(scene) !== "card" ? "horizontal" : orientation;
   // Read when planning, so changing it doesn't interrupt a change under way.
-  // A sidebar slides to and from a notification in rows (the same pill, laid
-  // out again), not to a plain one: that turns through the circle
+  // A sidebar slides to and from a notification in rows or a card (the same
+  // pill, laid out again), not to a plain one: that turns through the circle
   const swapMode = useRef((_from: Scene, _to: Scene): SwapMode => swap);
   swapMode.current = (from, to) => {
     if (!isVertical || swap !== "always") return swap;
-    const notification = to.kind === "notification" ? to : from;
-    return layoutOf(notification) === "rows" ? "always" : "queue";
+    const layout = layoutOf(to.kind === "notification" ? to : from);
+    return layout === "rows" || layout === "card" ? "always" : "queue";
   };
   // A slide where the pill turns: the copy sliding out keeps its layout
-  const turns = (from: Scene, to: Scene) => isVertical && (from.kind === "notification") !== (to.kind === "notification");
+  const turns = (from: Scene, to: Scene) => (orientationOf(from) ?? "") !== (orientationOf(to) ?? "");
+  // The sidebar's width, which a card keeps (at least), measured as it leaves
+  const sidebarWidth = useRef<number | undefined>(undefined);
   // The pill turns as the content slides: no trip through the circle then
   const [isSliding, setIsSliding] = useState(false);
 
@@ -228,6 +238,9 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
     const timers = batches.map(({ at, states }) => {
       const apply = () => {
         const from = displayedRef.current;
+        if (from.scene.kind === "base" && isOpen(from.presence) && rootRef.current) {
+          sidebarWidth.current = rootRef.current.getBoundingClientRect().width;
+        }
         if (isSwap(from, states[0], mode)) {
           const freeze = turns(from.scene, states[0].scene);
           capture.current = captureSwap(rootRef.current, { freeze });
@@ -358,9 +371,14 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
         {...rest}
         ref={ref}
         placement={placement}
-        orientation={isVertical && displayed.scene.kind === "notification" ? "horizontal" : orientation}
+        orientation={orientationOf(displayed.scene)}
         moveThroughCircle={moveThroughCircle !== false && !isSliding}
         data-layout={layoutOf(displayed.scene)}
+        style={
+          layoutOf(displayed.scene) === "card" && isVertical && sidebarWidth.current
+            ? ({ ...rest.style, "--_mp-sidebar-width": `${sidebarWidth.current}px` } as CSSProperties)
+            : rest.style
+        }
         variant={sceneVariant}
         presence={displayed.presence}
         onPresenceChange={handlePresenceChange}
