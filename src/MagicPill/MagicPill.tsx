@@ -108,6 +108,7 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
     linkComponent,
     classNames,
     placement = "bottom",
+    orientation,
     variant,
     onPointerEnter,
     onPointerLeave,
@@ -162,9 +163,14 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
   const followUps = useRef<Displayed[]>([]);
   // The content on screen as the next one replaces it, to slide it out
   const capture = useRef<SwapCapture | null>(null);
+  // A sidebar's notifications are pills like the others: it turns horizontal
+  // for them, inside the circle, where nothing shows. Sliding can't turn it,
+  // so between its base layer and a notification it goes through the circle
+  const onSide = placement === "left" || placement === "right";
+  const isVertical = orientation === "vertical" || (orientation === undefined && onSide);
   // Read when planning, so changing it doesn't interrupt a change under way
   const swapMode = useRef(swap);
-  swapMode.current = swap;
+  swapMode.current = isVertical && swap === "always" ? "queue" : swap;
 
   useLayoutEffect(() => {
     const swapped = capture.current;
@@ -319,6 +325,7 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
         {...rest}
         ref={ref}
         placement={placement}
+        orientation={isVertical && displayed.scene.kind === "notification" ? "horizontal" : orientation}
         variant={sceneVariant}
         presence={displayed.presence}
         onPresenceChange={handlePresenceChange}

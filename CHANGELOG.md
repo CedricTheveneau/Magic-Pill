@@ -7,6 +7,7 @@
 
 ### Changed
 - A pill whose placement (or orientation) changes goes there through the circle: it closes to a circle where it is, the circle travels, and it opens at its new place, instead of travelling at full size while its content is laid out for the new place. Nothing jumps, even from the bottom of the screen to a side, where it turns vertical inside the circle. `moveThroughCircle={false}` travels at full size as before; with reduced motion it still changes place at once
+- A sidebar host (`placement="left"` or `"right"`) shows its notifications as horizontal pills, like any other host: it turns horizontal while it's a circle, and back once they're gone. Between its base layer and a notification, it goes through the circle even with `swap="always"`
 
 ### Fixed
 - A vertical pill at rest is a circle: it kept the width of its hidden content (an oval as wide as the sidebar's labels)

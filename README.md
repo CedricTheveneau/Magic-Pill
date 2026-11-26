@@ -260,6 +260,7 @@ Give each host a name, and target it with `pill(name)`:
 pill("sidebar").notify({ message: "3 new posts" });
 pill("assistant").notify({ icon: <HelpIcon />, message: "Need a hand?", duration: Infinity });
 ```
+A sidebar's notifications are pills like the others: it turns horizontal for them while it's a circle, and back once they're gone. Between its base layer and a notification it always goes through the circle, even with `swap="always"` (sliding can't turn it).
 
 ## The primitive
 Everything above is built from `<Pill>` and its parts, and you can use them directly. A `<Pill>` you write yourself isn't connected to `pill()`: you control it with props.
