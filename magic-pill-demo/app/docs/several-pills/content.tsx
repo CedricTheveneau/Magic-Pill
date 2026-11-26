@@ -1,6 +1,20 @@
 "use client";
 import { useState } from "react";
-import { BoxIcon, CloseIcon, HelpIcon, InfoIcon, MagicPill, MailIcon, Pill, PillAction, PillActions, PillMessage, pill } from "magic-pill";
+import {
+  BoxIcon,
+  CheckIcon,
+  CloseIcon,
+  HelpIcon,
+  InfoIcon,
+  MagicPill,
+  MailIcon,
+  Pill,
+  PillAction,
+  PillActions,
+  PillMessage,
+  UndoIcon,
+  pill,
+} from "magic-pill";
 
 import { Example } from "../_components/example";
 import { DocsHeader, DocsSection, Notes, PageLinks } from "../_components/text";
@@ -118,6 +132,101 @@ pill("assistant").notify({ icon: <HelpIcon />, message: "Track it from here" });
             <p>Each host has its own queue.</p>
           </Example>
         </div>
+      </DocsSection>
+
+      <DocsSection id="sidebar-notifications" title="Notifications in a sidebar">
+        <div className="docs-examples">
+          <Example
+            title="In one row"
+            notify={() =>
+              pill("docs").notify({ icon: <InfoIcon />, message: "3 new pages in the docs", duration: 4000 })
+            }
+            code={`<MagicPill name="docs" placement="left">…</MagicPill> {/* notificationLayout="pill", the default */}
+
+pill("docs").notify({ icon: <InfoIcon />, message: "3 new pages in the docs" });`}
+          >
+            <p>The sidebar turns horizontal while it’s a circle, shows the notification as a pill, and turns back.</p>
+          </Example>
+          <Example
+            title="In rows"
+            notify={() =>
+              pill("docs").notify({
+                layout: "rows",
+                variant: "success",
+                icon: <CheckIcon />,
+                message: "Your changes are saved and shared with the team.",
+                action: { icon: <UndoIcon />, label: "Undo", onClick: () => {}, expanded: true },
+                panel: { title: "Details", content: <p>Saved at 18:42. The previous version stays in the history.</p>, trigger: { label: "Details", expanded: true } },
+                duration: 6000,
+              })
+            }
+            code={`pill("docs").notify({
+  layout: "rows",
+  variant: "success",
+  icon: <CheckIcon />,
+  message: "Your changes are saved and shared with the team.",
+  action: { icon: <UndoIcon />, label: "Undo", onClick: restore },
+  panel: { title: "Details", content: … },
+});`}
+          >
+            <p>The actions go under the message. With <code>swap=&quot;always&quot;</code>, the sidebar slides into it, turning as it goes.</p>
+          </Example>
+          <Example
+            title="A card"
+            notify={() =>
+              pill("docs").notify({
+                layout: "card",
+                icon: <MailIcon />,
+                message: "Léa replied to your comment on Forms",
+                action: { icon: <MailIcon />, label: "Reply", onClick: () => {} },
+                duration: 6000,
+              })
+            }
+            code={`pill("docs").notify({
+  layout: "card",
+  icon: <MailIcon />,
+  message: "Léa replied to your comment on Forms",
+  action: { icon: <MailIcon />, label: "Reply", onClick: openThread },
+});`}
+          >
+            <p>
+              The sidebar keeps its column: the icon on top, the message, the actions full width. As wide as the sidebar, at
+              least <code>--mp-card-width</code>.
+            </p>
+          </Example>
+          <Example
+            title="A flag"
+            notify={() =>
+              pill("docs").notify({
+                layout: "flag",
+                at: "/docs/several-pills/",
+                icon: <InfoIcon />,
+                message: "This page has a new section",
+                duration: 5000,
+              })
+            }
+            code={`pill("docs").notify({
+  layout: "flag",
+  at: "/docs/several-pills/", // the navbar item it's about
+  icon: <InfoIcon />,
+  message: "This page has a new section",
+});`}
+          >
+            <p>
+              The sidebar stays, usable, and the notification comes out of its edge, next to its section. Its motion will
+              follow the Electron’s once it’s designed.
+            </p>
+          </Example>
+        </div>
+        <Notes>
+          <ul>
+            <li>
+              <code>notificationLayout</code> on the host sets it for all its notifications; <code>layout</code> on one wins.
+            </li>
+            <li>Cards and flags are a sidebar’s: on a horizontal host, they show in one row. A flag needs a base layer to come out of.</li>
+            <li>A flag pauses while it’s pointed at or focused; the next one slides in it, and moves to its own section.</li>
+          </ul>
+        </Notes>
       </DocsSection>
 
       <DocsSection id="ladder" title="Pills in the same spot">

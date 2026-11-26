@@ -260,10 +260,12 @@ export function Content() {
           <p>
             <code>inline</code> (in the page flow, the default), the edges and corners (fixed; <code>start</code> and{" "}
             <code>end</code> follow the text direction), or <code>overlay</code> (<Link href="/docs/modal/">a modal</Link>).
-            Change it and the pill travels to its new place. Move this site’s pill:
+            Change it and the pill goes there through the circle: it closes where it is, the circle travels, and it opens at
+            its new place, so nothing jumps, even where it turns vertical. Move this site’s pill:
           </p>
           <Placements />
-          <Code label="Code: placement">{`<MagicPill placement="top-end">…</MagicPill>`}</Code>
+          <Code label="Code: placement">{`<MagicPill placement="top-end">…</MagicPill>
+<MagicPill placement="top-end" moveThroughCircle={false}>…</MagicPill> {/* travels at full size */}`}</Code>
           <p className="hint">
             On <code>left</code>, it lines up next to the docs’ pill instead of covering it:{" "}
             <Link href="/docs/several-pills/">pills that share a spot</Link>.
@@ -409,6 +411,7 @@ export function Content() {
               ["`closeOnBackdropClick`", "`boolean`, for `\"overlay\"`: a click outside does what Escape does", "`false`"],
               ["`backdrop`", "`\"plain\"`, `\"glow\"`, or any string, for `\"overlay\"`", "`\"plain\"`"],
               ["`ladder`", "`boolean`, for the fixed placements: pills with the same placement line up. `false` leaves this one out", "`true`"],
+              ["`moveThroughCircle`", "`boolean`, for the fixed placements: a new placement (or orientation) is reached through the circle. `false` travels at full size; at once with reduced motion", "`true`"],
               ["`scene` / `sceneChange`", "A name for what the pill shows / `\"circle\"`, `\"slide\"` or `\"none\"`", "none / `\"circle\"`"],
               ["`orientation`", "`\"horizontal\"`, `\"vertical\"`", "`\"vertical\"` for `left`/`right`"],
               ["`variant`", "`\"neutral\"`, `\"success\"`, `\"danger\"`, or any string", "`\"neutral\"`"],

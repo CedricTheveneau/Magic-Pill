@@ -65,10 +65,10 @@ export function Example({ title, children, preview, previewClassName, code, lang
 
 /** A notification's look, in an inline pill: what `pill().notify(options)` shows. */
 export function NotificationPreview({ options, label = "Preview" }: { options: NotifyOptions; label?: string }) {
-  const { variant, icon, message, action, panel } = options;
+  const { variant, icon, message, action, panel, layout } = options;
   return (
     <Pill variant={variant} role="group" aria-label={label}>
-      <PillNotification icon={icon} message={message} action={action} panel={panel} />
+      <PillNotification icon={icon} message={message} action={action} panel={panel} layout={layout} />
     </Pill>
   );
 }
