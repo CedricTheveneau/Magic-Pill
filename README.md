@@ -73,6 +73,8 @@ pill().notify({ icon: <CheckIcon />, message: "Saved!", variant: "success" });
 
 That's it. The pill pops in at the bottom of the page, stays for 5 seconds, then goes away.
 
+> **Icons:** the examples use the built-in icons (`CheckIcon`…), which are **deprecated**: they still work, and go in the next major version. Any icon works instead, from your own SVGs to Lucide or Font Awesome: see [Icons](#icons).
+
 ### Fonts
 Magic Pill loads no fonts: it uses your page's fonts. For the signature look, an italic serif for messages (**Overlock**) and a bold sans for action labels (**Lexend**), point the two font tokens at them.
 
