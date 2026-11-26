@@ -509,10 +509,13 @@
         font-size: 1.25rem;
       }
 
-      & [data-mp="icon"] > svg,
-      & [data-mp="action-icon"] > svg {
+      /* Any icon fits the slot: an svg or an image is 1em square, a font
+         icon (Font Awesome's <i>, an emoji) takes the font size */
+      & [data-mp="icon"] > :is(svg, img),
+      & [data-mp="action-icon"] > :is(svg, img) {
         inline-size: 1em;
         block-size: 1em;
+        object-fit: contain;
       }
 
       /* Labels: folded away (but still the accessible name) until expanded.

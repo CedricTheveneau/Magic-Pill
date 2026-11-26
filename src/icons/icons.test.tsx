@@ -1,6 +1,8 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
+import * as library from "../index";
+
 import ArrowIcon from "./ArrowIcon";
 import BoxIcon from "./BoxIcon";
 import CheckIcon from "./CheckIcon";
@@ -52,5 +54,12 @@ describe("v9 icons", () => {
     expect(svg.getAttribute("aria-label")).toBe("Done");
     expect(svg.getAttribute("aria-hidden")).toBe("false");
     expect(svg.getAttribute("class")).toBe("big");
+  });
+
+  it("are still exported, deprecated but unchanged, until the next major version", () => {
+    // Assert
+    for (const [name, Icon] of Object.entries(icons)) {
+      expect(library[name as keyof typeof library]).toBe(Icon);
+    }
   });
 });

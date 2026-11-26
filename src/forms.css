@@ -518,9 +518,10 @@
       font-size: 1.15rem;
       pointer-events: none;
 
-      & > svg {
+      & > :is(svg, img) {
         inline-size: 1em;
         block-size: 1em;
+        object-fit: contain;
       }
     }
 
