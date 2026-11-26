@@ -4,6 +4,8 @@ name: Stage new release on npm
 # version, invisible to users. A maintainer then publishes it with 2FA:
 #   npm stage list magic-pill
 #   npm stage approve <stage-id>
+# The run's summary gives the exact command, which for a stable release also
+# moves `next` to it when no later pre-release is on `next`.
 # So nothing reaches users without a human with 2FA, even if this workflow
 # or the GitHub account is compromised. The npm trusted publisher only allows
 # `npm stage publish` (not `npm publish`).
@@ -91,6 +93,46 @@ jobs:
 
       - name: Build and stage on npm (approve with 2FA to publish)
         if: github.event_name == 'release'
+        id: stage
+        shell: bash # with pipefail: a failed stage fails the step, despite the tee
         env:
           DIST_TAG: ${{ steps.dist-tag.outputs.tag }}
-        run: npm stage publish --provenance --tag "$DIST_TAG"
+        run: |
+          npm stage publish --provenance --tag "$DIST_TAG" 2>&1 | tee stage.log
+          id="$(grep -oE 'staged with id [0-9a-f-]+' stage.log | awk '{print $4}' | tail -1)"
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+      # The command the maintainer runs to publish it. A stable release also
+      # moves `next` to it, unless `next` is a pre-release of a later version
+      # (e.g. 10.0.0-next.1 while 9.2.1 ships): npm can't make a tag follow
+      # another, and this job can't move one (its credential only stages; a
+      # dist-tag needs the maintainer's 2FA), so it's part of the same command.
+      - name: Say what to run to publish it
+        if: github.event_name == 'release'
+        env:
+          DIST_TAG: ${{ steps.dist-tag.outputs.tag }}
+          STAGE_ID: ${{ steps.stage.outputs.id }}
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          next="$(npm view magic-pill dist-tags.next 2>/dev/null || true)"
+          command="npm stage approve $STAGE_ID"
+          if [ "$DIST_TAG" = "latest" ] && node -e '
+            const [next, version] = process.argv.slice(1);
+            const parts = (v) => v.split("-")[0].split(".").map(Number);
+            const a = next ? parts(next) : [0, 0, 0];
+            const b = parts(version);
+            const i = a.findIndex((n, k) => n !== b[k]);
+            process.exit(i === -1 || a[i] < b[i] ? 0 : 1);
+          ' "$next" "$version"; then
+            command="$command && npm dist-tag add magic-pill@$version next"
+          fi
+          echo "To publish $version (\`next\` is ${next:-not set}), run in your own terminal:"
+          echo "  $command"
+          {
+            echo "### To publish $version"
+            echo
+            echo "In your own terminal (2FA). \`next\` is ${next:-not set} now."
+            echo
+            echo '```'
+            echo "$command"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
