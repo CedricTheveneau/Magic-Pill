@@ -279,11 +279,12 @@ import { Pill, PillActions, PillAction, PhoneIcon, MailIcon, DocumentIcon } from
 
 | `<Pill>` prop | Values | Default |
 |---|---|---|
-| `placement` | `"inline"` (in the page flow), `"top"`, `"bottom"`, `"left"`, `"right"`, `"top-start"`, `"top-end"`, `"bottom-start"`, `"bottom-end"` (fixed; `start`/`end` follow the text direction), `"overlay"` (a modal `<dialog>`). Change it and the pill travels to its new place (e.g. with the scroll, or for a guided tour), except to or from `"overlay"`. | `"inline"` |
+| `placement` | `"inline"` (in the page flow), `"top"`, `"bottom"`, `"left"`, `"right"`, `"top-start"`, `"top-end"`, `"bottom-start"`, `"bottom-end"` (fixed; `start`/`end` follow the text direction), `"overlay"` (a modal `<dialog>`). Change it and the pill travels to its new place (e.g. with the scroll, or for a guided tour), through the circle (see `moveThroughCircle`), except to or from `"overlay"`. | `"inline"` |
 | `presence` / `defaultPresence` / `onPresenceChange` | `"hidden"`, `"rest"` (a circle with the icon only), `"compact"`, `"expanded"` (every action label shown), `"panel"` | `"compact"` |
 | `closeOnBackdropClick` | `boolean`, for the `"overlay"` placement: a click outside the modal does what Escape does (closes its panel if it's open, the modal otherwise). Call `event.preventDefault()` in your `onClick` to keep it open | `false` |
 | `backdrop` | `"plain"`, `"glow"`, or any string, for the `"overlay"` placement: what's behind the modal (see below) | `"plain"` |
 | `ladder` | `boolean`, for the fixed placements: pills with the same placement line up like the rungs of a ladder (see below). `false` leaves this one out: it stays in its spot and the others ignore it | `true` |
+| `moveThroughCircle` | `boolean`, for the fixed placements: when the placement (or the orientation) changes, the pill closes to a circle where it is, the circle travels, and the pill opens at its new place, so its content never jumps on the way (from the bottom to a side, it turns vertical inside the circle). `false` travels at full size. At once with reduced motion | `true` |
 | `scene` / `sceneChange` | A name for what the pill shows: when it changes, the pill goes from one content to the other instead of jumping (see below). `"circle"`, `"slide"` or `"none"` | none / `"circle"` |
 | `orientation` | `"horizontal"`, `"vertical"` | `"vertical"` for `left`/`right` |
 | `variant` | `"neutral"`, `"success"`, `"danger"`, or any string (see [Styling](#styling)) | `"neutral"` |

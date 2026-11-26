@@ -308,7 +308,11 @@
         max-inline-size: var(--_mp-max-size);
       }
 
+      /* A circle too: both axes clamped, as for a horizontal pill (the
+         vertical rule above lets its width follow the content) */
       &[data-orientation="vertical"]:is([data-presence="rest"], [data-presence="hidden"]) {
+        inline-size: var(--_mp-rest-size);
+        max-inline-size: var(--_mp-rest-size);
         block-size: var(--_mp-rest-size);
       }
 
