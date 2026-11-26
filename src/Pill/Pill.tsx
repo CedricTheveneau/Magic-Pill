@@ -15,7 +15,7 @@ import {
 } from "react";
 
 import { isOnBackdrop, useModal } from "./modal";
-import { PlacementWatch, useSizeMorph, type Size } from "./morph";
+import { ExitWatch, PlacementWatch, useSizeMorph, type Size } from "./morph";
 import { PillContext, type InternalPillContextValue } from "./PillContext";
 import { SceneWatch, useScene } from "./scene";
 import type { PillOrientation, PillPresence, PillProps } from "./types";
@@ -202,6 +202,8 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
           ...(closeOnBackdropClick && { onPointerDown: handlePointerDown, onClick: handleClick }),
         })}
       >
+        {/* Calls off its exit when it's asked back mid-way */}
+        <ExitWatch presence={presence} target={rootRef} />
         {/* Moves the pill to a new placement instead of jumping there */}
         <PlacementWatch placement={`${placement} ${resolvedOrientation}`} target={rootRef} />
         {/* Slides the old scene out, and the new one in */}

@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Fixed
+- A pill that hides plays its whole exit on iOS: when the page scrolled and Safari's toolbar folded away at the same time, the viewport's change restyled the page and cut the exit's transitions short, so the pill vanished at once. The exit (the content fading, the scale and the visibility) is now played by script on top of the stylesheet, with the same timings; a pill asked back mid-way grows back from where it was, as before
 - Form fields draw their focus ring for the keyboard only: browsers matched `:focus-visible` on text fields, lists, steppers and code fields even after a click or a tap. A field focused with a pointer now gets `data-pointer-focus`, and `forms.css` leaves it without a ring (the caret shows where typing goes). Tabbing to a field still draws it
 
 ## [9.1.1] - 2026-11-26
