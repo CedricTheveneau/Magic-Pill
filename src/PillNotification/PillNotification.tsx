@@ -43,9 +43,11 @@ export interface NotificationPanel {
  * How a notification's parts are arranged: in one row (`pill`, the default),
  * with the actions on a second row under the message when they need the
  * room (`rows`: a wrapping message, or an action and a panel's trigger), or
- * in a column, as a sidebar is (`card`: in a host, sidebars only).
+ * in a column, as a sidebar is (`card`), or in a flag out of a sidebar's
+ * edge (`flag`, which the template lays out in one row). Card and flag are
+ * a sidebar host's.
  */
-export type NotificationLayout = "pill" | "rows" | "card";
+export type NotificationLayout = "pill" | "rows" | "card" | "flag";
 
 export interface PillNotificationClassNames {
   icon?: string;

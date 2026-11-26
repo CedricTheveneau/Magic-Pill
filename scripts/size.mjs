@@ -31,8 +31,10 @@ const PROBES = [
     // then from 9.75 kB for scenes (Pill/scene.ts): 10.22 kB,
     // then from 10.5 kB for the exit played by script, which a restyle of the page can't cut short (iOS): 10.68 kB,
     // then from 11 kB for placement changes through the circle (Pill/travel.ts): 11.02 kB,
-    // then from 11.5 kB for notifications in rows and the slides where a sidebar turns: 11.42 kB
-    budget: 12 * KB, // 4.89 kB at 9.0.0-next.0
+    // then from 11.5 kB for notifications in rows and the slides where a sidebar turns: 11.42 kB,
+    // then from 12 kB for cards (11.57 kB) and a sidebar's flag, a second pill with its own steps and
+    // pauses, and the navbar's matching to find its section (MagicPill/flag.ts, useChoreography.ts): 13.08 kB
+    budget: 13.5 * KB, // 4.89 kB at 9.0.0-next.0
   },
   {
     name: "Pill primitive",
@@ -56,8 +58,8 @@ const PROBES = [
     code: 'export { MagicPill, pill, PillFormPanel, PillInput, PillSwitch } from "ENTRY";',
     // 12.17 kB, then 12.71 kB with the busy labels, 13.38 kB with scenes,
     // 13.88 kB with the exit played by script, 14.23 kB with placement changes through the circle,
-    // 14.62 kB with notifications in rows
-    budget: 15 * KB,
+    // 14.62 kB with notifications in rows, 16.33 kB with cards and the flag
+    budget: 16.75 * KB,
   },
   {
     name: "Everything",
@@ -80,8 +82,9 @@ const PROBES = [
     // then from 24.5 kB for the calendar (PillDate, only for apps that use it): 29.35 kB,
     // then from 29.75 kB for the exit played by script and the fields' keyboard-only focus rings: 29.85 kB,
     // then from 30.25 kB for placement changes through the circle: 30.23 kB,
-    // then from 30.75 kB for notifications in rows: 30.68 kB
-    budget: 31.25 * KB, // 9.07 kB at 9.0.0-next.0
+    // then from 30.75 kB for notifications in rows: 30.68 kB,
+    // then from 31.25 kB for cards and the flag: 32.39 kB
+    budget: 32.75 * KB, // 9.07 kB at 9.0.0-next.0
   },
 ];
 const STYLESHEETS = [

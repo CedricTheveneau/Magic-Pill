@@ -29,6 +29,12 @@ interface NotifyCommon {
   announce?: string | false;
   /** This notification's layout, instead of the host's `notificationLayout`. */
   layout?: NotificationLayout;
+  /**
+   * `flag` only: the navbar item it's about (its `href`), to come out next to
+   * it, matched as the navbar matches the current page. Default: the middle
+   * of the sidebar.
+   */
+  at?: string;
   onDismiss?: (id: string, reason: DismissReason) => void;
 }
 

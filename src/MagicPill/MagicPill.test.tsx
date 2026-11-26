@@ -352,6 +352,79 @@ describe("MagicPill", () => {
       expect(root().querySelector('[data-mp="card"]')).toBeNull();
     });
 
+    describe("a flag (notificationLayout=\"flag\")", () => {
+      const flag = () => document.querySelector<HTMLElement>('[data-mp="pill"][data-layout="flag"]');
+      const sidebar = () => document.querySelector<HTMLElement>('[data-mp="pill"]:not([data-layout="flag"])')!;
+      const renderSidebar = (props: Partial<Parameters<typeof MagicPill>[0]> = {}) =>
+        render(
+          <MagicPill placement="left" notificationLayout="flag" {...props}>
+            <PillNavbar items={items} pathname="/" />
+          </MagicPill>,
+        );
+
+      it("comes out beside the sidebar, which keeps its base layer, then goes back", () => {
+        // Arrange
+        renderSidebar();
+
+        // Act + Assert: a pill of its own pops out, the sidebar stays
+        notify({ message: "Hello" });
+        expect(flag()?.dataset.presence).toBe("rest");
+        advance(ENTER);
+        expect([flag()?.dataset.presence, flag()?.dataset.orientation, flag()?.textContent]).toEqual(["compact", "horizontal", "Hello"]);
+        expect([sidebar().dataset.presence, sidebar().dataset.orientation]).toEqual(["compact", "vertical"]);
+        expect(screen.getByRole("navigation", { name: "Main" })).toBeTruthy();
+
+        // It leaves after its time, and empties once out of sight
+        advance(DURATION);
+        expect(flag()?.dataset.presence).toBe("hidden");
+        advance(FADE + CHANGE + EXIT);
+        expect([flag()?.dataset.presence, flag()?.textContent]).toEqual(["hidden", ""]);
+      });
+
+      it("pauses while it's pointed at, not while the sidebar is", () => {
+        // Arrange
+        renderSidebar();
+        notify({ message: "Hello" });
+        advance(ENTER);
+
+        // Act + Assert
+        fireEvent.pointerEnter(flag()!, { pointerType: "mouse" });
+        advance(DURATION * 2);
+        expect(flag()?.dataset.presence).toBe("compact");
+        fireEvent.pointerLeave(flag()!);
+        fireEvent.pointerEnter(sidebar(), { pointerType: "mouse" });
+        advance(DURATION);
+        expect(flag()?.dataset.presence).toBe("hidden");
+      });
+
+      it("comes out next to the section it's about, with at", () => {
+        // Arrange
+        renderSidebar();
+
+        // Act
+        notify({ message: "New post", at: "/blog/42" });
+
+        // Assert: centred on the matching item; in the middle without at
+        expect(flag()!.style.insetBlockStart).toContain("max(");
+        advance(ENTER);
+        advance(DURATION);
+        advance(FADE + CHANGE + EXIT);
+        notify({ message: "Hello" });
+        expect(flag()!.style.insetBlockStart).toBe("");
+      });
+
+      it("shows in the pill itself on a horizontal host, or without a base layer", () => {
+        // Act
+        render(<MagicPill notificationLayout="flag" />);
+        show({ message: "Hello" });
+
+        // Assert
+        expect(flag()).toBeNull();
+        expect(root().dataset.layout).toBe("pill");
+        expect(message()).toBe("Hello");
+      });
+    });
+
     it("lets a notification take the pill over, then returns to the base", () => {
       // Arrange
       render(

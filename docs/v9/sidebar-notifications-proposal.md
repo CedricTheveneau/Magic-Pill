@@ -1,6 +1,6 @@
 # Notifications in a sidebar: API proposal
 
-> **Status: approved by the maintainer on 2026-11-26**, every question answered "yes" (§9). The four layouts were tried in a throwaway prototype (the **Sidebar notifications** page, private), with every composition: short and long messages, with or without icon, divider, actions, a text panel or a form. Builds on #112, which ships the default (A). **Implementation:** rows (§8, 1), then card, flag and the docs pages.
+> **Status: approved by the maintainer on 2026-11-26**, every question answered "yes" (§9). The four layouts were tried in a throwaway prototype (the **Sidebar notifications** page, private), with every composition: short and long messages, with or without icon, divider, actions, a text panel or a form. Builds on #112, which ships the default (A). **Implementation:** rows (§8, 1) in #114, card (§8, 2) in #115, flag (§8, 3), then the docs pages. The flag's estimate (§8) was low: about 1.5 kB for the quick start, with the navbar's matching and a second pill's steps and pauses.
 
 ## 1. What was decided
 
