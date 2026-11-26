@@ -2,18 +2,19 @@
 
 ## [Unreleased]
 
+## [9.2.0] - 2026-11-26
+Placement changes through the circle, and new layouts for notifications: in rows on any host, and as cards or flags in a sidebar. One default changes: a pill whose placement changes now closes to a circle, travels, and opens at its new place; `moveThroughCircle={false}` keeps the old travel at full size. Nothing else to change in your code.
+
 ### Added
+- `moveThroughCircle` on `<Pill>` and `<MagicPill>` (default `true`), see Changed
 - Notifications in rows: `notificationLayout="rows"` on `<MagicPill>`, `layout: "rows"` on a notification (it wins over the host's), or `layout="rows"` on `<PillNotification>`. The actions go under the message when they need the room (the message wraps, or there's an action and a panel's trigger), lined up with it; one action beside a short message stays on its line. On every host. A sidebar slides to and from a notification in rows with `swap="always"`, turning as it goes
 - Notifications as cards, in a sidebar: `notificationLayout="card"` or `layout: "card"`. A column of the sidebar's width, at least `--mp-card-width` (`12.5rem`): the icon on top, the divider across, the message centred, the actions full width with their labels. The sidebar stays vertical, through the circle, or sliding with `swap="always"`. A horizontal host shows it in one row
 - A sidebar's flag: `notificationLayout="flag"` or `layout: "flag"`, on a `left` or `right` host with a base layer. The sidebar stays, usable, and the notification comes out of its edge as a pill of its own (`data-layout="flag"`), next to the navbar item it's about (`at`, its `href`) or in the middle. It pauses while pointed at or focused, slides to the next one and moves to its section, and opens its panel beside the sidebar. Its motion, a pop out of the sidebar with a short bridge while they part, will follow the Electron's once it's designed. Elsewhere, a flag shows in the pill itself
 - Navbar links carry `data-href`, their item's `href` as given (the rendered one may carry the app's base path)
 
-### Added
-- `moveThroughCircle` on `<Pill>` and `<MagicPill>` (default `true`)
-
 ### Changed
 - A pill whose placement (or orientation) changes goes there through the circle: it closes to a circle where it is, the circle travels, and it opens at its new place, instead of travelling at full size while its content is laid out for the new place. Nothing jumps, even from the bottom of the screen to a side, where it turns vertical inside the circle. `moveThroughCircle={false}` travels at full size as before; with reduced motion it still changes place at once
-- A sidebar host (`placement="left"` or `"right"`) shows its notifications as horizontal pills, like any other host: it turns horizontal while it's a circle, and back once they're gone. Between its base layer and a notification, it goes through the circle even with `swap="always"`
+- A sidebar host (`placement="left"` or `"right"`) shows its notifications as horizontal pills, like any other host: it turns horizontal while it's a circle, and back once they're gone. Between its base layer and a notification, it goes through the circle even with `swap="always"`, unless the notification is in rows or a card
 
 ### Fixed
 - A vertical pill at rest is a circle: it kept the width of its hidden content (an oval as wide as the sidebar's labels)
