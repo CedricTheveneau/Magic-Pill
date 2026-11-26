@@ -78,6 +78,11 @@ describe.each([
 describe("forms.css, by itself", () => {
   const css = withoutComments(forms);
 
+  it("sizes a field's icon of any kind: an svg or an image at 1em", () => {
+    // Assert
+    expect(css).toMatch(/\[data-mp="field-icon"\] {[^}]*font-size: 1\.15rem;[^}]*& > :is\(svg, img\) {\s*inline-size: 1em;\s*block-size: 1em;\s*object-fit: contain;/);
+  });
+
   it("keeps an app's own :focus-visible outline off its bare controls, and uses !important for little else", () => {
     // Arrange: an app's global rule is unlayered, so only an important declaration in the layer wins over it
     const important = [...css.matchAll(/([\w-]+)\s*:\s*([^;{}]*?)\s*!important/g)].map(([, property, value]) => `${property}: ${value}`);

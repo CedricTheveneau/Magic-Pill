@@ -51,6 +51,15 @@ describe("styles.css", () => {
     }
   });
 
+  it("sizes any icon in its slot: an svg or an image at 1em, a font icon by the font size", () => {
+    // Assert
+    expect(withoutComments).toMatch(
+      /& \[data-mp="icon"\] > :is\(svg, img\),\s*& \[data-mp="action-icon"\] > :is\(svg, img\) {\s*inline-size: 1em;\s*block-size: 1em;\s*object-fit: contain;/,
+    );
+    expect(withoutComments).toMatch(/& \[data-mp="icon"\] {[^}]*font-size: calc\(var\(--_mp-action-size\) \* 0\.6\);/);
+    expect(withoutComments).toMatch(/& \[data-mp="action-icon"\] {[^}]*font-size: 1\.25rem;/);
+  });
+
   it("takes every duration from a public token, the fade included", () => {
     // Assert
     expect(withoutComments).toContain("--_mp-enter: var(--mp-duration-enter, 500ms);");
