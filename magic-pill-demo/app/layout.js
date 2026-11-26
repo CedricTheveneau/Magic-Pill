@@ -5,6 +5,7 @@ import "./globals.css";
 import { AppPill } from "./app-pill";
 import { DemoProvider } from "./demo-context";
 import { HelpPill } from "./help-pill";
+import { StageProvider } from "./stage";
 
 // The README's font recipe: next/font self-hosts the fonts (nothing is loaded
 // from Google at runtime) and `variable` sets Magic Pill's font tokens
@@ -26,10 +27,12 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`${overlock.variable} ${lexend.variable}`}>
       <body>
         <DemoProvider>
-          {/* Before the pages: pills that share a spot line up in the order they mount, and this one keeps its own */}
-          <HelpPill />
-          {children}
-          <AppPill />
+          <StageProvider>
+            {/* Before the pages: pills that share a spot line up in the order they mount, and this one keeps its own */}
+            <HelpPill />
+            {children}
+            <AppPill />
+          </StageProvider>
         </DemoProvider>
       </body>
     </html>
