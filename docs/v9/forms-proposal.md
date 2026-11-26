@@ -1,6 +1,6 @@
 # Forms: API proposal
 
-> **Status: approved by the maintainer on 2026-11-25** (§12), with the prototype, the **Forms lab**. Additions from that review are marked *added*. The delivery is §11.
+> **Status: approved by the maintainer on 2026-11-25** (§12), with the prototype, the **Forms lab**, and **released in 9.1.0**. Additions from that review are marked *added*. The delivery is §11.
 
 ## 1. What was asked
 
