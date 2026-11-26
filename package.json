@@ -27,7 +27,7 @@
   "sideEffects": [
     "*.css"
   ],
-  "description": "A new way to guide your audience and bring them contextual information through your app",
+  "description": "A design primitive for React: one pill that becomes notifications, a navbar, panels, forms and modals, and morphs between them",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/CedricTheveneau/Magic-Pill.git"

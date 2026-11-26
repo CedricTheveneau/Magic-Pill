@@ -1,6 +1,6 @@
 # Themes: API proposal
 
-> **Status: approved by the maintainer on 2026-11-25** (§11). **Implementation:** the material (§10, 1) in #89, the backdrop (§10, 2) in #90, `<PillOptics>` (§10, 3). The looks were tried in a throwaway prototype, the **Glass lab**, which the maintainer validated. The three action tokens marked *added* in §4 came after that OK, to make any action work on any theme: merging this file approves them.
+> **Status: approved by the maintainer on 2026-11-25** (§11), **released in 9.1.0**. **Implementation:** the material (§10, 1) in #89, the backdrop (§10, 2) in #90, `<PillOptics>` (§10, 3). The looks were tried in a throwaway prototype, the **Glass lab**, which the maintainer validated. The three action tokens marked *added* in §4 came after that OK, to make any action work on any theme: merging this file approves them.
 
 ## 1. What was decided
 

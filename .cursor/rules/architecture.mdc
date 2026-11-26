@@ -35,8 +35,9 @@ One folder per component, with its children, tests and local types next to it:
 src/
 ├── index.ts                  the public API: every export goes through here
 ├── Pill/                     layer 1, the primitive: Pill, parts, PillAction, PillPanel, usePill, types
-│                             (+ morph.ts, the size, swap and placement animations, scene.ts, going from one content to the next, modal.ts, the overlay's
-│                             <dialog>, zone.ts, pills sharing a placement, and themed.ts, the ones with a theme)
+│                             (+ morph.ts, the size, swap and placement animations, the exit, scene.ts, going from one content to the next,
+│                             travel.ts, placement changes through the circle, modal.ts, the overlay's <dialog>, zone.ts, pills sharing a
+│                             placement, and themed.ts, the ones with a theme)
 ├── PillOptics/               what themes can't do in CSS (+ lens.ts, the refraction, light.ts, the pointer's
 │                             light, and adaptive.ts, the tinting)
 ├── PillNotification/         layer 2, a template
@@ -44,9 +45,11 @@ src/
 ├── PillForm/                 the forms: PillForm, one file per field, PillFormPanel (a template) (+ PillField, the
 │                             shell they share, validity.ts, the browser's validation, send.ts, what a form does once it's valid,
 │                             keyboard.ts, phones, and for PillDate: Calendar, dates.ts and popover.ts)
-├── MagicPill/                layer 3, the host (+ choreography.ts, its pure animation planning)
+├── MagicPill/                layer 3, the host (+ choreography.ts, its pure animation planning, useChoreography.ts, its timed steps,
+│                             and flag.ts, a sidebar's flag)
 ├── store/                    layer 3, the named-pill store, pill() and usePillQueue
-├── icons/                    one component per icon (PascalCase, e.g. CheckIcon.tsx)
+├── icons/                    one component per icon (PascalCase, e.g. CheckIcon.tsx); no new ones: apps bring their own icons
+│                             (the exports are deprecated, and the library keeps the ones it draws as defaults)
 ├── utils/                    shared helpers (url.ts, react.ts, timing.ts, inputModality.ts)
 ├── styles.css                the stylesheet, shipped as-is
 ├── themes.css                the glass themes, optional, shipped as-is

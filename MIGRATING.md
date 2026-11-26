@@ -139,6 +139,8 @@ The active item also changes: an item is active on its own path and below, on wh
 ## 4. Icons
 Icons are components now, and any React content works as an icon.
 
+> **The built-in icons below are deprecated since 9.3** (they still work, and go in the next major version): you can also pass your own icons right away, any SVG, image or icon component ([README, "Icons"](./README.md#icons)). The table is the quickest way off 8.x.
+
 | 8.x name | 9 component |
 |---|---|
 | `info` | `InfoIcon` |

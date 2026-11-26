@@ -3,10 +3,7 @@ Let it empower you.
 
 > **9.0.0 is the first stable release of Magic Pill**; earlier versions are deprecated. Upgrading from 8.x? Read the [migration guide](./MIGRATING.md). 8.x is documented in the [8.1.0 README](https://github.com/CedricTheveneau/Magic-Pill/tree/v8.1.0#readme).
 
-**[Try it on the live demo](https://cedrictheveneau.github.io/Magic-Pill/)**: the playground, the templates and the building blocks.
-
-#### Thank you !!
-Thank you for your patience and to all people who already have shown interest in Magic Pill, it's my very first npm package and I couldn't ask for a better reception of my package after only a few days after its initial release.
+**[Try it on the live demo](https://cedrictheveneau.github.io/Magic-Pill/)**: the playground, the templates, the building blocks, and [the docs](https://cedrictheveneau.github.io/Magic-Pill/docs/) with live examples.
 
 ## Badges
 ![npm version](https://img.shields.io/npm/v/magic-pill?color=blue)
@@ -18,7 +15,7 @@ Thank you for your patience and to all people who already have shown interest in
 ## Introduction
 Magic Pill is **a design primitive, not just a notification library.** At its core is *the pill*: a dark, fully rounded, elevated container with a strong design language, and you can put anything inside it.
 
-On top of it come ready-made **templates** (a notification, a navbar) and a **controller** you can call from anywhere: `pill().notify(...)`. Use one pill as a discreet assistant at the bottom of the page, or several pills together (a sidebar, a navbar, a modal) to build a whole interface.
+On top of it come ready-made **templates** (a notification, a navbar, a form panel) and a **controller** you can call from anywhere: `pill().notify(...)`. Use one pill as a discreet assistant at the bottom of the page, or several pills together (a sidebar, a navbar, a modal) to build a whole interface.
 
 ## Features
  - [X] Two lines to get started: mount `<MagicPill />`, then call `pill().notify(...)` from anywhere, even outside React
@@ -26,11 +23,13 @@ On top of it come ready-made **templates** (a notification, a navbar) and a **co
  - [X] Several named pills on one page, at any edge or corner, inline, or as a modal; pills that share a spot line up instead of overlapping
  - [X] Anything inside: messages, icons and panels are React content; build your own templates from the same parts
  - [X] Shape-changing animations (circle ↔ pill ↔ panel) at the pill's real size, notifications that slide into each other, a pill that travels when its placement changes, all respecting reduced motion
+ - [X] Notifications laid out the way the pill is: in one row, in rows, and in a sidebar as cards or as a flag out of its edge
  - [X] Forms: fields on native controls, in a panel or in the pill, validated by the browser, and a calendar (optional)
+ - [X] Themes (optional): glass and Liquid Glass, with refraction, a pointer light and adaptive tinting, or a theme of your own from the tokens
  - [X] Accessible: screen reader announcements, keyboard focus pauses the countdown, focus handling for panels and modals
  - [X] Works in any React 18+ app, including React Server Components (Next.js App Router), with any router
  - [X] Styles you can override without `!important`, design tokens, no fonts loaded behind your back
- - [X] Tiny: the quick start adds about **13.3 kB gzipped** to your app (10.2 kB of JavaScript + 3.1 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
+ - [X] Tiny: the quick start adds about **16.5 kB gzipped** to your app (13.1 kB of JavaScript + 3.4 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
  - [X] Written in TypeScript, zero runtime dependencies
 
 ## Installation
@@ -73,6 +72,8 @@ pill().notify({ icon: <CheckIcon />, message: "Saved!", variant: "success" });
 ```
 
 That's it. The pill pops in at the bottom of the page, stays for 5 seconds, then goes away.
+
+> **Icons:** the examples use the built-in icons (`CheckIcon`…), which are **deprecated**: they still work, and go in the next major version. Any icon works instead, from your own SVGs to Lucide or Font Awesome: see [Icons](#icons).
 
 ### Fonts
 Magic Pill loads no fonts: it uses your page's fonts. For the signature look, an italic serif for messages (**Overlock**) and a bold sans for action labels (**Lexend**), point the two font tokens at them.
@@ -642,7 +643,7 @@ import { MagicPill, PillOptics } from "magic-pill";
 - **Safe links:** links only render relative, `http(s):`, `mailto:` and `tel:` URLs. Anything else, such as `javascript:`, renders without a link (with a warning in development). React 18 doesn't block those URLs by itself.
 
 ## TypeScript
-Everything is typed. The main types are `NotifyOptions`, `NotifyInput`, `PillController`, `MagicPillProps`, `PillProps`, `PillPresence`, `PillPlacement`, `PillVariant`, `PillTheme`, `NavItem` and `LinkComponent`.
+Everything is typed, and every component's props are exported as `<Component>Props` (`MagicPillProps`, `PillProps`, `PillFormPanelProps`, `PillInputProps`…). The other main types are `NotifyOptions`, `NotifyInput`, `PillController`, `PillPresence`, `PillPlacement`, `PillVariant`, `PillTheme`, `NotificationLayout`, `NavItem`, `LinkComponent` and `SendHandler`.
 
 ## Build your own
 Maybe what I brought to the table wasn't enough but you like the idea behind it, that's why Magic Pill is under [MIT License](https://www.tldrlegal.com/license/mit-license), which means you can pretty much do whatever you want and build upon my own version of Magic Pill to bring it to new heights or just make it your own.
@@ -687,10 +688,12 @@ You can also send me emails anytime at [theveneaucedricpro@gmail.com](mailto:the
 Magic Pill is distributed under the [MIT License](https://www.tldrlegal.com/license/mit-license).
 
 ## What's next?
-| Coming next | Done in 9.0 |
+| Coming next | Done in 9.x |
 |-----------|-----------|
-| A documentation site with live examples | Custom icons (any React content) |
-| Themes (glass, custom) | Animated morphing between contents, panels and placements |
-| Forms, toolbox and carousel indicator templates | Transitions between the navbar and notifications |
-| More built-in icons | Function triggers on actions (`onClick`) |
-| | Responsive styles, full documentation, tests |
+| The Electron: a small circle that splits off the pill to keep an activity (a timer, a call, an upload) within reach | A documentation site with live examples |
+| Toolbox and carousel indicator templates | Themes: glass, Liquid Glass, your own |
+| More layouts for vertical pills | Forms and a calendar |
+| Performance presets for the glass | Notification layouts: rows, cards, flags |
+| Usage from a CDN | Pills that share a spot line up instead of overlapping |
+| | Animated morphing between contents, panels and placements, through the circle |
+| | Any icon (any React content), actions with `onClick` or `href`, full documentation, tests |
