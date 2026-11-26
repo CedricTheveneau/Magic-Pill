@@ -5,6 +5,8 @@
 ### Added
 - Notifications in rows: `notificationLayout="rows"` on `<MagicPill>`, `layout: "rows"` on a notification (it wins over the host's), or `layout="rows"` on `<PillNotification>`. The actions go under the message when they need the room (the message wraps, or there's an action and a panel's trigger), lined up with it; one action beside a short message stays on its line. On every host. A sidebar slides to and from a notification in rows with `swap="always"`, turning as it goes
 - Notifications as cards, in a sidebar: `notificationLayout="card"` or `layout: "card"`. A column of the sidebar's width, at least `--mp-card-width` (`12.5rem`): the icon on top, the divider across, the message centred, the actions full width with their labels. The sidebar stays vertical, through the circle, or sliding with `swap="always"`. A horizontal host shows it in one row
+- A sidebar's flag: `notificationLayout="flag"` or `layout: "flag"`, on a `left` or `right` host with a base layer. The sidebar stays, usable, and the notification comes out of its edge as a pill of its own (`data-layout="flag"`), next to the navbar item it's about (`at`, its `href`) or in the middle. It pauses while pointed at or focused, slides to the next one and moves to its section, and opens its panel beside the sidebar. Its motion, a pop out of the sidebar with a short bridge while they part, will follow the Electron's once it's designed. Elsewhere, a flag shows in the pill itself
+- Navbar links carry `data-href`, their item's `href` as given (the rendered one may carry the app's base path)
 
 ### Added
 - `moveThroughCircle` on `<Pill>` and `<MagicPill>` (default `true`)

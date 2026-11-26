@@ -106,6 +106,9 @@ export const PillNavbar = forwardRef<HTMLElement, PillNavbarProps>(function Pill
         href={item.href}
         linkComponent={linkComponent}
         aria-current={item === active ? "page" : undefined}
+        // The item's own href, as given: a sidebar's flag finds its section by it
+        // (the rendered one may carry the app's base path)
+        data-href={item.href}
       />
     );
   };

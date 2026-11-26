@@ -8,13 +8,16 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type Dispatch,
   type FocusEvent,
   type MouseEvent,
+  type PointerEvent,
   type ReactNode,
+  type RefObject,
+  type SetStateAction,
 } from "react";
 
 import Pill from "../Pill/Pill";
-import { captureSwap, playSwap, type SwapCapture } from "../Pill/morph";
 import { PillIcon } from "../Pill/parts";
 import type { LinkComponent, PillPresence, PillProps } from "../Pill/types";
 import {
@@ -26,20 +29,11 @@ import { getStore, type QueuedNotification } from "../store/store";
 import { getInputModality, trackInputModality } from "../utils/inputModality";
 import { usePillQueue } from "../store/usePillQueue";
 import { mergeRefs } from "../utils/react";
+import { prefersReducedMotion } from "../utils/timing";
 import { VISUALLY_HIDDEN } from "../utils/visuallyHidden";
-import {
-  BASE,
-  IDLE,
-  NONE,
-  batchSteps,
-  isOpen,
-  isSwap,
-  planSteps,
-  readTimings,
-  type Displayed,
-  type Scene,
-  type SwapMode,
-} from "./choreography";
+import { BASE, IDLE, NONE, isOpen, readTimings, type Displayed, type Scene, type SwapMode } from "./choreography";
+import { flagStyle, measureFlagSpot, playBridge, type FlagSpot } from "./flag";
+import { useChoreography } from "./useChoreography";
 
 export interface MagicPillProps
   extends Omit<PillProps, "presence" | "defaultPresence" | "onPresenceChange" | "children" | "scene" | "sceneChange"> {
@@ -70,9 +64,10 @@ export interface MagicPillProps
   swap?: SwapMode;
   /**
    * How notifications are laid out: in one row (default), with their actions
-   * under the message when they need the room (`rows`), or, in a sidebar, as
-   * a card in its column (`card`; a horizontal host shows it in one row). A
-   * notification's own `layout` wins.
+   * under the message when they need the room (`rows`), or, in a sidebar
+   * (`left`/`right`), as a card in its column (`card`) or in a flag out of its
+   * edge, while the sidebar stays (`flag`). Elsewhere, a card and a flag show
+   * in one row. A notification's own `layout` wins.
    */
   notificationLayout?: NotificationLayout;
   /** Passed to notification actions that have an `href`. */
@@ -103,6 +98,58 @@ function useDocumentHidden(): boolean {
   }, []);
   return hidden;
 }
+
+/**
+ * Pauses a notification while it's pointed at or has the keyboard focus
+ * (Y3, L22). The handlers go on the pill that shows it.
+ */
+function usePause(rootRef: RefObject<HTMLElement | null>, presence: PillPresence) {
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  useEffect(() => {
+    // An inert pill loses focus without always firing blur
+    if (presence === "hidden") {
+      setHovered(false);
+      setFocused(false);
+    }
+  }, [presence]);
+  // Content that leaves takes the focus with it (a base layer's action that
+  // notifies, a form that closes), and React hears no blur for an element it
+  // removes itself: without this, the pill would stay paused (L29)
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!focused || !root) return;
+    const update = () => {
+      if (!root.contains(document.activeElement)) setFocused(false);
+    };
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(root, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [rootRef, focused]);
+
+  const handlers = {
+    onPointerEnter: (event: PointerEvent<HTMLDivElement>) => {
+      // A mouse or a pen: a tap also "enters" the pill, and on mobile the
+      // matching leave only comes with the next tap elsewhere (L22)
+      if (event.pointerType !== "touch") setHovered(true);
+    },
+    onPointerLeave: () => setHovered(false),
+    onFocus: () => {
+      // Keyboard focus only: after a tap (e.g. closing the panel gives the
+      // focus back to its trigger), the focus would keep the pill forever
+      if (getInputModality() === "keyboard") setFocused(true);
+    },
+    onBlur: (event: FocusEvent<HTMLDivElement>) => {
+      // Focus moving between elements inside the pill keeps it paused
+      if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false);
+    },
+  };
+  return { active: hovered || focused, handlers };
+}
+
+const notificationIn = ({ scene, presence }: Displayed): QueuedNotification | null =>
+  scene.kind === "notification" && isOpen(presence) ? scene.item : null;
 
 /**
  * The batteries-included pill: a <Pill> with a base layer, a queue of
@@ -136,6 +183,8 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
   const { current } = usePillQueue(name);
   const rootRef = useRef<HTMLElement | null>(null);
   const ref = useMemo(() => mergeRefs(rootRef, forwardedRef), [forwardedRef]);
+  // A sidebar's flag: a notification in a pill of its own, beside it
+  const flagRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => store.registerHost(), [store]);
   useEffect(trackInputModality, []);
@@ -154,140 +203,135 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
   // panel closes, rather than taking what was typed away
   const [isFillingIn, setIsFillingIn] = useState(false);
   const isWaiting = isFillingIn && hasBase;
+
+  // A sidebar's notifications are pills like the others: it turns horizontal
+  // for them, inside the circle, where nothing shows
+  const onSide = placement === "left" || placement === "right";
+  const isVertical = orientation === "vertical" || (orientation === undefined && onSide);
+  // A notification's layout: its own, or the host's. A card is a sidebar's,
+  // and a flag needs a sidebar on a side of the screen, with its base layer
+  const layoutOf = (item: QueuedNotification): NotificationLayout => {
+    const layout = item.input.layout ?? notificationLayout;
+    if (layout === "card" && !isVertical) return "pill";
+    if (layout === "flag" && !(isVertical && onSide && hasBase)) return "pill";
+    return layout;
+  };
+  const sceneLayout = (shown: Scene) => (shown.kind === "notification" ? layoutOf(shown.item) : undefined);
+  const isFlag = current !== null && current !== undefined && layoutOf(current) === "flag";
+
   const target = useMemo<Scene>(
     () =>
-      current && !isWaiting
+      current && !isWaiting && !isFlag
         ? { kind: "notification", item: current }
         : hasBase
           ? base
           : idle === "rest"
             ? IDLE
             : NONE,
-    [current, isWaiting, hasBase, base, idle],
+    [current, isWaiting, isFlag, hasBase, base, idle],
+  );
+  // A flag's notification: the sidebar keeps its base layer meanwhile
+  const flagTarget = useMemo<Scene>(
+    () => (current && !isWaiting && isFlag ? { kind: "notification", item: current } : NONE),
+    [current, isWaiting, isFlag],
   );
 
-  // What it shows, moved towards the target one timed step at a time
-  const [displayed, setDisplayed] = useState<Displayed>(() => ({
-    scene: target.kind === "notification" ? NONE : target,
-    presence: target.kind === "base" ? "compact" : target.kind === "idle" ? "rest" : "hidden",
-  }));
-  const displayedRef = useRef(displayed);
-  displayedRef.current = displayed;
-  // States to show one render after another
-  const followUps = useRef<Displayed[]>([]);
-  // The content on screen as the next one replaces it, to slide it out
-  const capture = useRef<SwapCapture | null>(null);
-  // A sidebar's notifications are pills like the others: it turns horizontal
-  // for them, inside the circle, where nothing shows. Sliding can't turn it,
-  // so between its base layer and a notification it goes through the circle
-  const onSide = placement === "left" || placement === "right";
-  const isVertical = orientation === "vertical" || (orientation === undefined && onSide);
-  // A notification's layout: its own, or the host's. A card is a sidebar's
-  const layoutOf = (scene: Scene): NotificationLayout | undefined => {
-    if (scene.kind !== "notification") return undefined;
-    const layout = scene.item.input.layout ?? notificationLayout;
-    return layout === "card" && !isVertical ? "pill" : layout;
-  };
   // A sidebar turns horizontal for its notifications, but for a card, in its column
-  const orientationOf = (scene: Scene) =>
-    isVertical && scene.kind === "notification" && layoutOf(scene) !== "card" ? "horizontal" : orientation;
-  // Read when planning, so changing it doesn't interrupt a change under way.
-  // A sidebar slides to and from a notification in rows or a card (the same
-  // pill, laid out again), not to a plain one: that turns through the circle
-  const swapMode = useRef((_from: Scene, _to: Scene): SwapMode => swap);
-  swapMode.current = (from, to) => {
-    if (!isVertical || swap !== "always") return swap;
-    const layout = layoutOf(to.kind === "notification" ? to : from);
-    return layout === "rows" || layout === "card" ? "always" : "queue";
-  };
-  // A slide where the pill turns: the copy sliding out keeps its layout
-  const turns = (from: Scene, to: Scene) => (orientationOf(from) ?? "") !== (orientationOf(to) ?? "");
+  const orientationOf = (shown: Scene) =>
+    isVertical && shown.kind === "notification" && sceneLayout(shown) !== "card" ? "horizontal" : orientation;
   // The sidebar's width, which a card keeps (at least), measured as it leaves
   const sidebarWidth = useRef<number | undefined>(undefined);
   // The pill turns as the content slides: no trip through the circle then
   const [isSliding, setIsSliding] = useState(false);
 
+  const { displayed, setDisplayed, displayedRef } = useChoreography(rootRef, target, {
+    // A sidebar slides to and from a notification in rows or a card (the same
+    // pill, laid out again), not to a plain one: that turns through the circle
+    swapMode: (from, to): SwapMode => {
+      if (!isVertical || swap !== "always") return swap;
+      const layout = sceneLayout(to.kind === "notification" ? to : from);
+      return layout === "rows" || layout === "card" ? "always" : "queue";
+    },
+    // A slide where the pill turns: the copy sliding out keeps its layout
+    turns: (from, to) => (orientationOf(from) ?? "") !== (orientationOf(to) ?? ""),
+    beforeApply: (from) => {
+      if (from.scene.kind === "base" && isOpen(from.presence) && rootRef.current) {
+        sidebarWidth.current = rootRef.current.getBoundingClientRect().width;
+      }
+    },
+    onSlide: setIsSliding,
+  });
+
+  // The flag: where it goes is measured as it comes out, and again for each
+  // notification, which may be about another section (it moves there)
+  const [flagSpot, setFlagSpot] = useState<FlagSpot>({ shift: 0 });
+  const flagFrom = useRef<DOMRect | null>(null);
+  const {
+    displayed: flagDisplayed,
+    setDisplayed: setFlagDisplayed,
+    displayedRef: flagDisplayedRef,
+  } = useChoreography(flagRef, flagTarget, {
+    // From one notification to the next, it slides, as a host does
+    swapMode: () => (swap === "never" ? "never" : "queue"),
+    beforeApply: (from, next) => {
+      if (next.scene.kind !== "notification" || next.scene === from.scene || !rootRef.current) return;
+      if (flagRef.current && isOpen(from.presence)) flagFrom.current = flagRef.current.getBoundingClientRect();
+      setFlagSpot(measureFlagSpot(rootRef.current, next.scene.item.input.at));
+    },
+  });
+
+  // Centred on its section, or in the middle while its panel is open
+  const flagY = flagDisplayed.presence === "panel" ? undefined : flagSpot.y;
+
+  // Moved to another section, or to the middle for its panel, while it shows: it travels there
   useLayoutEffect(() => {
-    const swapped = capture.current;
-    capture.current = null;
-    if (swapped && rootRef.current) playSwap(rootRef.current, swapped);
-    setIsSliding(false);
-  }, [displayed]);
+    const from = flagFrom.current;
+    flagFrom.current = null;
+    const flag = flagRef.current;
+    if (!from || !flag || typeof flag.animate !== "function" || prefersReducedMotion()) return;
+    const to = flag.getBoundingClientRect();
+    const shift = from.top + from.height / 2 - (to.top + to.height / 2);
+    if (Math.abs(shift) < 1) return;
+    const { fade, change } = readTimings(flag);
+    flag.animate([{ translate: `0px ${shift}px` }, { translate: "0px 0px" }], {
+      duration: fade + change,
+      easing: "ease-in-out",
+      composite: "add",
+    });
+  }, [flagSpot, flagY]);
+
+  // The bridge between the sidebar and its flag, as they part and join again
+  const flagPresence = useRef(flagDisplayed.presence);
+  useLayoutEffect(() => {
+    const previous = flagPresence.current;
+    flagPresence.current = flagDisplayed.presence;
+    const sidebar = rootRef.current;
+    const flag = flagRef.current;
+    if (!sidebar || !flag || previous === flagDisplayed.presence) return;
+    const { enter, fade, change, exit } = readTimings(flag);
+    if (previous === "hidden" && flagDisplayed.presence === "rest") {
+      playBridge(sidebar, flag, flagSpot.y, "split", { delay: 0, duration: enter });
+    } else if (flagDisplayed.presence === "hidden") {
+      playBridge(sidebar, flag, flagSpot.y, "join", { delay: fade + change, duration: exit });
+    }
+  }, [flagDisplayed.presence]);
 
   useEffect(() => {
     const hasForm = () => !!rootRef.current?.querySelector('[data-mp="panel"][data-open] form');
     setIsFillingIn(displayed.scene.kind === "base" && displayed.presence === "panel" && hasForm());
   }, [displayed]);
 
-  // New content is on the page in its closed state: have the browser style it
-  // (reading a layout value forces that), then open the pill, so the content
-  // transitions open instead of appearing open at the circle's width (L21).
-  // Declared before the effect below: when both run after one commit, the
-  // follow-ups it clears must not be applied first.
-  useEffect(() => {
-    const next = followUps.current.shift();
-    if (!next) return;
-    void rootRef.current?.offsetWidth;
-    setDisplayed(next);
-  }, [displayed]);
-
-  useEffect(() => {
-    const current = displayedRef.current;
-    const mode = swapMode.current(current.scene, target);
-    const batches = batchSteps(current, planSteps(current, target, readTimings(rootRef.current), mode));
-    const timers = batches.map(({ at, states }) => {
-      const apply = () => {
-        const from = displayedRef.current;
-        if (from.scene.kind === "base" && isOpen(from.presence) && rootRef.current) {
-          sidebarWidth.current = rootRef.current.getBoundingClientRect().width;
-        }
-        if (isSwap(from, states[0], mode)) {
-          const freeze = turns(from.scene, states[0].scene);
-          capture.current = captureSwap(rootRef.current, { freeze });
-          setIsSliding(freeze);
-        }
-        followUps.current = states.slice(1);
-        setDisplayed(states[0]);
-      };
-      if (at > 0) return setTimeout(apply, at);
-      apply();
-      return undefined;
-    });
-    return () => {
-      timers.forEach(clearTimeout);
-      followUps.current = [];
-    };
-  }, [target]);
-
   // Pauses: pointer, keyboard focus, an open panel, a hidden tab (Y3, L22)
-  const [hovered, setHovered] = useState(false);
-  const [focused, setFocused] = useState(false);
+  const mainPause = usePause(rootRef, displayed.presence);
+  const flagPause = usePause(flagRef, flagDisplayed.presence);
   const documentHidden = useDocumentHidden();
-  useEffect(() => {
-    // An inert pill loses focus without always firing blur
-    if (displayed.presence === "hidden") {
-      setHovered(false);
-      setFocused(false);
-    }
-  }, [displayed.presence]);
-  // Content that leaves takes the focus with it (a base layer's action that
-  // notifies, a form that closes), and React hears no blur for an element it
-  // removes itself: without this, the pill would stay paused (L29)
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!focused || !root) return;
-    const update = () => {
-      if (!root.contains(document.activeElement)) setFocused(false);
-    };
-    update();
-    const observer = new MutationObserver(update);
-    observer.observe(root, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, [focused]);
-
-  const shown: QueuedNotification | null =
-    displayed.scene.kind === "notification" && isOpen(displayed.presence) ? displayed.scene.item : null;
-  const paused = hovered || focused || documentHidden || displayed.presence === "panel";
+  const inFlag = notificationIn(flagDisplayed);
+  const shown = notificationIn(displayed) ?? inFlag;
+  const paused =
+    documentHidden ||
+    (shown !== null && shown === inFlag
+      ? flagPause.active || flagDisplayed.presence === "panel"
+      : mainPause.active || displayed.presence === "panel");
 
   // The countdown starts once the notification is fully shown, and again from
   // the full duration after each pause, or when its content is updated
@@ -306,31 +350,34 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
     if (!shown) return;
     const { announce } = shown.input;
     if (announce === false) return;
-    const text = typeof announce === "string" ? announce : readMessage(rootRef.current);
+    const text = typeof announce === "string" ? announce : readMessage(shown === inFlag ? flagRef.current : rootRef.current);
     if (text) setAnnouncement((previous) => (previous?.key === shown ? previous : { key: shown, text }));
-  }, [shown]);
+  }, [shown, inFlag]);
 
-  const handlePresenceChange = (next: PillPresence) => {
-    const { scene, presence } = displayedRef.current;
-    if (next === "hidden") {
-      // Escape on an overlay, for instance: that's a dismissal
-      if (scene.kind === "notification") store.dismiss(scene.item.id, "dismissed");
-      return;
-    }
-    if (isOpen(next) && isOpen(presence)) {
-      setDisplayed({ scene, presence: next });
-    }
-  };
+  const presenceHandler =
+    (stateRef: { current: Displayed }, setState: Dispatch<SetStateAction<Displayed>>) => (next: PillPresence) => {
+      const { scene: shownScene, presence } = stateRef.current;
+      if (next === "hidden") {
+        // Escape on an overlay, for instance: that's a dismissal
+        if (shownScene.kind === "notification") store.dismiss(shownScene.item.id, "dismissed");
+        return;
+      }
+      if (isOpen(next) && isOpen(presence)) {
+        setState({ scene: shownScene, presence: next });
+      }
+    };
 
-  const renderScene = (scene: Scene): ReactNode => {
-    switch (scene.kind) {
+  const renderScene = (shownScene: Scene): ReactNode => {
+    switch (shownScene.kind) {
       case "base":
         // A scene of its own: its fields' state doesn't go over to the next one
-        return <Fragment key={scene.key}>{lastScenes.current.get(scene.key)?.children ?? lastBase.current}</Fragment>;
+        return (
+          <Fragment key={shownScene.key}>{lastScenes.current.get(shownScene.key)?.children ?? lastBase.current}</Fragment>
+        );
       case "idle":
         return <PillIcon>{idleIcon}</PillIcon>;
       case "notification": {
-        const { id, input } = scene.item;
+        const { id, input } = shownScene.item;
         if (input.render) {
           return input.render({ id, dismiss: () => store.dismiss(id, "dismissed") });
         }
@@ -341,7 +388,7 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
             message={input.message}
             action={input.action}
             panel={input.panel}
-            layout={layoutOf(scene)}
+            layout={layoutOf(shownScene.item)}
             linkComponent={linkComponent}
             classNames={classNames}
             onAction={(event: MouseEvent<HTMLElement>) => {
@@ -364,6 +411,7 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
     displayed.scene.kind === "notification"
       ? (displayed.scene.item.input.variant ?? variant)
       : (lastScenes.current.get(displayedKey) ?? { variant }).variant;
+  const mainLayout = sceneLayout(displayed.scene);
 
   return (
     <>
@@ -373,39 +421,58 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
         placement={placement}
         orientation={orientationOf(displayed.scene)}
         moveThroughCircle={moveThroughCircle !== false && !isSliding}
-        data-layout={layoutOf(displayed.scene)}
+        data-layout={mainLayout}
         style={
-          layoutOf(displayed.scene) === "card" && isVertical && sidebarWidth.current
+          mainLayout === "card" && sidebarWidth.current
             ? ({ ...rest.style, "--_mp-sidebar-width": `${sidebarWidth.current}px` } as CSSProperties)
             : rest.style
         }
         variant={sceneVariant}
         presence={displayed.presence}
-        onPresenceChange={handlePresenceChange}
+        onPresenceChange={presenceHandler(displayedRef, setDisplayed)}
         onPointerEnter={(event) => {
           onPointerEnter?.(event);
-          // A mouse or a pen: a tap also "enters" the pill, and on mobile the
-          // matching leave only comes with the next tap elsewhere (L22)
-          if (event.pointerType !== "touch") setHovered(true);
+          mainPause.handlers.onPointerEnter(event);
         }}
         onPointerLeave={(event) => {
           onPointerLeave?.(event);
-          setHovered(false);
+          mainPause.handlers.onPointerLeave();
         }}
         onFocus={(event) => {
           onFocus?.(event);
-          // Keyboard focus only: after a tap (e.g. closing the panel gives the
-          // focus back to its trigger), the focus would keep the pill forever
-          if (getInputModality() === "keyboard") setFocused(true);
+          mainPause.handlers.onFocus();
         }}
         onBlur={(event: FocusEvent<HTMLDivElement>) => {
           onBlur?.(event);
-          // Focus moving between elements inside the pill keeps it paused
-          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false);
+          mainPause.handlers.onBlur(event);
         }}
       >
         {renderScene(displayed.scene)}
       </Pill>
+      {/* On the page (hidden and inert) for as long as a flag can come out:
+          like the host's own pill, it pops out of its closed state */}
+      {((isVertical && onSide && hasBase) || flagDisplayed.presence !== "hidden") && (
+        <Pill
+          ref={flagRef}
+          placement={placement}
+          orientation="horizontal"
+          ladder={false}
+          moveThroughCircle={false}
+          theme={rest.theme}
+          variant={flagDisplayed.scene.kind === "notification" ? (flagDisplayed.scene.item.input.variant ?? variant) : variant}
+          presence={flagDisplayed.presence}
+          onPresenceChange={(next) => {
+            // Where it is before it opens its panel (or closes it), to travel from there
+            if (flagRef.current && isOpen(next)) flagFrom.current = flagRef.current.getBoundingClientRect();
+            presenceHandler(flagDisplayedRef, setFlagDisplayed)(next);
+          }}
+          data-layout="flag"
+          style={flagStyle({ shift: flagSpot.shift, y: flagY }) as CSSProperties}
+          {...flagPause.handlers}
+        >
+          {renderScene(flagDisplayed.scene)}
+        </Pill>
+      )}
       <div role="status" aria-live="polite" aria-atomic="true" data-mp="announcer" style={VISUALLY_HIDDEN}>
         {announcement && <span key={announcement.key.id + announcement.text}>{announcement.text}</span>}
       </div>

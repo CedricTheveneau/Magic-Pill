@@ -262,6 +262,15 @@
         right: calc(var(--_mp-offset) + env(safe-area-inset-right, 0px) + var(--_mp-shift-x, 0px));
       }
 
+      /* A sidebar's flag pops out of the sidebar's side, and scales back into it */
+      &[data-layout="flag"][data-placement="left"] {
+        transform-origin: var(--mp-scale-origin, left center);
+      }
+
+      &[data-layout="flag"][data-placement="right"] {
+        transform-origin: var(--mp-scale-origin, right center);
+      }
+
       &[data-placement="overlay"] {
         inset: 0;
         margin: auto;
