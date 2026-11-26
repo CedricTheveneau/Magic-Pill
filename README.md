@@ -483,9 +483,35 @@ With the keyboard: the arrows, Home and End (the week), Page Up and Page Down (t
 > **Your app's resets:** CSS like `input { border: 1px solid }` that isn't in a layer also reaches the pill's fields. Their look is on what surrounds the controls, so they only need to stay bare: scope such rules, or put them in a layer. A global `:focus-visible` outline is the exception, already handled: the focus ring is drawn around the field, for the keyboard only (not after a click or a tap), and the bare control never draws one of its own.
 
 ## Icons
-Twelve built-in icons, drawn in `currentColor` and decorative by default (`aria-hidden`). Any other icon or SVG works too: icons are just React content.
+Bring your own: every `icon` (a notification's, an action's, a navbar item's, a field's, `idleIcon`, a panel's `trigger`) and `<PillIcon>` take any React content. The slot sizes and colours it for you:
 
-`ArrowIcon` · `BoxIcon` · `CheckIcon` · `CloseIcon` · `CouponIcon` · `DocumentIcon` · `HelpIcon` · `InfoIcon` · `MailIcon` · `PhoneIcon` · `PlusIcon` · `UndoIcon`
+- an `<svg>` or an `<img>` is drawn 1em square, whatever its own `width` and `height` (1.25rem in an action, larger as the leading icon);
+- a font icon (Font Awesome's `<i>`, an emoji) takes the slot's font size;
+- it's in the pill's text colour: draw your SVGs in `currentColor` to follow it (most icon libraries do);
+- it's decorative (`aria-hidden`): the action's label or the message says what it means. Give `<PillIcon>` a `label` when the icon carries meaning of its own.
+
+```tsx
+import { ShoppingCart } from "lucide-react";                   // or Heroicons, Phosphor, Material…
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTruck } from "@fortawesome/free-solid-svg-icons";
+
+pill().notify({ icon: <ShoppingCart />, message: "Added to your cart" });
+pill().notify({ icon: <FontAwesomeIcon icon={faTruck} />, message: "Shipped today" });
+pill().notify({ icon: <i className="fa-solid fa-truck" />, message: "Shipped today" }); // Font Awesome's web font
+pill().notify({ icon: <img src="/icons/cart.svg" alt="" />, message: "Added to your cart" });
+pill().notify({
+  icon: (
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2 2 22h20L12 2Z" />
+    </svg>
+  ),
+  message: "Your own SVG",
+});
+```
+
+An `<img>` keeps its file's colours: `currentColor` only reaches inline SVGs and font icons.
+
+**The twelve built-in icons are deprecated** (`ArrowIcon` · `BoxIcon` · `CheckIcon` · `CloseIcon` · `CouponIcon` · `DocumentIcon` · `HelpIcon` · `InfoIcon` · `MailIcon` · `PhoneIcon` · `PlusIcon` · `UndoIcon`, and `IconProps`). They still work, unchanged, and editors strike them through; they go in the next major version. The library keeps the three it uses as defaults (the panel's trigger, its close button, the submit's tick), so nothing changes when you don't pass your own. To keep one of them, copy its SVG from `src/icons/` (MIT).
 
 ## Styling
 - **Easy to override:** every rule sits in a `magic-pill` cascade layer. Any CSS of yours that isn't in a layer wins, whatever its specificity, with no `!important`.
