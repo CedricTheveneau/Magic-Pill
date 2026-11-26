@@ -1,11 +1,11 @@
 "use client"
-import { forwardRef, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { forwardRef, useContext, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 
 import { FormContext } from "./FormContext";
 import PillAction from "../Pill/PillAction";
 import type { PillButtonActionProps } from "../Pill/types";
 import CheckIcon from "../icons/CheckIcon";
-import { mergeRefs } from "../utils/react";
+import { mergeRefs, useIsomorphicLayoutEffect } from "../utils/react";
 import { prefersReducedMotion } from "../utils/timing";
 import { VISUALLY_HIDDEN } from "../utils/visuallyHidden";
 
@@ -44,7 +44,7 @@ function useBusyLabel(busyLabel: string | readonly string[], interval: number, i
 /** One label replacing another: the action widens or narrows with it. */
 function useLabelMorph(buttonRef: RefObject<HTMLElement | null>, label: string) {
   const previous = useRef<{ label: string; width: number } | null>(null);
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const text = buttonRef.current?.querySelector<HTMLElement>('[data-mp="label"] > span');
     if (!text) return;
     text.getAnimations?.().forEach((animation) => animation.cancel());

@@ -1,4 +1,4 @@
-import { version, type Ref, type RefCallback } from "react";
+import { useEffect, useLayoutEffect, version, type Ref, type RefCallback } from "react";
 
 // Bundlers replace `process.env.NODE_ENV`; the typeof guard covers the rest.
 declare const process: { env: { NODE_ENV?: string } } | undefined;
@@ -18,6 +18,13 @@ const INERT_VALUE = Number.parseInt(version, 10) >= 19 ? true : "";
 export function inertProps(inert: boolean): { inert?: boolean } {
   return inert ? ({ inert: INERT_VALUE } as { inert: boolean }) : {};
 }
+
+/**
+ * `useLayoutEffect` in the browser, `useEffect` on the server (L31). Layout
+ * effects never run on the server anyway, but React 18 warns about each one
+ * it meets while rendering there. Every hook of the library uses this one.
+ */
+export const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 /** Combine refs (React 18 compatible: no ref cleanup functions). */
 export function mergeRefs<T>(...refs: (Ref<T> | undefined)[]): RefCallback<T> {

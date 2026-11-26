@@ -1,6 +1,7 @@
 "use client"
-import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 
+import { useIsomorphicLayoutEffect } from "../utils/react";
 import { onThemedPills, themedPills } from "../Pill/themed";
 import { adapt } from "./adaptive";
 import { canRefract, lensId, lensMap, makeLens, type Lens } from "./lens";
@@ -120,7 +121,7 @@ export function PillOptics() {
     }
   };
   // Once their filters are on the page
-  useLayoutEffect(apply, [lenses]);
+  useIsomorphicLayoutEffect(apply, [lenses]);
 
   useEffect(() => {
     let stopped = false;

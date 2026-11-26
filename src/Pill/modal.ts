@@ -3,8 +3,9 @@
 // animations. Browsers show and remove a dialog at once: it's shown in its
 // closed state first, then opened, and it only closes once its exit has
 // played (CSS alone can't keep it in the top layer outside Chromium).
-import { useEffect, useLayoutEffect, type MouseEvent, type RefObject } from "react";
+import { useEffect, type MouseEvent, type RefObject } from "react";
 
+import { useIsomorphicLayoutEffect } from "../utils/react";
 import type { Size } from "./morph";
 import type { PillPresence } from "./types";
 
@@ -46,7 +47,7 @@ export function useModal(
 
   // A layout effect: opening again must call off the closing at once, before
   // the exit's animations report that they were cancelled
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     show();
     const dialog = rootRef.current as HTMLDialogElement | null;
     if (!isOverlay || isVisible || !dialog?.open) return;

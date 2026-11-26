@@ -4,8 +4,9 @@
 // again at its new place. Its content never has to be laid out on the way, so
 // nothing jumps, even from the bottom of the screen to a side, where the pill
 // turns vertical.
-import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 
+import { useIsomorphicLayoutEffect } from "../utils/react";
 import { readMorphTimings } from "./morph";
 import type { PillOrientation, PillPlacement, PillPresence } from "./types";
 import { prefersReducedMotion } from "../utils/timing";
@@ -67,7 +68,7 @@ export function useTravel(
   }
 
   // Before the circle hides it from the page
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (phase !== "closing") return;
     const root = rootRef.current;
     const active = document.activeElement;

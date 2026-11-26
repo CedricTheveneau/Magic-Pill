@@ -3,7 +3,6 @@ import {
   Fragment,
   forwardRef,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -28,7 +27,7 @@ import {
 import { getStore, type QueuedNotification } from "../store/store";
 import { getInputModality, trackInputModality } from "../utils/inputModality";
 import { usePillQueue } from "../store/usePillQueue";
-import { mergeRefs } from "../utils/react";
+import { mergeRefs, useIsomorphicLayoutEffect } from "../utils/react";
 import { prefersReducedMotion } from "../utils/timing";
 import { VISUALLY_HIDDEN } from "../utils/visuallyHidden";
 import { BASE, IDLE, NONE, isOpen, readTimings, type Displayed, type Scene, type SwapMode } from "./choreography";
@@ -284,7 +283,7 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
   const flagY = flagDisplayed.presence === "panel" ? undefined : flagSpot.y;
 
   // Moved to another section, or to the middle for its panel, while it shows: it travels there
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const from = flagFrom.current;
     flagFrom.current = null;
     const flag = flagRef.current;
@@ -302,7 +301,7 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
 
   // The bridge between the sidebar and its flag, as they part and join again
   const flagPresence = useRef(flagDisplayed.presence);
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const previous = flagPresence.current;
     flagPresence.current = flagDisplayed.presence;
     const sidebar = rootRef.current;

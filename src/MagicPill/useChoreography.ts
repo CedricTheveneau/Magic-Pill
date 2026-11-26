@@ -1,8 +1,9 @@
 "use client"
 // The host's timed steps from what a pill shows to what it should show,
 // played on one pill: the host's own, and a sidebar's flag beside it.
-import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 
+import { useIsomorphicLayoutEffect } from "../utils/react";
 import { batchSteps, isSwap, planSteps, readTimings, type Displayed, type Scene, type SwapMode } from "./choreography";
 import { captureSwap, playSwap, type SwapCapture } from "../Pill/morph";
 
@@ -36,7 +37,7 @@ export function useChoreography(rootRef: RefObject<HTMLElement | null>, target: 
   // The content on screen as the next one replaces it, to slide it out
   const capture = useRef<SwapCapture | null>(null);
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const swapped = capture.current;
     capture.current = null;
     if (swapped && rootRef.current) playSwap(rootRef.current, swapped);
