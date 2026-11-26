@@ -15,6 +15,7 @@ nvm use        # Node from the repo's .nvmrc
 npm install
 npm run dev    # http://localhost:3000/Magic-Pill
 npm run build  # static export in out/
+npm run preview  # builds, then serves out/ like GitHub Pages, on this computer and the local network (a phone on the same Wi-Fi)
 npm run lint
 ```
 
