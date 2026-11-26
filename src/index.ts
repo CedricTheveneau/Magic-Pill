@@ -36,6 +36,7 @@ export type {
   PillNotificationClassNames,
   NotificationAction,
   NotificationPanel,
+  NotificationLayout,
 } from './PillNotification/PillNotification';
 export { PillNavbar } from './PillNavbar/PillNavbar';
 export type { PillNavbarProps, NavItem, NavLinkItem, NavActionItem, NavPanelItem } from './PillNavbar/PillNavbar';

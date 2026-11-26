@@ -39,6 +39,13 @@ export interface NotificationPanel {
   closeExpanded?: boolean;
 }
 
+/**
+ * How a notification's parts are arranged: in one row (`pill`, the default),
+ * or with the actions on a second row under the message when they need the
+ * room (`rows`: a wrapping message, or an action and a panel's trigger).
+ */
+export type NotificationLayout = "pill" | "rows";
+
 export interface PillNotificationClassNames {
   icon?: string;
   divider?: string;
@@ -54,6 +61,8 @@ export interface PillNotificationProps {
   message: ReactNode;
   action?: NotificationAction;
   panel?: NotificationPanel;
+  /** `rows` puts the actions under the message when they need the room. Default `pill`. */
+  layout?: NotificationLayout;
   linkComponent?: LinkComponent;
   classNames?: PillNotificationClassNames;
 }
@@ -72,6 +81,7 @@ export function NotificationContent({
   message,
   action,
   panel,
+  layout = "pill",
   linkComponent,
   classNames = {},
   onAction,
@@ -108,14 +118,8 @@ export function NotificationContent({
     );
   };
 
-  return (
+  const messageAndActions = (
     <>
-      {hasIcon && (
-        <>
-          <PillIcon className={classNames.icon}>{icon}</PillIcon>
-          <PillDivider className={classNames.divider} />
-        </>
-      )}
       <PillMessage className={classNames.message}>{message}</PillMessage>
       {(action || panel) && (
         <PillActions className={classNames.actions}>
@@ -129,6 +133,26 @@ export function NotificationContent({
             />
           )}
         </PillActions>
+      )}
+    </>
+  );
+
+  return (
+    <>
+      {hasIcon && (
+        <>
+          <PillIcon className={classNames.icon}>{icon}</PillIcon>
+          <PillDivider className={classNames.divider} />
+        </>
+      )}
+      {layout === "rows" ? (
+        // The message and the actions wrap in a body of their own, beside the
+        // icon: actions that don't fit go under the message, lined up with it
+        <div data-mp="body">
+          {messageAndActions}
+        </div>
+      ) : (
+        messageAndActions
       )}
       {panel && (
         <PillPanel
@@ -147,7 +171,8 @@ export function NotificationContent({
 }
 
 /**
- * Icon · divider · message · action, with an optional expandable panel.
+ * Icon · divider · message · action, with an optional expandable panel. With
+ * `layout="rows"`, the actions go under the message when they need the room.
  * Render it inside a <Pill>, or let <MagicPill> render it for pill().notify().
  */
 export const PillNotification = NotificationContent as (props: PillNotificationProps) => ReactNode;

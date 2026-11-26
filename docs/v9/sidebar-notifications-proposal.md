@@ -1,6 +1,6 @@
 # Notifications in a sidebar: API proposal
 
-> **Status: proposal, for the maintainer's OK.** The four layouts were tried in a throwaway prototype (the **Sidebar notifications** page, private), with every composition: short and long messages, with or without icon, divider, actions, a text panel or a form. Builds on #112, which ships the default (A).
+> **Status: approved by the maintainer on 2026-11-26**, every question answered "yes" (§9). The four layouts were tried in a throwaway prototype (the **Sidebar notifications** page, private), with every composition: short and long messages, with or without icon, divider, actions, a text panel or a form. Builds on #112, which ships the default (A). **Implementation:** rows (§8, 1), then card, flag and the docs pages.
 
 ## 1. What was decided
 
@@ -101,7 +101,7 @@ Small PRs, in order, each one checked in Chromium frame by frame and on the docs
 3. **flag** (E), with `at`, the prototype's motion and a note that it will follow the Electron.
 4. The docs pages: a section on sidebars, with the four layouts live.
 
-## 9. Questions for the maintainer
+## 9. Questions for the maintainer (all answered "yes", 2026-11-26)
 
 - **Q1, names:** `notificationLayout` on the host, `layout` on a notification, and `"pill" | "card" | "rows" | "flag"`? (*Proposed: yes; they're the prototype's titles.*)
 - **Q2, per notification:** keep `layout` on `notify()`, so one notification can differ from its host (e.g. a flag for a message, a card for the rest)? (*Proposed: yes.*)

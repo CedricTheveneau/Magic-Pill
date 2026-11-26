@@ -396,6 +396,39 @@
         align-items: var(--_mp-align);
       }
 
+      /* A notification in rows (layout="rows"): the message and the actions
+         wrap in a body beside the icon. The actions stay on the message's
+         line while they fit, go under it when it wraps (the body is as wide
+         as a message can be), and always with two of them; under it, they
+         line up with the message. The icon and the divider stay with the
+         first line */
+      &:has(> [data-mp="body"]) {
+        align-items: flex-start;
+
+        & > [data-mp="divider"] {
+          align-self: flex-start;
+        }
+      }
+
+      & > [data-mp="body"] {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        column-gap: var(--_mp-gap);
+        row-gap: calc(var(--_mp-gap) * 0.75);
+        min-inline-size: 0;
+        max-inline-size: var(--mp-message-width, 24rem);
+
+        /* One line is as tall as an action, so it sits level with the icon */
+        & > [data-mp="message"] {
+          padding-block: max(0px, (var(--_mp-action-size) - 1lh) / 2);
+        }
+
+        & > [data-mp="actions"]:has(> :nth-child(2)) {
+          flex-basis: 100%;
+        }
+      }
+
       /* The <a>/<button> stays neutral and the look lives on its inner body:
          an app's global resets (a { color: inherit }, button { background:
          none; padding: 0 }…) are unlayered, so they'd beat this layer on
