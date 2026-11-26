@@ -4,6 +4,7 @@
 
 ### Added
 - Notifications in rows: `notificationLayout="rows"` on `<MagicPill>`, `layout: "rows"` on a notification (it wins over the host's), or `layout="rows"` on `<PillNotification>`. The actions go under the message when they need the room (the message wraps, or there's an action and a panel's trigger), lined up with it; one action beside a short message stays on its line. On every host. A sidebar slides to and from a notification in rows with `swap="always"`, turning as it goes
+- Notifications as cards, in a sidebar: `notificationLayout="card"` or `layout: "card"`. A column of the sidebar's width, at least `--mp-card-width` (`12.5rem`): the icon on top, the divider across, the message centred, the actions full width with their labels. The sidebar stays vertical, through the circle, or sliding with `swap="always"`. A horizontal host shows it in one row
 
 ### Added
 - `moveThroughCircle` on `<Pill>` and `<MagicPill>` (default `true`)

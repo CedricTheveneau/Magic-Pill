@@ -77,7 +77,7 @@ const held = (width: number): Keyframe => ({ flexShrink: 0, width: px(width) });
  * own animation starts), to hold them there during an animation.
  */
 function holdMessages(element: HTMLElement): (options: KeyframeAnimationOptions) => Animation[] {
-  const messages = [...element.querySelectorAll<HTMLElement>(':scope > :is([data-mp="message"], [data-mp="body"])')].map(
+  const messages = [...element.querySelectorAll<HTMLElement>(':scope > :is([data-mp="message"], [data-mp="body"], [data-mp="card"])')].map(
     (message) => [message, held(message.getBoundingClientRect().width)] as const,
   );
   return (options) => messages.map(([message, frame]) => message.animate([frame, frame], options));

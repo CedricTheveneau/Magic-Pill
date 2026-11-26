@@ -41,10 +41,11 @@ export interface NotificationPanel {
 
 /**
  * How a notification's parts are arranged: in one row (`pill`, the default),
- * or with the actions on a second row under the message when they need the
- * room (`rows`: a wrapping message, or an action and a panel's trigger).
+ * with the actions on a second row under the message when they need the
+ * room (`rows`: a wrapping message, or an action and a panel's trigger), or
+ * in a column, as a sidebar is (`card`: in a host, sidebars only).
  */
-export type NotificationLayout = "pill" | "rows";
+export type NotificationLayout = "pill" | "rows" | "card";
 
 export interface PillNotificationClassNames {
   icon?: string;
@@ -61,7 +62,10 @@ export interface PillNotificationProps {
   message: ReactNode;
   action?: NotificationAction;
   panel?: NotificationPanel;
-  /** `rows` puts the actions under the message when they need the room. Default `pill`. */
+  /**
+   * `rows` puts the actions under the message when they need the room;
+   * `card` stacks everything in a column, actions full width. Default `pill`.
+   */
   layout?: NotificationLayout;
   linkComponent?: LinkComponent;
   classNames?: PillNotificationClassNames;
@@ -87,6 +91,8 @@ export function NotificationContent({
   onAction,
 }: NotificationContentProps) {
   const hasIcon = icon !== undefined && icon !== null;
+  // Full-width buttons: their labels always show
+  const inCard = layout === "card" ? true : undefined;
 
   const renderAction = (notificationAction: NotificationAction) => {
     const { icon: actionIcon, label, expanded } = notificationAction;
@@ -95,7 +101,7 @@ export function NotificationContent({
         <PillAction
           icon={actionIcon}
           label={label}
-          expanded={expanded}
+          expanded={expanded ?? inCard}
           href={notificationAction.href}
           linkComponent={linkComponent}
           className={classNames.action}
@@ -108,7 +114,7 @@ export function NotificationContent({
       <PillAction
         icon={actionIcon}
         label={label}
-        expanded={expanded}
+        expanded={expanded ?? inCard}
         className={classNames.action}
         onClick={(event) => {
           onClick(event);
@@ -128,7 +134,7 @@ export function NotificationContent({
             <PillPanelTrigger
               icon={panel.trigger ? panel.trigger.icon : <PlusIcon />}
               label={panel.trigger?.label ?? "Learn more"}
-              expanded={panel.trigger?.expanded}
+              expanded={panel.trigger?.expanded ?? inCard}
               className={classNames.action}
             />
           )}
@@ -137,35 +143,49 @@ export function NotificationContent({
     </>
   );
 
+  const iconAndDivider = hasIcon && (
+    <>
+      <PillIcon className={classNames.icon}>{icon}</PillIcon>
+      <PillDivider className={classNames.divider} />
+    </>
+  );
+  const notificationPanel = panel && (
+    <PillPanel
+      title={panel.title}
+      titleAction={panel.titleAction}
+      footer={panel.footer}
+      closeLabel={panel.closeLabel}
+      closeExpanded={panel.closeExpanded}
+      className={classNames.panel}
+    >
+      {panel.content}
+    </PillPanel>
+  );
+
+  if (layout === "card") {
+    // A column of its own: the icon on top, the message, the actions full width
+    return (
+      <>
+        <div data-mp="card">
+          {iconAndDivider}
+          {messageAndActions}
+        </div>
+        {notificationPanel}
+      </>
+    );
+  }
+
   return (
     <>
-      {hasIcon && (
-        <>
-          <PillIcon className={classNames.icon}>{icon}</PillIcon>
-          <PillDivider className={classNames.divider} />
-        </>
-      )}
+      {iconAndDivider}
       {layout === "rows" ? (
         // The message and the actions wrap in a body of their own, beside the
         // icon: actions that don't fit go under the message, lined up with it
-        <div data-mp="body">
-          {messageAndActions}
-        </div>
+        <div data-mp="body">{messageAndActions}</div>
       ) : (
         messageAndActions
       )}
-      {panel && (
-        <PillPanel
-          title={panel.title}
-          titleAction={panel.titleAction}
-          footer={panel.footer}
-          closeLabel={panel.closeLabel}
-          closeExpanded={panel.closeExpanded}
-          className={classNames.panel}
-        >
-          {panel.content}
-        </PillPanel>
-      )}
+      {notificationPanel}
     </>
   );
 }
