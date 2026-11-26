@@ -1,6 +1,6 @@
 "use client";
 import type { CSSProperties } from "react";
-import { BoxIcon, CheckIcon, CloseIcon, InfoIcon, MailIcon, Pill, PillAction, PillActions, PillDivider, PillIcon, PillMessage, pill } from "magic-pill";
+import { BoxIcon, CheckIcon, CloseIcon, InfoIcon, MailIcon, Pill, PillAction, PillActions, PillDivider, PillIcon, PillMessage } from "magic-pill";
 
 import { Example } from "../_components/example";
 import { DocsHeader, DocsSection, Notes, PageLinks, Reference } from "../_components/text";
