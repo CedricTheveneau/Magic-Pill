@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Added
+- `--mp-duration-fade` (`150ms`): how long the content takes to fade out before the pill shrinks, and in once it has grown, like the other duration tokens
+
+### Fixed
+- React 18 no longer warns about `useLayoutEffect` when the pills render on the server (L31)
+
 ## [9.2.0] - 2026-11-26
 Placement changes through the circle, and new layouts for notifications: in rows on any host, and as cards or flags in a sidebar. One default changes: a pill whose placement changes now closes to a circle, travels, and opens at its new place; `moveThroughCircle={false}` keeps the old travel at full size. Nothing else to change in your code.
 
