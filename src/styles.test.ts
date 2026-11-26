@@ -51,6 +51,14 @@ describe("styles.css", () => {
     }
   });
 
+  it("takes every duration from a public token, the fade included", () => {
+    // Assert
+    expect(withoutComments).toContain("--_mp-enter: var(--mp-duration-enter, 500ms);");
+    expect(withoutComments).toContain("--_mp-exit: var(--mp-duration-exit, 300ms);");
+    expect(withoutComments).toContain("--_mp-change: var(--mp-duration-change, 250ms);");
+    expect(withoutComments).toContain("--_mp-fade: var(--mp-duration-fade, 150ms);");
+  });
+
   it("lines a sidebar's items up along its screen edge, overridable with --mp-align", () => {
     // Assert
     expect(withoutComments).toContain("--_mp-align: var(--mp-align, center);");

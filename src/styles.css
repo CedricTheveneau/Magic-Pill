@@ -76,7 +76,7 @@
       --_mp-exit: var(--mp-duration-exit, 300ms);
       --_mp-change: var(--mp-duration-change, 250ms);
       /* The content fades out before the pill shrinks, and in once it has grown */
-      --_mp-fade: 150ms;
+      --_mp-fade: var(--mp-duration-fade, 150ms);
       /* A panel stays above the other pills until it has closed back */
       --_mp-lower: calc(var(--_mp-fade) + var(--_mp-change));
       /* The entry overshoot from the mockups' "pop" */

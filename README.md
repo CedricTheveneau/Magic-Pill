@@ -526,6 +526,7 @@ Twelve built-in icons, drawn in `currentColor` and decorative by default (`aria-
 | `--mp-offset` / `--mp-z-index` | `1.5rem` from the viewport edges (plus safe areas) / `50` |
 | `--mp-backdrop` / `--mp-backdrop-blur` | the overlay's backdrop: `rgb(20 20 20 / 0.4)` / no blur |
 | `--mp-duration-enter` / `--mp-duration-change` / `--mp-duration-exit` | `500ms` / `250ms` / `300ms` |
+| `--mp-duration-fade` | `150ms`: the content fades out before the pill shrinks, and in once it has grown |
 | `--mp-scale-origin` | `center`: where the pill pops in from and scales out to (e.g. `bottom` to come out of the edge) |
 | `--mp-align` | How a vertical pill lines up its items: `start`, `center` or `end` (following the text direction). By default, along the screen edge for a `left` or `right` pill, centred otherwise |
 

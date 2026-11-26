@@ -1,7 +1,9 @@
 "use client"
 // A popover over everything (the top layer), next to the field that opened it.
 // Placed by script: CSS anchor positioning isn't everywhere yet.
-import { useEffect, useLayoutEffect, type RefObject } from "react";
+import { useEffect, type RefObject } from "react";
+
+import { useIsomorphicLayoutEffect } from "../utils/react";
 
 /** From the field, and from the screen's edges */
 const GAP = 6;
@@ -40,7 +42,7 @@ export function usePopover(
   isOpen: boolean,
   onClose: () => void,
 ) {
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const popover = popoverRef.current;
     const field = fieldRef.current;
     if (!isOpen || !popover || !field || !supportsPopover()) return;

@@ -4,8 +4,9 @@
 // rungs of a ladder: below it at the top of the screen, above it at the
 // bottom, further in from the edge on the sides. When one hides or leaves,
 // the ones after it take its place.
-import { useLayoutEffect, useRef, type RefObject } from "react";
+import { useRef, type RefObject } from "react";
 
+import { useIsomorphicLayoutEffect } from "../utils/react";
 import { EASING, MORPH, cancel, readMorphTimings } from "./morph";
 import type { PillPlacement, PillPresence } from "./types";
 import { parseDuration, prefersReducedMotion } from "../utils/timing";
@@ -138,7 +139,7 @@ export function useZone(
 ) {
   const rungRef = useRef<Rung>({ element: null, presence, size: 0, frozen: presence === "panel" });
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const rung = rungRef.current;
     const element = rootRef.current;
     if (!zone || !element) return;
@@ -170,7 +171,7 @@ export function useZone(
     };
   }, [rootRef, zone]);
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const rung = rungRef.current;
     const previous = rung.presence;
     const { element } = rung;

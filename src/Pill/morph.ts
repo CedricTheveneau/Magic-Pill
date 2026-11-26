@@ -7,8 +7,9 @@
 // distort the corners). The corners follow by themselves: the stylesheet gives
 // the pill a fixed radius, and the browser shrinks it to half the height while
 // the pill is smaller than that.
-import { Component, useLayoutEffect, useRef, type RefObject } from "react";
+import { Component, useRef, type RefObject } from "react";
 
+import { useIsomorphicLayoutEffect } from "../utils/react";
 import type { PillPresence } from "./types";
 import { parseDuration, prefersReducedMotion } from "../utils/timing";
 
@@ -457,7 +458,7 @@ export function useSizeMorph(
   // The open panel's box: once it closes, it's out of the flow and can't be measured as it was
   const openPanel = useRef<PanelBox | undefined>(undefined);
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const element = rootRef.current;
     if (!element || typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver((entries) => {
@@ -476,7 +477,7 @@ export function useSizeMorph(
     };
   }, [rootRef, lastSize]);
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const element = rootRef.current;
     const previous = lastPresence.current;
     lastPresence.current = presence;
