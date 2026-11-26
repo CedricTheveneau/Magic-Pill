@@ -100,17 +100,45 @@ export type {
 } from './store/store';
 export { usePillQueue } from './store/usePillQueue';
 
-// Icons: currentColor, decorative by default, no "use client"
-export { default as ArrowIcon } from './icons/ArrowIcon';
-export { default as BoxIcon } from './icons/BoxIcon';
-export { default as CheckIcon } from './icons/CheckIcon';
-export { default as CloseIcon } from './icons/CloseIcon';
-export { default as CouponIcon } from './icons/CouponIcon';
-export { default as DocumentIcon } from './icons/DocumentIcon';
-export { default as HelpIcon } from './icons/HelpIcon';
-export { default as InfoIcon } from './icons/InfoIcon';
-export { default as MailIcon } from './icons/MailIcon';
-export { default as PhoneIcon } from './icons/PhoneIcon';
-export { default as PlusIcon } from './icons/PlusIcon';
-export { default as UndoIcon } from './icons/UndoIcon';
-export type { IconProps } from './icons/types';
+// Icons: currentColor, decorative by default, no "use client". Deprecated:
+// apps bring their own (any React content fits an icon slot). The library
+// keeps the ones it uses as defaults, internally.
+import ArrowIconBase from './icons/ArrowIcon';
+import BoxIconBase from './icons/BoxIcon';
+import CheckIconBase from './icons/CheckIcon';
+import CloseIconBase from './icons/CloseIcon';
+import CouponIconBase from './icons/CouponIcon';
+import DocumentIconBase from './icons/DocumentIcon';
+import HelpIconBase from './icons/HelpIcon';
+import InfoIconBase from './icons/InfoIcon';
+import MailIconBase from './icons/MailIcon';
+import PhoneIconBase from './icons/PhoneIcon';
+import PlusIconBase from './icons/PlusIcon';
+import UndoIconBase from './icons/UndoIcon';
+import type { IconProps as IconPropsBase } from './icons/types';
+/** @deprecated Bring your own icons: any svg, image or icon component works (README, "Icons"). The built-in ones go in the next major version. */
+export const ArrowIcon = ArrowIconBase;
+/** @deprecated Bring your own icons: any svg, image or icon component works (README, "Icons"). The built-in ones go in the next major version. */
+export const BoxIcon = BoxIconBase;
+/** @deprecated Bring your own icons: any svg, image or icon component works (README, "Icons"). The built-in ones go in the next major version. */
+export const CheckIcon = CheckIconBase;
+/** @deprecated Bring your own icons: any svg, image or icon component works (README, "Icons"). The built-in ones go in the next major version. */
+export const CloseIcon = CloseIconBase;
+/** @deprecated Bring your own icons: any svg, image or icon component works (README, "Icons"). The built-in ones go in the next major version. */
+export const CouponIcon = CouponIconBase;
+/** @deprecated Bring your own icons: any svg, image or icon component works (README, "Icons"). The built-in ones go in the next major version. */
+export const DocumentIcon = DocumentIconBase;
+/** @deprecated Bring your own icons: any svg, image or icon component works (README, "Icons"). The built-in ones go in the next major version. */
+export const HelpIcon = HelpIconBase;
+/** @deprecated Bring your own icons: any svg, image or icon component works (README, "Icons"). The built-in ones go in the next major version. */
+export const InfoIcon = InfoIconBase;
+/** @deprecated Bring your own icons: any svg, image or icon component works (README, "Icons"). The built-in ones go in the next major version. */
+export const MailIcon = MailIconBase;
+/** @deprecated Bring your own icons: any svg, image or icon component works (README, "Icons"). The built-in ones go in the next major version. */
+export const PhoneIcon = PhoneIconBase;
+/** @deprecated Bring your own icons: any svg, image or icon component works (README, "Icons"). The built-in ones go in the next major version. */
+export const PlusIcon = PlusIconBase;
+/** @deprecated Bring your own icons: any svg, image or icon component works (README, "Icons"). The built-in ones go in the next major version. */
+export const UndoIcon = UndoIconBase;
+/** @deprecated The props of the built-in icons, which are deprecated: any `<svg>` attribute, `ComponentPropsWithoutRef<"svg">`. */
+export type IconProps = IconPropsBase;
