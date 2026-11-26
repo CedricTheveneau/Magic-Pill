@@ -78,6 +78,14 @@ export interface PillProps extends Omit<ComponentPropsWithoutRef<"div">, "childr
    */
   ladder?: boolean;
   /**
+   * Fixed placements only: when the placement (or the orientation) changes,
+   * the pill closes to a circle, the circle travels, and the pill opens again
+   * at its new place, so its content doesn't jump on the way (from the bottom
+   * to a side, it turns vertical inside the circle). `false` travels at full
+   * size instead. With reduced motion, it changes place at once. Default `true`.
+   */
+  moveThroughCircle?: boolean;
+  /**
    * `overlay` only: a click outside the modal does what Escape does (closes
    * the panel if it's open, the modal otherwise). Default `false`.
    */

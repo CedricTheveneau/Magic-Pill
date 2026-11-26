@@ -230,6 +230,7 @@ describe("Pill", () => {
       bottom: { left: 400, top: 700, width: 300, height: 72 },
       "top-end": { left: 900, top: 24, width: 300, height: 72 },
       left: { left: 24, top: 300, width: 72, height: 220 },
+      inline: { left: 0, top: 0, width: 300, height: 72 },
     };
 
     beforeEach(() => {
@@ -248,12 +249,12 @@ describe("Pill", () => {
 
     const moves = () => animate.mock.calls.filter(([, options]) => options?.id === "mp-move");
 
-    it("travels to the new placement from where it was", () => {
+    it("travels at full size with moveThroughCircle={false}, from where it was", () => {
       // Arrange
-      const { rerender } = render(<Pill placement="bottom">content</Pill>);
+      const { rerender } = render(<Pill placement="bottom" moveThroughCircle={false}>content</Pill>);
 
       // Act
-      rerender(<Pill placement="top-end">content</Pill>);
+      rerender(<Pill placement="top-end" moveThroughCircle={false}>content</Pill>);
 
       // Assert: it starts where it was and ends at its new place
       expect(moves()).toHaveLength(1);
@@ -266,15 +267,108 @@ describe("Pill", () => {
 
     it("resizes on the way when the size changes (e.g. into a sidebar)", () => {
       // Arrange
-      const { rerender } = render(<Pill placement="bottom">content</Pill>);
+      const { rerender } = render(<Pill placement="bottom" moveThroughCircle={false}>content</Pill>);
 
       // Act
-      rerender(<Pill placement="left">content</Pill>);
+      rerender(<Pill placement="left" moveThroughCircle={false}>content</Pill>);
 
       // Assert
       const [[keyframes]] = moves();
       expect(keyframes[0]).toMatchObject({ width: "300px", height: "72px" });
       expect(keyframes[1]).toMatchObject({ width: "72px", height: "220px", translate: "0px 0px" });
+    });
+
+    describe("through the circle (the default)", () => {
+      beforeEach(() => vi.useFakeTimers());
+      afterEach(() => vi.useRealTimers());
+
+      const state = (container: HTMLElement) => {
+        const pill = container.querySelector<HTMLElement>('[data-mp="pill"]')!;
+        return [pill.dataset.placement, pill.dataset.orientation, pill.dataset.presence].join(" ");
+      };
+
+      it("closes to a circle where it is, travels as a circle, then opens at its new place", () => {
+        // Arrange
+        const { container, rerender } = render(<Pill placement="bottom">content</Pill>);
+
+        // Act + Assert: closing at its old spot
+        rerender(<Pill placement="left">content</Pill>);
+        expect(state(container)).toBe("bottom horizontal rest");
+        expect(moves()).toHaveLength(0);
+
+        // Closed: the circle sets off, and turns vertical on the way
+        act(() => vi.advanceTimersByTime(400));
+        expect(state(container)).toBe("left vertical rest");
+        expect(moves()).toHaveLength(1);
+
+        // Arrived: it opens
+        act(() => vi.advanceTimersByTime(400));
+        expect(state(container)).toBe("left vertical compact");
+      });
+
+      it("heads for the last placement asked for on the way", () => {
+        // Arrange
+        const { container, rerender } = render(<Pill placement="bottom">content</Pill>);
+        rerender(<Pill placement="left">content</Pill>);
+
+        // Act
+        rerender(<Pill placement="top-end">content</Pill>);
+        act(() => vi.advanceTimersByTime(400));
+
+        // Assert
+        expect(state(container)).toBe("top-end horizontal rest");
+        act(() => vi.advanceTimersByTime(400));
+        expect(state(container)).toBe("top-end horizontal compact");
+      });
+
+      it("travels at once as a circle when it already is one, and keeps its level", () => {
+        // Arrange
+        const { container, rerender } = render(<Pill placement="bottom" presence="rest">content</Pill>);
+
+        // Act
+        rerender(<Pill placement="left" presence="rest">content</Pill>);
+
+        // Assert
+        expect(state(container)).toBe("left vertical rest");
+        expect(moves()).toHaveLength(1);
+      });
+
+      it("changes place at once with reduced motion, and into or out of the page's flow", () => {
+        // Arrange
+        vi.stubGlobal("matchMedia", (query: string) => ({ matches: query === "(prefers-reduced-motion: reduce)" }));
+        const { container, rerender } = render(<Pill placement="bottom">content</Pill>);
+
+        // Act + Assert
+        rerender(<Pill placement="left">content</Pill>);
+        expect(state(container)).toBe("left vertical compact");
+        vi.unstubAllGlobals();
+        rerender(<Pill placement="inline">content</Pill>);
+        expect(state(container)).toBe("inline horizontal compact");
+      });
+
+      it("gives the focus back once it has opened again", () => {
+        // Arrange
+        const { container, rerender } = render(
+          <Pill placement="bottom">
+            <button type="button">Go</button>
+          </Pill>,
+        );
+        const button = container.querySelector("button")!;
+        button.focus();
+
+        // Act: the circle hides the button, which loses the focus
+        rerender(
+          <Pill placement="left">
+            <button type="button">Go</button>
+          </Pill>,
+        );
+        button.blur();
+        act(() => vi.advanceTimersByTime(400));
+        act(() => vi.advanceTimersByTime(400));
+
+        // Assert
+        expect(document.activeElement).toBe(button);
+      });
     });
 
     it("doesn't move on the first render, on other changes, or when unstyled", () => {

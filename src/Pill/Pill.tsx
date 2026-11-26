@@ -15,11 +15,12 @@ import {
 } from "react";
 
 import { isOnBackdrop, useModal } from "./modal";
-import { PlacementWatch, useSizeMorph, type Size } from "./morph";
+import { ExitWatch, PlacementWatch, useSizeMorph, type Size } from "./morph";
 import { PillContext, type InternalPillContextValue } from "./PillContext";
 import { SceneWatch, useScene } from "./scene";
 import type { PillOrientation, PillPresence, PillProps } from "./types";
 import { useThemed } from "./themed";
+import { useTravel } from "./travel";
 import { useZone } from "./zone";
 import { inertProps, mergeRefs } from "../utils/react";
 
@@ -37,6 +38,7 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
     onPresenceChange,
     placement = "inline",
     ladder = true,
+    moveThroughCircle = true,
     closeOnBackdropClick = false,
     backdrop,
     orientation,
@@ -54,10 +56,17 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
   const [uncontrolledPresence, setUncontrolledPresence] = useState<PillPresence>(defaultPresence);
   const isControlled = presenceProp !== undefined;
   const askedPresence = isControlled ? presenceProp : uncontrolledPresence;
-  const resolvedOrientation = orientation ?? defaultOrientation(placement);
-  const isOverlay = placement === "overlay";
 
   const rootRef = useRef<HTMLElement | null>(null);
+  // A new placement (or orientation): through the circle, from the old spot to the new one
+  const moved = useTravel(rootRef, {
+    placement,
+    orientation: orientation ?? defaultOrientation(placement),
+    presence: askedPresence,
+    enabled: moveThroughCircle && !unstyled,
+  });
+  const { placement: shownPlacement, orientation: resolvedOrientation } = moved;
+  const isOverlay = shownPlacement === "overlay";
   const ref = useMemo(() => mergeRefs(rootRef, forwardedRef), [forwardedRef]);
   const panelTriggerRef = useRef<HTMLElement | null>(null);
   const panelId = useId();
@@ -69,7 +78,7 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
   const shown = useScene(rootRef, {
     scene,
     change: sceneChange,
-    presence: askedPresence,
+    presence: moved.presence,
     enabled: !unstyled,
     onClosed: () => closePanelRef.current(),
     children,
@@ -81,7 +90,11 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
   useModal(rootRef, isOverlay, presence, lastSize);
   useSizeMorph(rootRef, presence, !unstyled, lastSize);
   // Pills with the same fixed placement make room for each other
-  useZone(rootRef, ladder && !unstyled && !isOverlay && placement !== "inline" ? placement : undefined, presence);
+  useZone(
+    rootRef,
+    ladder && !unstyled && !isOverlay && shownPlacement !== "inline" ? shownPlacement : undefined,
+    presence,
+  );
   // For <PillOptics> to find
   useThemed(rootRef, unstyled ? undefined : theme, presence, isOverlay);
 
@@ -166,14 +179,14 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
       panel,
       openPanel,
       closePanel,
-      placement,
+      placement: shownPlacement,
       orientation: resolvedOrientation,
       variant: shown.variant,
       panelIdOf: (name) => (name === undefined ? panelId : `${panelId}-${name}`),
       panelTriggerRef,
       rootRef,
     }),
-    [presence, setPresence, panel, openPanel, closePanel, placement, resolvedOrientation, shown.variant, panelId],
+    [presence, setPresence, panel, openPanel, closePanel, shownPlacement, resolvedOrientation, shown.variant, panelId],
   );
 
   // Typed as a <div>: the <dialog> only adds the cancel/close events used above
@@ -186,7 +199,7 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
         ref={ref}
         data-mp="pill"
         data-presence={presence}
-        data-placement={placement}
+        data-placement={shownPlacement}
         data-orientation={resolvedOrientation}
         data-variant={shown.variant}
         {...(theme !== undefined && { "data-theme": theme })}
@@ -202,8 +215,10 @@ const Pill = forwardRef<HTMLElement, PillProps>(function Pill(
           ...(closeOnBackdropClick && { onPointerDown: handlePointerDown, onClick: handleClick }),
         })}
       >
+        {/* Calls off its exit when it's asked back mid-way */}
+        <ExitWatch presence={presence} target={rootRef} />
         {/* Moves the pill to a new placement instead of jumping there */}
-        <PlacementWatch placement={`${placement} ${resolvedOrientation}`} target={rootRef} />
+        <PlacementWatch placement={`${shownPlacement} ${resolvedOrientation}`} target={rootRef} />
         {/* Slides the old scene out, and the new one in */}
         <SceneWatch scene={scene} slides={sceneChange === "slide"} target={rootRef} />
         {/* A scene of its own: its fields' state doesn't go over to the next one */}

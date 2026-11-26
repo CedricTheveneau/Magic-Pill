@@ -28,8 +28,10 @@ const PROBES = [
     // then from 8.5 kB for pills sharing a placement (Pill/zone.ts): 9.14 kB,
     // then from 9.25 kB for the themes (Pill/themed.ts): 9.24 kB, the focus lost with its content: 9.30 kB,
     // then from 9.4 kB for several panels and their slots: 9.48 kB,
-    // then from 9.75 kB for scenes (Pill/scene.ts): 10.22 kB
-    budget: 10.5 * KB, // 4.89 kB at 9.0.0-next.0
+    // then from 9.75 kB for scenes (Pill/scene.ts): 10.22 kB,
+    // then from 10.5 kB for the exit played by script, which a restyle of the page can't cut short (iOS): 10.68 kB,
+    // then from 11 kB for placement changes through the circle (Pill/travel.ts): 11.02 kB
+    budget: 11.5 * KB, // 4.89 kB at 9.0.0-next.0
   },
   {
     name: "Pill primitive",
@@ -42,15 +44,18 @@ const PROBES = [
     // then from 4 kB for pills sharing a placement (Pill/zone.ts): 4.69 kB,
     // then from 4.75 kB for the themes (Pill/themed.ts): 4.80 kB,
     // then from 4.9 kB for several panels: 4.87 kB,
-    // then from 5 kB for scenes (Pill/scene.ts, and the swap, which only the host had): 6.16 kB
-    budget: 6.5 * KB, // 1.44 kB at 9.0.0-next.0
+    // then from 5 kB for scenes (Pill/scene.ts, and the swap, which only the host had): 6.16 kB,
+    // then from 6.5 kB for the exit played by script, which a restyle of the page can't cut short (iOS): 6.65 kB,
+    // then from 7 kB for placement changes through the circle (Pill/travel.ts): 6.99 kB
+    budget: 7.5 * KB, // 1.44 kB at 9.0.0-next.0
   },
   {
     name: "A form panel",
     description: "the quick start, with a form panel, a text field and a switch",
     code: 'export { MagicPill, pill, PillFormPanel, PillInput, PillSwitch } from "ENTRY";',
-    // 12.17 kB, then 12.71 kB with the busy labels, 13.38 kB with scenes
-    budget: 13.5 * KB,
+    // 12.17 kB, then 12.71 kB with the busy labels, 13.38 kB with scenes,
+    // 13.88 kB with the exit played by script, 14.23 kB with placement changes through the circle
+    budget: 14.5 * KB,
   },
   {
     name: "Everything",
@@ -70,8 +75,10 @@ const PROBES = [
     // then from 22.75 kB for the form panel: 23.11 kB,
     // then from 23.25 kB for the busy labels: 23.57 kB,
     // then from 23.75 kB for scenes: 24.16 kB,
-    // then from 24.5 kB for the calendar (PillDate, only for apps that use it): 29.35 kB
-    budget: 29.75 * KB, // 9.07 kB at 9.0.0-next.0
+    // then from 24.5 kB for the calendar (PillDate, only for apps that use it): 29.35 kB,
+    // then from 29.75 kB for the exit played by script and the fields' keyboard-only focus rings: 29.85 kB,
+    // then from 30.25 kB for placement changes through the circle: 30.23 kB
+    budget: 30.75 * KB, // 9.07 kB at 9.0.0-next.0
   },
 ];
 const STYLESHEETS = [

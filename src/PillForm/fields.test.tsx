@@ -10,6 +10,7 @@ import { PillTextarea } from "./PillTextarea";
 import Pill from "../Pill/Pill";
 import { PillPanel } from "../Pill/PillPanel";
 import type { PillFormProps } from "./PillForm";
+import { resetInputModality } from "../utils/inputModality";
 
 const renderForm = (children: ReactNode, props: Partial<PillFormProps> = {}) =>
   render(
@@ -137,6 +138,31 @@ describe("fields", () => {
     // Assert
     const layouts = [...document.querySelectorAll<HTMLElement>('[data-mp="field"]')].map((field) => field.dataset.layout);
     expect(layouts).toEqual(["inline", "stacked", "stacked"]);
+  });
+
+  it("draw their focus ring for the keyboard only, not after a click or a tap", () => {
+    // Arrange
+    resetInputModality();
+    renderForm(
+      <>
+        <PillInput label="Name" />
+        <PillInput label="Email" />
+      </>,
+    );
+    const name = screen.getByLabelText("Name");
+    const email = screen.getByLabelText("Email");
+    const field = (control: HTMLElement) => control.closest<HTMLElement>('[data-mp="field"]');
+
+    // Act: a click, then Tab to the next one
+    fireEvent.pointerDown(name);
+    name.focus();
+    const clicked = field(name)?.hasAttribute("data-pointer-focus");
+    fireEvent.keyDown(name, { key: "Tab" });
+    email.focus();
+
+    // Assert
+    expect(clicked).toBe(true);
+    expect(field(email)?.hasAttribute("data-pointer-focus")).toBe(false);
   });
 });
 

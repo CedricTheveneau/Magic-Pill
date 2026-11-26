@@ -2,7 +2,7 @@ import { createElement, useRef } from "react";
 import { render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { captureSwap, planMorph, planSwap, useSizeMorph, type PanelBox, type Size } from "./morph";
+import { ExitWatch, captureSwap, planExit, planMorph, planSwap, useSizeMorph, type PanelBox, type Size } from "./morph";
 import type { PillPresence } from "./types";
 
 const TIMINGS = { fade: 150, change: 250 };
@@ -99,6 +99,44 @@ describe("planMorph", () => {
 
     // Assert
     expect(plan?.content).toBeUndefined();
+  });
+});
+
+describe("planExit", () => {
+  it("keeps the pill visible and at its scale while it closes up, then scales it out, as the stylesheet times it", () => {
+    // Act
+    const plan = planExit({ scale: "1", content: "1" }, TIMINGS, 300);
+
+    // Assert: 400ms of fade and size change, then 300ms of scaling out
+    expect(plan?.pill.options).toMatchObject({ duration: 700 });
+    expect(plan?.pill.keyframes).toEqual([
+      { scale: "1", visibility: "visible" },
+      { scale: "1", visibility: "visible", offset: 400 / 700, easing: "ease-in" },
+      { scale: "0", visibility: "visible" },
+    ]);
+    expect(plan?.content).toEqual({
+      keyframes: [{ opacity: "1" }, { opacity: "0" }],
+      options: expect.objectContaining({ duration: 150, easing: "ease-in" }),
+    });
+  });
+
+  it("starts from where an entry under way had got to", () => {
+    // Act
+    const plan = planExit({ scale: "0.6", content: "0.3" }, TIMINGS, 300);
+
+    // Assert
+    expect(plan?.pill.keyframes[0]).toMatchObject({ scale: "0.6" });
+    expect(plan?.content?.keyframes[0]).toEqual({ opacity: "0.3" });
+  });
+
+  it("leaves content that is already out of sight alone (a circle leaving)", () => {
+    // Act + Assert
+    expect(planExit({ scale: "1" }, TIMINGS, 300)?.content).toBeUndefined();
+  });
+
+  it("has nothing to play without an exit duration", () => {
+    // Act + Assert
+    expect(planExit({ scale: "1" }, TIMINGS, 0)).toBeNull();
   });
 });
 
@@ -331,6 +369,19 @@ describe("useSizeMorph", () => {
     expect(animate.mock.contexts.some((element) => (element as HTMLElement).dataset.mp === "message")).toBe(false);
   });
 
+  it("plays the exit by script when the pill hides, so a restyle of the page can't cut it short", () => {
+    // Arrange: a circle leaving, with no size to change
+    const { rerender } = render(createElement(Probe, { presence: "rest" }));
+
+    // Act
+    rerender(createElement(Probe, { presence: "hidden" }));
+
+    // Assert
+    const pillCalls = animate.mock.calls.filter((_, index) => (animate.mock.contexts[index] as HTMLElement).dataset.mp === "pill");
+    expect(pillCalls).toHaveLength(1);
+    expect(pillCalls[0][0].at(-1)).toEqual({ scale: "0", visibility: "visible" });
+  });
+
   it("leaves re-renders at the same presence alone", () => {
     // Arrange
     const { rerender } = render(createElement(Probe, { presence: "compact" }));
@@ -366,5 +417,37 @@ describe("useSizeMorph", () => {
 
     // Assert
     expect(animate).not.toHaveBeenCalled();
+  });
+});
+
+describe("ExitWatch", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    delete (HTMLElement.prototype as Partial<HTMLElement>).animate;
+    delete (HTMLElement.prototype as Partial<HTMLElement>).getAnimations;
+  });
+
+  it("stops the exit when the pill is asked back mid-way, and grows it back from where it was", () => {
+    // Arrange: halfway through scaling out, with the stylesheet's transition left over
+    const exit = { id: "mp-exit", cancel: vi.fn() };
+    const leftover = { id: "", transitionProperty: "scale", cancel: vi.fn() };
+    let running: object[] = [exit, leftover];
+    exit.cancel.mockImplementation(() => (running = [leftover]));
+    const animate = vi.fn();
+    Object.defineProperty(HTMLElement.prototype, "getAnimations", { value: () => running, configurable: true });
+    Object.defineProperty(HTMLElement.prototype, "animate", { value: animate, configurable: true });
+    // jsdom doesn't know the scale property
+    vi.spyOn(window, "getComputedStyle").mockReturnValue({ scale: "0.5", getPropertyValue: () => "" } as never);
+    const element = document.createElement("div");
+    const target = { current: element };
+    const { rerender } = render(createElement(ExitWatch, { presence: "hidden", target }));
+
+    // Act
+    rerender(createElement(ExitWatch, { presence: "compact", target }));
+
+    // Assert
+    expect(exit.cancel).toHaveBeenCalled();
+    expect(leftover.cancel).toHaveBeenCalled();
+    expect(animate).toHaveBeenCalledWith([{ scale: "0.5" }, { scale: "1" }], expect.objectContaining({ duration: 250 }));
   });
 });

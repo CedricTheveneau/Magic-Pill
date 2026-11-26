@@ -262,6 +262,28 @@ describe("MagicPill", () => {
       expect(navbar()).toBeNull();
     });
 
+    it("turns a sidebar horizontal for its notifications, inside the circle, and back", () => {
+      // Arrange
+      const orientation = () => root().dataset.orientation;
+      render(
+        <MagicPill placement="left" swap="always">
+          <PillNavbar items={items} pathname="/" />
+        </MagicPill>,
+      );
+
+      // Act + Assert: it closes as a sidebar (no slide: sliding can't turn it)
+      notify({ message: "Hello" });
+      expect([presence(), orientation()]).toEqual(["rest", "vertical"]);
+      advance(FADE + CHANGE);
+      expect([presence(), orientation(), message()]).toEqual(["compact", "horizontal", "Hello"]);
+
+      // Back to the base: a sidebar again once it has closed
+      advance(DURATION);
+      expect([presence(), orientation()]).toEqual(["rest", "horizontal"]);
+      advance(FADE + CHANGE);
+      expect([presence(), orientation()]).toEqual(["compact", "vertical"]);
+    });
+
     it("lets a notification take the pill over, then returns to the base", () => {
       // Arrange
       render(

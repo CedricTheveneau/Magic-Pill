@@ -123,10 +123,23 @@ describe("zones", () => {
 
   it("gives up its rung when it moves to another placement", () => {
     const { rerender } = render([pill("a"), pill("b"), pill("c", { placement: "bottom" })]);
-    rerender([pill("a", { placement: "bottom" }), pill("b"), pill("c", { placement: "bottom" })]);
+    rerender([pill("a", { placement: "bottom", moveThroughCircle: false }), pill("b"), pill("c", { placement: "bottom" })]);
     expect([shift("a"), shift("b"), shift("c")]).toEqual(["88px", "0px", "0px"]);
     // The one left behind closes up, and the moved one heads for its new rung
     expect(moves()).toHaveLength(2);
+  });
+
+  it("keeps its rung while it closes to a circle, and gives it up as the circle sets off", () => {
+    vi.useFakeTimers();
+    try {
+      const { rerender } = render([pill("a"), pill("b"), pill("c", { placement: "bottom" })]);
+      rerender([pill("a", { placement: "bottom" }), pill("b"), pill("c", { placement: "bottom" })]);
+      expect([shift("a"), shift("b"), shift("c")]).toEqual(["0px", "88px", "0px"]);
+      act(() => vi.advanceTimersByTime(400));
+      expect([shift("a"), shift("b"), shift("c")]).toEqual(["88px", "0px", "0px"]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("keeps the room it had while its panel covers the others", async () => {

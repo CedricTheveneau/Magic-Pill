@@ -147,6 +147,78 @@ export function planMorph(
   return plan;
 }
 
+/** Tags the exit played by script (see `planExit`). */
+const EXIT = "mp-exit";
+
+/** What the exit starts from: where the pill and its content are now (an entry may be under way). */
+export interface ExitStart {
+  scale: string;
+  /** The content's opacity, or nothing if it's already out of sight */
+  content?: string;
+}
+
+export interface ExitPlan {
+  pill: { keyframes: Keyframe[]; options: KeyframeAnimationOptions };
+  content?: { keyframes: Keyframe[]; options: KeyframeAnimationOptions };
+}
+
+/**
+ * The pill leaving, as the stylesheet times it: its content fades out, it
+ * shrinks to the circle (the size morph), scales out, then stops being
+ * visible. The stylesheet does it with delayed transitions, which a restyle
+ * of the whole page can cut short: on iOS, the toolbar folding away as the
+ * page scrolls resizes the viewport, and the pill vanished at once instead.
+ * Played by script on top, the exit keeps its course. Pure, so it can be tested.
+ */
+export function planExit(start: ExitStart, timings: MorphTimings, exit: number): ExitPlan | null {
+  const wait = timings.fade + timings.change;
+  const total = wait + exit;
+  if (exit <= 0 || total <= 0) return null;
+  const plan: ExitPlan = {
+    pill: {
+      keyframes: [
+        { scale: start.scale, visibility: "visible" },
+        { scale: start.scale, visibility: "visible", offset: wait / total, easing: "ease-in" },
+        { scale: "0", visibility: "visible" },
+      ],
+      options: { id: EXIT, duration: total },
+    },
+  };
+  if (start.content !== undefined && timings.fade > 0) {
+    plan.content = {
+      keyframes: [{ opacity: start.content }, { opacity: "0" }],
+      options: { id: EXIT, duration: timings.fade, easing: "ease-in" },
+    };
+  }
+  return plan;
+}
+
+/** The pill's own content: what fades out as it closes (not its icon, panels or a swap's copy). */
+const fadingContent = (element: HTMLElement) =>
+  [...element.children].filter(
+    (child): child is HTMLElement =>
+      child instanceof HTMLElement && !["icon", "panel", "outgoing"].includes(child.getAttribute("data-mp") ?? ""),
+  );
+
+/** Plays the exit on the pill that has just been hidden. */
+function playExit(element: HTMLElement, timings: MorphTimings): Animation[] {
+  // From where a return under way had got to
+  const style = getComputedStyle(element);
+  const scale = style.scale && style.scale !== "none" ? style.scale : "1";
+  cancel(element, EXIT, true);
+  const content = fadingContent(element);
+  const opacity = content.length > 0 ? getComputedStyle(content[0]).opacity : "0";
+  const exit = parseDuration(style.getPropertyValue("--_mp-exit"), 300);
+  const plan = planExit({ scale, content: Number(opacity) > 0 ? opacity : undefined }, timings, exit);
+  if (!plan) return [];
+  const animations = [element.animate(plan.pill.keyframes, plan.pill.options)];
+  if (plan.content) {
+    const { keyframes, options } = plan.content;
+    for (const child of content) animations.push(child.animate(keyframes, options));
+  }
+  return animations;
+}
+
 const readSize = (element: HTMLElement): Size => ({ width: element.offsetWidth, height: element.offsetHeight });
 
 /** Stops the pill's animations with this id (and the ones in it). Returns whether anything ran. */
@@ -394,28 +466,34 @@ export function useSizeMorph(
     const panel = readPanel(element);
     if (presence === "panel") openPanel.current = panel?.box;
     const panelBox = previous === "panel" ? openPanel.current : panel?.box;
-    const plan = planMorph(from, to, previous, presence, readMorphTimings(element), panelBox);
-    if (!plan) return;
-    const hold = holdMessages(element);
-    const options = { ...plan.options, id: MORPH };
-    const animations = [element.animate(plan.pill, options)];
-    if (plan.panel && panel) {
-      animations.push(panel.element.animate(plan.panel, options));
-      // The close button sticks to the bottom of a scrolling panel: while the
-      // pill resizes, it stays with the content instead of riding the edge
-      const footer = panel.element.querySelector<HTMLElement>('[data-mp="panel-footer"]');
-      if (footer) animations.push(footer.animate([{ position: "relative" }, { position: "relative" }], options));
-    }
-    // Growing into an open pill: its message is laid out at its final width
-    // from the start (the pill clips it), instead of wrapping on many lines
-    // in the narrow pill and unwrapping just as it fades in
-    if (!CLOSED.has(presence) && presence !== "panel") animations.push(...hold(options));
-    if (plan.content) {
-      const { keyframes, options } = plan.content;
-      for (const child of element.children) {
-        if (child !== panel?.element) animations.push(child.animate(keyframes, { ...options, id: MORPH }));
+    const timings = readMorphTimings(element);
+    const plan = planMorph(from, to, previous, presence, timings, panelBox);
+    const animations: Animation[] = [];
+    if (plan) {
+      const hold = holdMessages(element);
+      const options = { ...plan.options, id: MORPH };
+      animations.push(element.animate(plan.pill, options));
+      if (plan.panel && panel) {
+        animations.push(panel.element.animate(plan.panel, options));
+        // The close button sticks to the bottom of a scrolling panel: while the
+        // pill resizes, it stays with the content instead of riding the edge
+        const footer = panel.element.querySelector<HTMLElement>('[data-mp="panel-footer"]');
+        if (footer) animations.push(footer.animate([{ position: "relative" }, { position: "relative" }], options));
+      }
+      // Growing into an open pill: its message is laid out at its final width
+      // from the start (the pill clips it), instead of wrapping on many lines
+      // in the narrow pill and unwrapping just as it fades in
+      if (!CLOSED.has(presence) && presence !== "panel") animations.push(...hold(options));
+      if (plan.content) {
+        const { keyframes, options } = plan.content;
+        for (const child of element.children) {
+          if (child !== panel?.element) animations.push(child.animate(keyframes, { ...options, id: MORPH }));
+        }
       }
     }
+    // Leaving: from a circle too, which has no size to change
+    if (presence === "hidden") animations.push(...playExit(element, timings));
+    if (animations.length === 0) return;
     running.current = animations;
     void animations[0].finished
       .then(() => {
@@ -425,6 +503,48 @@ export function useSizeMorph(
         // Cancelled by the next change
       });
   }, [rootRef, presence, enabled, lastSize]);
+}
+
+/**
+ * When the pill is asked back before its exit is over: the exit played by
+ * script stops, and the pill grows back from the scale it had got to, as
+ * the stylesheet's entry does. The stylesheet can't do it here: browsers
+ * don't turn a transition back once a script has animated the same property,
+ * so it would carry on scaling out first. Its leftover transition is dropped.
+ */
+export class ExitWatch extends Component<{ presence: PillPresence; target: RefObject<HTMLElement | null> }> {
+  getSnapshotBeforeUpdate(previous: Readonly<{ presence: PillPresence }>): string | null {
+    const element = this.props.target.current;
+    if (!element || previous.presence !== "hidden" || this.props.presence === "hidden") return null;
+    const exit = (element.getAnimations?.() ?? []).filter(({ id }) => id === EXIT);
+    if (exit.length === 0) return null;
+    // Where it is on screen, before the page changes
+    const { scale } = getComputedStyle(element);
+    cancel(element, EXIT, true);
+    return scale && scale !== "none" ? scale : "1";
+  }
+
+  componentDidUpdate(_props: unknown, _state: unknown, scale: string | null) {
+    const element = this.props.target.current;
+    if (scale === null || !element) return;
+    for (const animation of element.getAnimations()) {
+      if ((animation as CSSTransition).transitionProperty === "scale") animation.cancel();
+    }
+    if (Number(scale) >= 1) return;
+    const style = getComputedStyle(element);
+    const enter = parseDuration(style.getPropertyValue("--_mp-enter"), 500);
+    // Shortened by how far it had gone, as browsers do when they turn a transition back.
+    // Tagged with the exit: hiding again stops it
+    element.animate([{ scale }, { scale: "1" }], {
+      id: EXIT,
+      duration: enter * Math.min(1, 1 - Number(scale)),
+      easing: style.getPropertyValue("--_mp-ease-enter").trim() || "ease-out",
+    });
+  }
+
+  render() {
+    return null;
+  }
 }
 
 /** Tags the placement animation, which runs alongside the size ones. */

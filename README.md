@@ -260,6 +260,7 @@ Give each host a name, and target it with `pill(name)`:
 pill("sidebar").notify({ message: "3 new posts" });
 pill("assistant").notify({ icon: <HelpIcon />, message: "Need a hand?", duration: Infinity });
 ```
+A sidebar's notifications are pills like the others: it turns horizontal for them while it's a circle, and back once they're gone. Between its base layer and a notification it always goes through the circle, even with `swap="always"` (sliding can't turn it).
 
 ## The primitive
 Everything above is built from `<Pill>` and its parts, and you can use them directly. A `<Pill>` you write yourself isn't connected to `pill()`: you control it with props.
@@ -279,11 +280,12 @@ import { Pill, PillActions, PillAction, PhoneIcon, MailIcon, DocumentIcon } from
 
 | `<Pill>` prop | Values | Default |
 |---|---|---|
-| `placement` | `"inline"` (in the page flow), `"top"`, `"bottom"`, `"left"`, `"right"`, `"top-start"`, `"top-end"`, `"bottom-start"`, `"bottom-end"` (fixed; `start`/`end` follow the text direction), `"overlay"` (a modal `<dialog>`). Change it and the pill travels to its new place (e.g. with the scroll, or for a guided tour), except to or from `"overlay"`. | `"inline"` |
+| `placement` | `"inline"` (in the page flow), `"top"`, `"bottom"`, `"left"`, `"right"`, `"top-start"`, `"top-end"`, `"bottom-start"`, `"bottom-end"` (fixed; `start`/`end` follow the text direction), `"overlay"` (a modal `<dialog>`). Change it and the pill travels to its new place (e.g. with the scroll, or for a guided tour), through the circle (see `moveThroughCircle`), except to or from `"overlay"`. | `"inline"` |
 | `presence` / `defaultPresence` / `onPresenceChange` | `"hidden"`, `"rest"` (a circle with the icon only), `"compact"`, `"expanded"` (every action label shown), `"panel"` | `"compact"` |
 | `closeOnBackdropClick` | `boolean`, for the `"overlay"` placement: a click outside the modal does what Escape does (closes its panel if it's open, the modal otherwise). Call `event.preventDefault()` in your `onClick` to keep it open | `false` |
 | `backdrop` | `"plain"`, `"glow"`, or any string, for the `"overlay"` placement: what's behind the modal (see below) | `"plain"` |
 | `ladder` | `boolean`, for the fixed placements: pills with the same placement line up like the rungs of a ladder (see below). `false` leaves this one out: it stays in its spot and the others ignore it | `true` |
+| `moveThroughCircle` | `boolean`, for the fixed placements: when the placement (or the orientation) changes, the pill closes to a circle where it is, the circle travels, and the pill opens at its new place, so its content never jumps on the way (from the bottom to a side, it turns vertical inside the circle). `false` travels at full size. At once with reduced motion | `true` |
 | `scene` / `sceneChange` | A name for what the pill shows: when it changes, the pill goes from one content to the other instead of jumping (see below). `"circle"`, `"slide"` or `"none"` | none / `"circle"` |
 | `orientation` | `"horizontal"`, `"vertical"` | `"vertical"` for `left`/`right` |
 | `variant` | `"neutral"`, `"success"`, `"danger"`, or any string (see [Styling](#styling)) | `"neutral"` |
@@ -473,7 +475,7 @@ import "magic-pill/calendar.css";
 
 With the keyboard: the arrows, Home and End (the week), Page Up and Page Down (the month; the year with Shift), Enter, and Escape, which closes it alone. The title goes up to the months, then to the years. It looks like open lists do (`--mp-list`, `--mp-on-list`): made of the fields, of the form's `look`, or of the pill's glass; of the pill itself when it's `inline`; `--mp-calendar-cell` (`2.25rem`) is its days' size. Weeks start on Monday.
 
-> **Your app's resets:** CSS like `input { border: 1px solid }` that isn't in a layer also reaches the pill's fields. Their look is on what surrounds the controls, so they only need to stay bare: scope such rules, or put them in a layer.
+> **Your app's resets:** CSS like `input { border: 1px solid }` that isn't in a layer also reaches the pill's fields. Their look is on what surrounds the controls, so they only need to stay bare: scope such rules, or put them in a layer. A global `:focus-visible` outline is the exception, already handled: the focus ring is drawn around the field, for the keyboard only (not after a click or a tap), and the bare control never draws one of its own.
 
 ## Icons
 Twelve built-in icons, drawn in `currentColor` and decorative by default (`aria-hidden`). Any other icon or SVG works too: icons are just React content.
