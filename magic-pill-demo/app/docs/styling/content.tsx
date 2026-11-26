@@ -185,6 +185,7 @@ export function Content() {
               ["`--mp-text-size` / `--mp-title-size`", "Fluid, about 1rem / 1.5–2rem"],
               ["`--mp-padding` / `--mp-gap` / `--mp-action-size`", "`0.875rem` / `1rem` / `2.75rem`"],
               ["`--mp-max-width` / `--mp-message-width` / `--mp-panel-width`", "`48rem` / `24rem` / `32rem`"],
+              ["`--mp-card-width`", "`12.5rem`: a sidebar's notification card, at the least"],
               ["`--mp-radius-panel` / `--mp-shadow`", "`2.5rem` / a soft drop shadow"],
               ["`--mp-offset` / `--mp-z-index`", "`1.5rem` from the viewport edges (plus safe areas) / `50`"],
               ["`--mp-backdrop` / `--mp-backdrop-blur`", "`rgb(20 20 20 / 0.4)` / no blur"],

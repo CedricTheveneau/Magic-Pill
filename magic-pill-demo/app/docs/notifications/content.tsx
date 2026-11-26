@@ -34,6 +34,13 @@ const UNDO: NotifyOptions = {
   message: "Item successfully removed from cart!",
   action: { icon: <UndoIcon />, label: "Undo", onClick: noop, expanded: true },
 };
+const ROWS: NotifyOptions = {
+  layout: "rows",
+  variant: "success",
+  icon: <CheckIcon />,
+  message: "Your changes are saved and shared with the team. Anyone with the link can see them now.",
+  action: { icon: <UndoIcon />, label: "Undo", onClick: noop, expanded: true },
+};
 const LINK: NotifyOptions = {
   icon: <InfoIcon />,
   message: (
@@ -187,6 +194,24 @@ export function Content() {
             </p>
           </Example>
           <Example
+            title="Under the message"
+            preview={<NotificationPreview options={ROWS} />}
+            notify={ROWS}
+            code={`pill().notify({
+  layout: "rows",
+  variant: "success",
+  icon: <CheckIcon />,
+  message: "Your changes are saved and shared with the team. Anyone with the link can see them now.",
+  action: { icon: <UndoIcon />, label: "Undo", onClick: restore, expanded: true },
+});`}
+          >
+            <p>
+              <code>layout: &quot;rows&quot;</code> puts the actions under the message when they need the room: when it wraps, or
+              with an action and a panel. A short message keeps its action beside it. For every notification of a host:{" "}
+              <code>notificationLayout=&quot;rows&quot;</code>.
+            </p>
+          </Example>
+          <Example
             title="Stay open while it works"
             notify={promo}
             code={`const id = pill().notify({
@@ -297,6 +322,8 @@ pill().clear();     // empty the queue`}
               ["`panel`", "`{ title?, titleAction?, content, footer?, trigger?, closeLabel?, closeExpanded? }`", "A “Learn more” action that grows the pill into a panel. `trigger` defaults to `{ icon: <PlusIcon />, label: \"Learn more\" }`."],
               ["`variant`", "`\"neutral\"` · `\"success\"` · `\"danger\"` · any string", "Defaults to the host's variant."],
               ["`duration`", "`number` (ms)", "Defaults to the host's (5000). `Infinity` keeps it until dismissed."],
+              ["`layout`", "`\"pill\"` · `\"rows\"` · `\"card\"` · `\"flag\"`", "Defaults to the host's `notificationLayout`. `\"rows\"`: the actions under the message when they need the room. `\"card\"` and `\"flag\"`: a sidebar's (see Several pills)."],
+              ["`at`", "`string`", "`\"flag\"` only: the `href` of the navbar item it's about, to come out next to it."],
               ["`id`", "`string`", "Notifying again with the same id updates the notification in place."],
               ["`announce`", "`string` · `false`", "What screen readers hear. Defaults to the message's text."],
               ["`onDismiss`", "`(id, reason) => void`", "`reason` is `\"timeout\"`, `\"action\"`, `\"dismissed\"` or `\"cleared\"`."],

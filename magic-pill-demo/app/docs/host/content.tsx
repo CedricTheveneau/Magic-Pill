@@ -225,6 +225,7 @@ export function AppPill() {
               ["`duration`", "`5000`", "Default display time for notifications."],
               ["`idle`", "`\"hidden\"`", "With no base layer and nothing queued: `\"hidden\"`, or `\"rest\"` for a small resting circle showing `idleIcon`."],
               ["`idleIcon`", "none", "The icon of the resting circle."],
+              ["`notificationLayout`", "`\"pill\"`", "How its notifications are laid out: in one row, `\"rows\"` (the actions under the message when they need the room), or, in a sidebar, `\"card\"` or `\"flag\"`. A notification's own `layout` wins."],
               ["`swap`", "`\"queue\"`", "Where new content slides into the open pill: `\"queue\"` between notifications, `\"always\"` also between the base layer and notifications, `\"never\"` nowhere."],
               ["`linkComponent`", "`<a>`", "Renders notification actions that have an `href`, e.g. Next's `Link`."],
               ["`classNames`", "none", "Classes for the notification's parts: `icon`, `divider`, `message`, `actions`, `action`, `panel`."],
