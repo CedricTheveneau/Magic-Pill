@@ -475,7 +475,7 @@ import "magic-pill/calendar.css";
 
 With the keyboard: the arrows, Home and End (the week), Page Up and Page Down (the month; the year with Shift), Enter, and Escape, which closes it alone. The title goes up to the months, then to the years. It looks like open lists do (`--mp-list`, `--mp-on-list`): made of the fields, of the form's `look`, or of the pill's glass; of the pill itself when it's `inline`; `--mp-calendar-cell` (`2.25rem`) is its days' size. Weeks start on Monday.
 
-> **Your app's resets:** CSS like `input { border: 1px solid }` that isn't in a layer also reaches the pill's fields. Their look is on what surrounds the controls, so they only need to stay bare: scope such rules, or put them in a layer.
+> **Your app's resets:** CSS like `input { border: 1px solid }` that isn't in a layer also reaches the pill's fields. Their look is on what surrounds the controls, so they only need to stay bare: scope such rules, or put them in a layer. A global `:focus-visible` outline is the exception, already handled: the focus ring is drawn around the field, for the keyboard only (not after a click or a tap), and the bare control never draws one of its own.
 
 ## Icons
 Twelve built-in icons, drawn in `currentColor` and decorative by default (`aria-hidden`). Any other icon or SVG works too: icons are just React content.

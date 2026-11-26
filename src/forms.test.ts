@@ -78,6 +78,14 @@ describe.each([
 describe("forms.css, by itself", () => {
   const css = withoutComments(forms);
 
+  it("keeps an app's own :focus-visible outline off its bare controls, and uses !important for little else", () => {
+    // Arrange: an app's global rule is unlayered, so only an important declaration in the layer wins over it
+    const important = [...css.matchAll(/([\w-]+)\s*:\s*([^;{}]*?)\s*!important/g)].map(([, property, value]) => `${property}: ${value}`);
+
+    // Assert: the text controls, the suggestions' arrow (Chromium's own), the list's options and the stepper's value
+    expect(important).toEqual(["outline: 0", "display: none", "outline: 0", "outline: 0"]);
+  });
+
   it.each([
     "field",
     "on-field",
