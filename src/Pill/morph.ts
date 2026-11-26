@@ -45,6 +45,8 @@ export interface MorphPlan {
 const CLOSED: ReadonlySet<PillPresence> = new Set(["rest", "hidden"]);
 /** Tags this module's animations, so a size change can stop the one before it. */
 export const MORPH = "mp-morph";
+/** Tags the placement animation, which runs alongside the size ones. */
+const MOVE = "mp-move";
 /** The length of the fading edge over the panel's clipped content. */
 const EDGE = 48;
 export const EASING = "ease-in-out";
@@ -75,7 +77,7 @@ const held = (width: number): Keyframe => ({ flexShrink: 0, width: px(width) });
  * own animation starts), to hold them there during an animation.
  */
 function holdMessages(element: HTMLElement): (options: KeyframeAnimationOptions) => Animation[] {
-  const messages = [...element.querySelectorAll<HTMLElement>(':scope > [data-mp="message"]')].map(
+  const messages = [...element.querySelectorAll<HTMLElement>(':scope > :is([data-mp="message"], [data-mp="body"])')].map(
     (message) => [message, held(message.getBoundingClientRect().width)] as const,
   );
   return (options) => messages.map(([message, frame]) => message.animate([frame, frame], options));
@@ -316,6 +318,33 @@ export interface SwapCapture {
 
 const CONTROLS = "input, textarea, select";
 
+/** What lays a copy out the way the original is on screen, whatever the pill turns into. */
+const FROZEN = ["flex-direction", "flex-wrap", "align-items", "justify-content", "align-self", "gap", "direction"];
+
+/**
+ * The copy laid out as the original is now, element by element: its sizes
+ * and the directions its content runs in. For a pill that turns as the new
+ * content comes in (a sidebar's notification, from a column to a row): the
+ * stylesheet would lay the copy out again for the new orientation.
+ */
+function freezeLayout(from: Element, to: Element) {
+  if (!(from instanceof HTMLElement || from instanceof SVGElement) || !("style" in to)) return;
+  const computed = getComputedStyle(from);
+  const style = (to as HTMLElement).style;
+  for (const property of FROZEN) style.setProperty(property, computed.getPropertyValue(property));
+  const { width, height } = from.getBoundingClientRect();
+  if (computed.display !== "inline") {
+    style.boxSizing = "border-box";
+    style.width = px(width);
+    style.height = px(height);
+    style.flexShrink = "0";
+  }
+  [...from.children].forEach((child, index) => {
+    const copy = to.children[index];
+    if (copy) freezeLayout(child, copy);
+  });
+}
+
 /** What was typed or chosen: a copied control starts from its default value. */
 function copyValues(from: HTMLElement, to: HTMLElement) {
   const copies = to.querySelectorAll<HTMLInputElement>(CONTROLS);
@@ -335,12 +364,15 @@ function copyValues(from: HTMLElement, to: HTMLElement) {
  * laid over it, to slide out once the new content is in. Null when there's
  * nothing to animate (unstyled, reduced motion, no Web Animations API).
  */
-export function captureSwap(element: HTMLElement | null): SwapCapture | null {
+export function captureSwap(element: HTMLElement | null, { freeze = false } = {}): SwapCapture | null {
   if (!element || element.hasAttribute("data-unstyled") || !element.animate || prefersReducedMotion()) return null;
   const from = readExactSize(element);
   const outgoing = document.createElement("div");
   for (const child of element.children) {
-    if (child.getAttribute("data-mp") !== "outgoing") outgoing.append(child.cloneNode(true));
+    if (child.getAttribute("data-mp") === "outgoing") continue;
+    const copy = child.cloneNode(true) as Element;
+    if (freeze) freezeLayout(child, copy);
+    outgoing.append(copy);
   }
   stopMorphs(element);
   copyValues(element, outgoing);
@@ -369,8 +401,10 @@ export function captureSwap(element: HTMLElement | null): SwapCapture | null {
 
 /** Once the new content is in: the swap prepared by `captureSwap`, played. */
 export function playSwap(element: HTMLElement, { from, outgoing, anchor, down }: SwapCapture) {
-  // Its natural size, free of an animation still running (e.g. the pill growing)
+  // Its natural size, free of an animation still running (e.g. the pill
+  // growing, or moving as it turns: the swap resizes it itself)
   stopMorphs(element, outgoing);
+  cancel(element, MOVE);
   const plan = planSwap(from, readExactSize(element), readMorphTimings(element), anchor, down);
   const done = () => outgoing.remove();
   if (!plan) return done();
@@ -547,8 +581,6 @@ export class ExitWatch extends Component<{ presence: PillPresence; target: RefOb
   }
 }
 
-/** Tags the placement animation, which runs alongside the size ones. */
-const MOVE = "mp-move";
 
 /**
  * The pill moved to another placement (or orientation): it travels there

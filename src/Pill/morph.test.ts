@@ -241,6 +241,26 @@ describe("captureSwap", () => {
     expect(capture.outgoing.querySelector("[id]")).toBeNull();
   });
 
+  it("freezes the copy's layout when asked, so it stays as it was while the pill turns", () => {
+    // Arrange: a column, as in a sidebar
+    Object.defineProperty(HTMLElement.prototype, "animate", { value: vi.fn(), configurable: true });
+    const pill = document.createElement("div");
+    pill.innerHTML = '<nav data-mp="navbar" style="display: flex; flex-direction: column"><a>Home</a></nav>';
+    document.body.append(pill);
+    vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({ width: 44, height: 120 } as DOMRect);
+
+    // Act
+    const frozen = captureSwap(pill, { freeze: true })!.outgoing.firstElementChild as HTMLElement;
+    const loose = captureSwap(pill)!.outgoing.firstElementChild as HTMLElement;
+
+    // Assert
+    expect(frozen.style.flexDirection).toBe("column");
+    expect([frozen.style.width, frozen.style.height]).toEqual(["44px", "120px"]);
+    expect(loose.style.width).toBe("");
+    pill.remove();
+    vi.restoreAllMocks();
+  });
+
   it("does nothing for unstyled pills or without the Web Animations API", () => {
     // Arrange
     const pill = document.createElement("div");

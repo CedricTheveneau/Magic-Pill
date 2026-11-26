@@ -117,6 +117,7 @@ const id = pill().notify({
 | `panel` | `{ title?, titleAction?, content, footer?, trigger?, closeLabel?, closeExpanded? }` | A "Learn more" action that grows the pill into a panel. `trigger` defaults to `{ icon: <PlusIcon />, label: "Learn more" }` and takes `expanded` too, `closeLabel` to `"Close"`: like the other labels, it shows on hover and focus, or all the time with `closeExpanded`. `titleAction` and `footer`: see [the panel](#the-primitive). |
 | `variant` | `"neutral"` · `"success"` · `"danger"` · any string | Defaults to the host's variant. |
 | `duration` | `number` (ms) | Defaults to the host's (5000). `Infinity` keeps it until dismissed. |
+| `layout` | `"pill"` · `"rows"` | Defaults to the host's `notificationLayout`. `"rows"` puts the actions under the message when they need the room: when the message wraps, or with an action and a panel. Under it, they line up with the message. |
 | `id` | `string` | Notifying again with the same id updates the notification in place. |
 | `announce` | `string` · `false` | What screen readers hear. Defaults to the message's text. |
 | `onDismiss` | `(id, reason) => void` | `reason` is `"timeout"`, `"action"`, `"dismissed"` or `"cleared"`. |
@@ -182,6 +183,7 @@ pill().notify({
 | `duration` | `5000` | Default display time for notifications. |
 | `idle` | `"hidden"` | With no base layer and nothing queued: `"hidden"`, or `"rest"` for a small resting circle showing `idleIcon`. |
 | `idleIcon` | none | The icon of the resting circle. |
+| `notificationLayout` | `"pill"` | How notifications are laid out: in one row, or `"rows"`, with the actions under the message when they need the room (see `layout` above). A notification's own `layout` wins. |
 | `swap` | `"queue"` | Where new content slides into the open pill (out through the top, in from the bottom, the other way round for a top pill) instead of closing it to a circle and growing back: `"queue"` between notifications, `"always"` also between the base layer and notifications, `"never"` nowhere. |
 | `linkComponent` | `<a>` | Renders notification actions that have an `href`, e.g. Next's `Link`. |
 | `classNames` | none | Classes for the notification's parts: `icon`, `divider`, `message`, `actions`, `action`, `panel`. |
@@ -260,7 +262,7 @@ Give each host a name, and target it with `pill(name)`:
 pill("sidebar").notify({ message: "3 new posts" });
 pill("assistant").notify({ icon: <HelpIcon />, message: "Need a hand?", duration: Infinity });
 ```
-A sidebar's notifications are pills like the others: it turns horizontal for them while it's a circle, and back once they're gone. Between its base layer and a notification it always goes through the circle, even with `swap="always"` (sliding can't turn it).
+A sidebar's notifications are pills like the others: it turns horizontal for them while it's a circle, and back once they're gone. Between its base layer and a notification it goes through the circle, even with `swap="always"`, unless the notification is in `rows`: then it slides, turning as it goes.
 
 ## The primitive
 Everything above is built from `<Pill>` and its parts, and you can use them directly. A `<Pill>` you write yourself isn't connected to `pill()`: you control it with props.

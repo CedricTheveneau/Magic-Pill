@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 
 import type { PillVariant } from "../Pill/types";
-import type { PillNotificationProps } from "../PillNotification/PillNotification";
+import type { NotificationLayout, PillNotificationProps } from "../PillNotification/PillNotification";
 import { devWarn } from "../utils/react";
 
 export type DismissReason = "timeout" | "action" | "dismissed" | "cleared";
@@ -27,6 +27,8 @@ interface NotifyCommon {
    * whole pill for a `render` notification). `false` announces nothing.
    */
   announce?: string | false;
+  /** This notification's layout, instead of the host's `notificationLayout`. */
+  layout?: NotificationLayout;
   onDismiss?: (id: string, reason: DismissReason) => void;
 }
 

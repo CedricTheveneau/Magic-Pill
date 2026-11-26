@@ -16,7 +16,11 @@ import Pill from "../Pill/Pill";
 import { captureSwap, playSwap, type SwapCapture } from "../Pill/morph";
 import { PillIcon } from "../Pill/parts";
 import type { LinkComponent, PillPresence, PillProps } from "../Pill/types";
-import { NotificationContent, type PillNotificationClassNames } from "../PillNotification/PillNotification";
+import {
+  NotificationContent,
+  type NotificationLayout,
+  type PillNotificationClassNames,
+} from "../PillNotification/PillNotification";
 import { getStore, type QueuedNotification } from "../store/store";
 import { getInputModality, trackInputModality } from "../utils/inputModality";
 import { usePillQueue } from "../store/usePillQueue";
@@ -63,6 +67,12 @@ export interface MagicPillProps
    * between the base layer and notifications ("always"), or nowhere ("never").
    */
   swap?: SwapMode;
+  /**
+   * How notifications are laid out: in one row (default), or with their
+   * actions under the message when they need the room (`rows`). A
+   * notification's own `layout` wins.
+   */
+  notificationLayout?: NotificationLayout;
   /** Passed to notification actions that have an `href`. */
   linkComponent?: LinkComponent;
   classNames?: PillNotificationClassNames;
@@ -105,10 +115,12 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
     idle = "hidden",
     idleIcon,
     swap = "queue",
+    notificationLayout = "pill",
     linkComponent,
     classNames,
     placement = "bottom",
     orientation,
+    moveThroughCircle,
     variant,
     onPointerEnter,
     onPointerLeave,
@@ -168,14 +180,28 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
   // so between its base layer and a notification it goes through the circle
   const onSide = placement === "left" || placement === "right";
   const isVertical = orientation === "vertical" || (orientation === undefined && onSide);
-  // Read when planning, so changing it doesn't interrupt a change under way
-  const swapMode = useRef(swap);
-  swapMode.current = isVertical && swap === "always" ? "queue" : swap;
+  // A notification's layout: its own, or the host's
+  const layoutOf = (scene: Scene): NotificationLayout | undefined =>
+    scene.kind === "notification" ? (scene.item.input.layout ?? notificationLayout) : undefined;
+  // Read when planning, so changing it doesn't interrupt a change under way.
+  // A sidebar slides to and from a notification in rows (the same pill, laid
+  // out again), not to a plain one: that turns through the circle
+  const swapMode = useRef((_from: Scene, _to: Scene): SwapMode => swap);
+  swapMode.current = (from, to) => {
+    if (!isVertical || swap !== "always") return swap;
+    const notification = to.kind === "notification" ? to : from;
+    return layoutOf(notification) === "rows" ? "always" : "queue";
+  };
+  // A slide where the pill turns: the copy sliding out keeps its layout
+  const turns = (from: Scene, to: Scene) => isVertical && (from.kind === "notification") !== (to.kind === "notification");
+  // The pill turns as the content slides: no trip through the circle then
+  const [isSliding, setIsSliding] = useState(false);
 
   useLayoutEffect(() => {
     const swapped = capture.current;
     capture.current = null;
     if (swapped && rootRef.current) playSwap(rootRef.current, swapped);
+    setIsSliding(false);
   }, [displayed]);
 
   useEffect(() => {
@@ -197,10 +223,16 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
 
   useEffect(() => {
     const current = displayedRef.current;
-    const batches = batchSteps(current, planSteps(current, target, readTimings(rootRef.current), swapMode.current));
+    const mode = swapMode.current(current.scene, target);
+    const batches = batchSteps(current, planSteps(current, target, readTimings(rootRef.current), mode));
     const timers = batches.map(({ at, states }) => {
       const apply = () => {
-        if (isSwap(displayedRef.current, states[0], swapMode.current)) capture.current = captureSwap(rootRef.current);
+        const from = displayedRef.current;
+        if (isSwap(from, states[0], mode)) {
+          const freeze = turns(from.scene, states[0].scene);
+          capture.current = captureSwap(rootRef.current, { freeze });
+          setIsSliding(freeze);
+        }
         followUps.current = states.slice(1);
         setDisplayed(states[0]);
       };
@@ -296,6 +328,7 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
             message={input.message}
             action={input.action}
             panel={input.panel}
+            layout={layoutOf(scene)}
             linkComponent={linkComponent}
             classNames={classNames}
             onAction={(event: MouseEvent<HTMLElement>) => {
@@ -326,6 +359,8 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
         ref={ref}
         placement={placement}
         orientation={isVertical && displayed.scene.kind === "notification" ? "horizontal" : orientation}
+        moveThroughCircle={moveThroughCircle !== false && !isSliding}
+        data-layout={layoutOf(displayed.scene)}
         variant={sceneVariant}
         presence={displayed.presence}
         onPresenceChange={handlePresenceChange}

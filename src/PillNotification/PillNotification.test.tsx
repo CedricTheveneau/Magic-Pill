@@ -32,6 +32,27 @@ describe("PillNotification", () => {
     expect(onClick).toHaveBeenCalledOnce();
   });
 
+  it("puts the message and the actions in a body of their own in rows, beside the icon", () => {
+    // Act
+    render(
+      <Pill>
+        <PillNotification
+          layout="rows"
+          icon={<CheckIcon />}
+          message="Saved"
+          action={{ label: "Undo", onClick: () => {} }}
+          panel={{ title: "Details", content: "More" }}
+        />
+      </Pill>,
+    );
+
+    // Assert: the panel stays a part of the pill, which shows it in place of the rest
+    const order = [...part("pill")!.children].map((child) => (child as HTMLElement).dataset.mp);
+    expect(order).toEqual(["icon", "divider", "body", "panel"]);
+    const body = [...part("body")!.children].map((child) => (child as HTMLElement).dataset.mp);
+    expect(body).toEqual(["message", "actions"]);
+  });
+
   it("renders any content as React nodes, never as HTML (L3)", () => {
     // Act
     render(

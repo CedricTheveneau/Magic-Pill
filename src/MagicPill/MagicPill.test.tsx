@@ -284,6 +284,37 @@ describe("MagicPill", () => {
       expect([presence(), orientation()]).toEqual(["compact", "vertical"]);
     });
 
+    it("lays notifications out in rows when asked, and each one may have its own layout", () => {
+      // Arrange
+      render(<MagicPill notificationLayout="rows" />);
+
+      // Act + Assert
+      show({ message: "In rows" });
+      expect(root().dataset.layout).toBe("rows");
+      expect(root().querySelector('[data-mp="body"]')).not.toBeNull();
+      act(() => pill().clear());
+      advance(FADE + CHANGE + EXIT);
+      show({ message: "In one row", layout: "pill" });
+      expect(root().dataset.layout).toBe("pill");
+      expect(root().querySelector('[data-mp="body"]')).toBeNull();
+    });
+
+    it("slides a sidebar to and from a notification in rows with swap=\"always\", turning as it goes", () => {
+      // Arrange
+      const orientation = () => root().dataset.orientation;
+      render(
+        <MagicPill placement="left" swap="always" notificationLayout="rows">
+          <PillNavbar items={items} pathname="/" />
+        </MagicPill>,
+      );
+
+      // Act + Assert: no circle, it turns at once
+      notify({ message: "Hello" });
+      expect([presence(), orientation(), message()]).toEqual(["compact", "horizontal", "Hello"]);
+      advance(DURATION);
+      expect([presence(), orientation()]).toEqual(["compact", "vertical"]);
+    });
+
     it("lets a notification take the pill over, then returns to the base", () => {
       // Arrange
       render(

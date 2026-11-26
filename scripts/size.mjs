@@ -30,8 +30,9 @@ const PROBES = [
     // then from 9.4 kB for several panels and their slots: 9.48 kB,
     // then from 9.75 kB for scenes (Pill/scene.ts): 10.22 kB,
     // then from 10.5 kB for the exit played by script, which a restyle of the page can't cut short (iOS): 10.68 kB,
-    // then from 11 kB for placement changes through the circle (Pill/travel.ts): 11.02 kB
-    budget: 11.5 * KB, // 4.89 kB at 9.0.0-next.0
+    // then from 11 kB for placement changes through the circle (Pill/travel.ts): 11.02 kB,
+    // then from 11.5 kB for notifications in rows and the slides where a sidebar turns: 11.42 kB
+    budget: 12 * KB, // 4.89 kB at 9.0.0-next.0
   },
   {
     name: "Pill primitive",
@@ -54,8 +55,9 @@ const PROBES = [
     description: "the quick start, with a form panel, a text field and a switch",
     code: 'export { MagicPill, pill, PillFormPanel, PillInput, PillSwitch } from "ENTRY";',
     // 12.17 kB, then 12.71 kB with the busy labels, 13.38 kB with scenes,
-    // 13.88 kB with the exit played by script, 14.23 kB with placement changes through the circle
-    budget: 14.5 * KB,
+    // 13.88 kB with the exit played by script, 14.23 kB with placement changes through the circle,
+    // 14.62 kB with notifications in rows
+    budget: 15 * KB,
   },
   {
     name: "Everything",
@@ -77,8 +79,9 @@ const PROBES = [
     // then from 23.75 kB for scenes: 24.16 kB,
     // then from 24.5 kB for the calendar (PillDate, only for apps that use it): 29.35 kB,
     // then from 29.75 kB for the exit played by script and the fields' keyboard-only focus rings: 29.85 kB,
-    // then from 30.25 kB for placement changes through the circle: 30.23 kB
-    budget: 30.75 * KB, // 9.07 kB at 9.0.0-next.0
+    // then from 30.25 kB for placement changes through the circle: 30.23 kB,
+    // then from 30.75 kB for notifications in rows: 30.68 kB
+    budget: 31.25 * KB, // 9.07 kB at 9.0.0-next.0
   },
 ];
 const STYLESHEETS = [
@@ -89,8 +92,9 @@ const STYLESHEETS = [
     // then from 2.6 kB for the actions' rim and current page colours: 2.59 kB, the backdrop's blur: 2.62 kB,
     // the variants' text and action colours: 2.71 kB,
     // then from 2.75 kB for a navbar's narrow screens and colours that change together: 2.90 kB,
-    // then from 3 kB for the panel's slots: 3.09 kB
-    budget: 3.25 * KB, // 2.15 kB at 9.0.0-next.1 (3.89 kB with its comments, as shipped)
+    // then from 3 kB for the panel's slots: 3.09 kB,
+    // a vertical pill's circle: 3.10 kB, notifications in rows: 3.20 kB
+    budget: 3.5 * KB, // 2.15 kB at 9.0.0-next.1 (3.89 kB with its comments, as shipped)
   },
   {
     name: "themes.css",
