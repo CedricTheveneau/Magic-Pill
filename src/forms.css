@@ -651,7 +651,9 @@
             display 150ms allow-discrete;
         }
 
-        & select::picker(select):popover-open {
+        /* :open on the select, not :popover-open on the picker: Lightning CSS
+           (Next.js's Turbopack) refuses a pseudo-class after a pseudo-element */
+        & select:open::picker(select) {
           opacity: 1;
           scale: 1;
 
