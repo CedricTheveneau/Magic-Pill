@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+
+## [9.1.1] - 2026-11-26
+A fix for Next.js apps. Nothing to change in your code.
+
 ### Fixed
 - `magic-pill/forms.css` builds with Next.js's Turbopack (and anything else that uses Lightning CSS): 9.1.0 failed the whole build with "Invalid pseudo class after pseudo element". The open list's rule now reads `select:open::picker(select)`, with the same effect, and a test keeps every stylesheet clear of it
 
