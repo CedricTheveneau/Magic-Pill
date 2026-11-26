@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed
+- `magic-pill/forms.css` builds with Next.js's Turbopack (and anything else that uses Lightning CSS): 9.1.0 failed the whole build with "Invalid pseudo class after pseudo element". The open list's rule now reads `select:open::picker(select)`, with the same effect, and a test keeps every stylesheet clear of it
 
 ## [9.1.0] - 2026-11-25
 Themes (frosted glass, Liquid Glass, yours), forms and a calendar, scenes, and pills that make room for each other. Nothing to change in your code: forms, themes and the calendar are optional, each with its own stylesheet.
