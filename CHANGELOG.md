@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Fixed
+- Form fields draw their focus ring for the keyboard only: browsers matched `:focus-visible` on text fields, lists, steppers and code fields even after a click or a tap. A field focused with a pointer now gets `data-pointer-focus`, and `forms.css` leaves it without a ring (the caret shows where typing goes). Tabbing to a field still draws it
+
 ## [9.1.1] - 2026-11-26
 A fix for Next.js apps. Nothing to change in your code.
 

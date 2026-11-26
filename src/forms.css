@@ -1305,34 +1305,40 @@
 
     /* ─── States ───────────────────────────────────────────────────────────── */
 
-    & [data-mp="field-box"]:has(> :is(input, textarea, select):focus-visible) {
-      outline: 2px solid var(--_mp-on-surface);
-      outline-offset: 2px;
-    }
-
-    & [data-mp="field-control"]:is([data-type="switch"], [data-type="checkbox"]) > input:focus-visible + span,
-    & input:focus-visible ~ [data-mp="slider-thumb"],
-    & [data-mp="choice"] > input:focus-visible + span,
-    & [data-mp="stepper-value"]:focus-within {
-      outline: 2px solid var(--_mp-on-surface);
-      outline-offset: 2px;
-    }
-
-    & input:focus-visible ~ [data-mp="code-slot"][data-next],
-    & input:focus-visible ~ [data-mp="color-swatch"] {
-      outline: 2px solid var(--_mp-on-surface);
-      outline-offset: 2px;
-    }
-
-    & [data-mp="field-control"][data-type="file"]:focus-within {
-      outline: 2px solid var(--_mp-on-surface);
-      outline-offset: 2px;
-    }
-
-    @supports not selector(:has(*)) {
-      & [data-mp="field-box"]:focus-within {
+    /* Focus rings are for the keyboard: browsers match :focus-visible on a
+       text field even after a click or a tap, so a field focused with a
+       pointer (data-pointer-focus, written by the field) draws none. The
+       caret shows where typing goes */
+    & [data-mp="field"]:not([data-pointer-focus]) {
+      & [data-mp="field-box"]:has(> :is(input, textarea, select):focus-visible) {
         outline: 2px solid var(--_mp-on-surface);
         outline-offset: 2px;
+      }
+
+      & [data-mp="field-control"]:is([data-type="switch"], [data-type="checkbox"]) > input:focus-visible + span,
+      & input:focus-visible ~ [data-mp="slider-thumb"],
+      & [data-mp="choice"] > input:focus-visible + span,
+      & [data-mp="stepper-value"]:focus-within {
+        outline: 2px solid var(--_mp-on-surface);
+        outline-offset: 2px;
+      }
+
+      & input:focus-visible ~ [data-mp="code-slot"][data-next],
+      & input:focus-visible ~ [data-mp="color-swatch"] {
+        outline: 2px solid var(--_mp-on-surface);
+        outline-offset: 2px;
+      }
+
+      & [data-mp="field-control"][data-type="file"]:focus-within {
+        outline: 2px solid var(--_mp-on-surface);
+        outline-offset: 2px;
+      }
+
+      @supports not selector(:has(*)) {
+        & [data-mp="field-box"]:focus-within {
+          outline: 2px solid var(--_mp-on-surface);
+          outline-offset: 2px;
+        }
       }
     }
 

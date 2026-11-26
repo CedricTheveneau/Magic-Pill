@@ -1,8 +1,28 @@
 "use client"
-import { forwardRef, useContext, useId, type ComponentPropsWithoutRef, type ReactNode, type Ref } from "react";
+import {
+  forwardRef,
+  useContext,
+  useEffect,
+  useId,
+  type ComponentPropsWithoutRef,
+  type FocusEvent,
+  type ReactNode,
+  type Ref,
+} from "react";
 
 import { FormContext, type FieldLayout } from "./FormContext";
 import { AlertGlyph } from "./glyphs";
+import { getInputModality, trackInputModality } from "../utils/inputModality";
+
+/**
+ * Browsers draw `:focus-visible` on a text field even when it was clicked or
+ * tapped. The field remembers where its focus came from, so forms.css draws
+ * the ring for the keyboard only. Written on the element, not in a state: a
+ * focus shouldn't re-render the field.
+ */
+function noteFocusOrigin(event: FocusEvent<HTMLElement>) {
+  event.currentTarget.toggleAttribute("data-pointer-focus", getInputModality() === "pointer");
+}
 
 /** What every field takes. */
 export interface FieldProps {
@@ -47,10 +67,11 @@ interface InternalFieldProps extends Omit<PillFieldProps, "layout"> {
 /** The shell, with the options only our own fields use. */
 export const FieldShell = forwardRef<HTMLElement, InternalFieldProps & { [data: `data-${string}`]: unknown }>(
   function FieldShell(
-    { label, hideLabel, hint, error, optional, layout, aside, group, isText, children, ...rest },
+    { label, hideLabel, hint, error, optional, layout, aside, group, isText, children, onFocus, ...rest },
     ref,
   ) {
     const form = useContext(FormContext);
+    useEffect(trackInputModality, []);
     const id = useId();
     const hintId = `${id}hint`;
     const errorId = `${id}error`;
@@ -72,6 +93,10 @@ export const FieldShell = forwardRef<HTMLElement, InternalFieldProps & { [data: 
           "aria-invalid": group === "radiogroup" ? control["aria-invalid"] : undefined,
         })}
         ref={ref as Ref<HTMLDivElement>}
+        onFocus={(event) => {
+          noteFocusOrigin(event);
+          onFocus?.(event);
+        }}
         data-mp="field"
         data-layout={layout ?? ((isText && form.layout) || "stacked")}
         data-invalid={error ? "" : undefined}
