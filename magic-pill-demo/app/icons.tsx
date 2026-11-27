@@ -148,3 +148,12 @@ export const CopyIcon = () => (
     <path d="M15.5 8.5v-2a3 3 0 0 0-3-3h-6a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h2" />
   </svg>
 );
+
+export const ShapesIcon = () => (
+  <svg {...stroke}>
+    <circle cx="7.5" cy="7.5" r="4" />
+    <path d="m16.5 3.5 4.5 8h-9Z" />
+    <rect x="3.5" y="14" width="7" height="7" rx="1.5" />
+    <circle cx="16.5" cy="17.5" r="3.5" />
+  </svg>
+);
