@@ -118,13 +118,14 @@ export function Content() {
           </Example>
           <Example
             title="Slower"
-            stage={{ pill: { style: { "--mp-duration-enter": "1200ms", "--mp-duration-change": "700ms", "--mp-duration-exit": "900ms" } as CSSProperties } }}
+            stage={{ pill: { style: { "--mp-duration-enter": "1200ms", "--mp-duration-change": "700ms", "--mp-duration-exit": "900ms", "--mp-duration-fade": "450ms" } as CSSProperties } }}
             notify={{ variant: "danger", icon: <CloseIcon />, message: "Everything takes its time now.", duration: 3000 }}
             language="css"
             code={`.my-pill {
   --mp-duration-enter: 1200ms;  /* 500ms */
   --mp-duration-change: 700ms;  /* 250ms */
   --mp-duration-exit: 900ms;    /* 300ms */
+  --mp-duration-fade: 450ms;    /* 150ms: the content, before the pill shrinks and once it has grown */
 }`}
           >
             <p>With reduced motion, shape changes become short fades whatever these say.</p>
@@ -190,6 +191,7 @@ export function Content() {
               ["`--mp-offset` / `--mp-z-index`", "`1.5rem` from the viewport edges (plus safe areas) / `50`"],
               ["`--mp-backdrop` / `--mp-backdrop-blur`", "`rgb(20 20 20 / 0.4)` / no blur"],
               ["`--mp-duration-enter` / `--mp-duration-change` / `--mp-duration-exit`", "`500ms` / `250ms` / `300ms`"],
+              ["`--mp-duration-fade`", "`150ms`: the content fading out before the pill shrinks, and in once it has grown"],
               ["`--mp-scale-origin`", "`center`"],
               ["`--mp-align`", "How a vertical pill lines up its items: `start`, `center` or `end`. Along the screen edge for `left`/`right`"],
             ]}
