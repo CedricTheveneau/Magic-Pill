@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [9.3.0] - 2026-11-27
+A token for the content's fade, the built-in icons deprecated, and two fixes. Nothing to change in your code: the icons still work as before, and leaving them can wait until the next major version.
+
 ### Added
 - `--mp-duration-fade` (`150ms`): how long the content takes to fade out before the pill shrinks, and in once it has grown, like the other duration tokens
 
