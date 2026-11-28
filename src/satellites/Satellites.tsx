@@ -37,6 +37,25 @@ const SHIFT = "mp-satellite-shift";
 const ACTIONS = "\u0000actions";
 const SIDE_PLACEMENTS = new Set(["left", "right"]);
 
+/**
+ * The page's actions' box along the pill, whichever way their pill runs now
+ * and even while its size animates: laid out on a hidden copy, turned along.
+ */
+function alongBox(atom: HTMLElement, vertical: boolean): { width: number; height: number } {
+  const copy = atom.cloneNode(true) as HTMLElement;
+  copy.setAttribute("data-orientation", vertical ? "vertical" : "horizontal");
+  copy.removeAttribute("id");
+  copy.inert = true;
+  copy.style.visibility = "hidden";
+  copy.style.pointerEvents = "none";
+  copy.style.translate = "none";
+  copy.style.scale = "none";
+  atom.after(copy);
+  const box = { width: copy.offsetWidth, height: copy.offsetHeight };
+  copy.remove();
+  return box;
+}
+
 /** Two boxes side by side, a gap apart: the second can come out of the first. */
 const nextTo = (a: Box, b: Box, gap: number) => {
   const sideBySide = Math.abs(a.top - b.top) < 2 && Math.abs(Math.abs(a.left - b.left) - (a.width + gap)) < 2;
@@ -115,6 +134,8 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
   const shownActions = detached ? (actions ?? lastActions.current) : null;
   const atom = useRef<HTMLElement | null>(null);
   const [actionsAcross, setActionsAcross] = useState(false);
+  // Measured after each render, on a copy: a turned pill whose size animates would mislead the layout
+  const actionsBox = useRef<{ width: number; height: number } | null>(null);
   const across = useRef(actionsAcross);
   across.current = actionsAcross;
   const presenceOf = ({ electron, leaving }: Shown): PillPresence => {
@@ -149,6 +170,7 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
     // The actions' box along the pill (turned back if they run across it now)
     const atomElement = atom.current;
     const atomOut = actionsPresence !== "hidden" && atomElement;
+    if (atomOut && (animate || !actionsBox.current)) actionsBox.current = alongBox(atomElement, vertical);
     const turn =
       host.actionsOrientation === "auto"
         ? ("auto" as const)
@@ -166,14 +188,10 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
         const element = elements.current.get(electron.id)!;
         return { id: electron.id, width: element.offsetWidth || 72, height: element.offsetHeight || 72 };
       }),
-      actions: atomOut
-        ? {
-            width: across.current ? atomElement.offsetHeight : atomElement.offsetWidth,
-            height: across.current ? atomElement.offsetWidth : atomElement.offsetHeight,
-            side: host.actionsSide,
-            turn,
-          }
-        : undefined,
+      actions:
+        atomOut && actionsBox.current
+          ? { width: actionsBox.current.width, height: actionsBox.current.height, side: host.actionsSide, turn }
+          : undefined,
       side: host.electronSide,
       line: host.electronLine,
       arrange: host.arrange,
@@ -205,7 +223,8 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
     }
     applied.current = { shift: layout.shift, reserve: layout.reserve };
 
-    if (atomOut && layout.actionsAcross !== across.current) setActionsAcross(layout.actionsAcross);
+    // They turn after a render only, never while following the host as it resizes (no back and forth)
+    if (animate && atomOut && layout.actionsAcross !== across.current) setActionsAcross(layout.actionsAcross);
 
     // The actions: into their spot, out of the host as they come, back into it as they go
     const boxes = layout.boxes;

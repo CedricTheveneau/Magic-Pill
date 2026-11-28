@@ -431,3 +431,35 @@ describe("the page's actions", () => {
     expect(parts.slice(0, 3)).toEqual(["navbar", "divider", "actions"]);
   });
 });
+
+describe("the page's actions turning across", () => {
+  beforeEach(() => {
+    resetStores();
+    vi.useFakeTimers();
+  });
+
+  it("settles instead of turning back and forth when the turned pill measures oddly (its size animating)", () => {
+    // A 390 px phone: the host 290 px wide (240 folded), the actions 128 × 72 along it; turned, their pill
+    // measures 200 × 128 while its size animates. Laid out on that, they'd turn back and forth forever
+    const width = (element: HTMLElement) => {
+      if (element.dataset.satellite === "actions") return element.dataset.orientation === "vertical" ? 200 : 128;
+      // 240 px with its navbar's labels folded (the satellites measure that on a copy)
+      if (element.dataset.mp === "pill") return element.querySelector('[data-mp="navbar"][data-folded]') ? 240 : 290;
+      return 0;
+    };
+    const height = (element: HTMLElement) => (element.dataset.satellite === "actions" && element.dataset.orientation === "vertical" ? 128 : 72);
+    vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockImplementation(function (this: HTMLElement) {
+      return width(this);
+    });
+    vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockImplementation(function (this: HTMLElement) {
+      return height(this);
+    });
+    vi.stubGlobal("innerWidth", 390);
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    render(<App />);
+    act(() => pill().setActions([{ icon: <span>✎</span>, label: "Write" }, { icon: <span>✓</span>, label: "Done" }]));
+    advance(100);
+    expect(errors).not.toHaveBeenCalledWith(expect.stringContaining("Maximum update depth"), expect.anything(), expect.anything());
+    expect(document.querySelector('[data-satellite="actions"]')).not.toBeNull();
+  });
+});
