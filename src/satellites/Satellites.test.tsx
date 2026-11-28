@@ -280,11 +280,11 @@ describe("an electron's orbitals", () => {
     start(timer());
     act(() => void link().dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })));
     advance(200);
-    expect(document.querySelector('[data-mp="orbital-label"]')?.textContent).toBe("+1 min");
+    expect(document.querySelector('[data-satellite="orbital-label"]')?.textContent).toBe("+1 min");
     expect(orbitals()[0].dataset.hot).toBe("");
 
     rerender(<App orbitalLabels={false} />);
-    expect(document.querySelector('[data-mp="orbital-label"]')).toBeNull();
+    expect(document.querySelector('[data-satellite="orbital-label"]')).toBeNull();
   });
 });
 

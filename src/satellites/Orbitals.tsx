@@ -96,7 +96,7 @@ export function Orbitals({
   const settings = useRef<Settings | null>(null);
   const pills = useRef(new Map<number, HTMLElement>());
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const labelRef = useRef<HTMLSpanElement | null>(null);
+  const labelRef = useRef<HTMLElement | null>(null);
   const focusFirst = useRef(false);
   // How far the wheel has turned, in orbitals (0 when they all fit)
   const turn = useRef(0);
@@ -588,9 +588,20 @@ export function Orbitals({
         );
       })}
       {host.orbitalLabels && hot >= 0 && items[hot] && (
-        <span ref={labelRef} data-mp="orbital-label" aria-hidden="true" style={LABEL_STYLE}>
+        <Pill
+          ref={labelRef}
+          placement="inline"
+          ladder={false}
+          moveThroughCircle={false}
+          theme={host.theme}
+          variant={electron.input.variant ?? host.variant}
+          presence="compact"
+          aria-hidden="true"
+          data-satellite="orbital-label"
+          style={LABEL_STYLE}
+        >
           {items[hot].label}
-        </span>
+        </Pill>
       )}
     </div>
   );
