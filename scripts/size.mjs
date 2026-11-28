@@ -101,8 +101,9 @@ const PROBES = [
     // 18.16 kB with the electrons (the layer, the layout, PillProgress): 2.62 kB more than the quick start,
     // 18.49 kB with the navbar's folded width, to know whether an electron fits next to it,
     // 21.71 kB with the orbitals (their arc around obstacles, the long press, sliding to one,
-    // hovering, the keyboard's menu, their labels)
-    budget: 22 * KB,
+    // hovering, the keyboard's menu, their labels),
+    // 22.75 kB with the wheel (turning with the mouse wheel, a drag and the keys, snapping, peeking where clear)
+    budget: 23 * KB,
   },
 ];
 const STYLESHEETS = [
