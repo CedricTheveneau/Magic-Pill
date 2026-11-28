@@ -16,7 +16,7 @@ import {
 
 import Pill from "../Pill/Pill";
 import { atEdgeOf, atPoint, playNecks, playOrbit, type Inside } from "../Pill/goo";
-import { cancel, MORPH } from "../Pill/morph";
+import { cancel, EXIT, MORPH, MOVE } from "../Pill/morph";
 import { PillProgress } from "../Pill/PillProgress";
 import type { PillPresence } from "../Pill/types";
 import { findActiveIndex } from "../PillNavbar/matchPath";
@@ -231,7 +231,13 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
   if (actions) lastActions.current = actions;
   const detached = host.actionsStyle === "detached";
   const actionsPresence: PillPresence = detached && actions && !tucked ? "compact" : "hidden";
-  const shownActions = detached ? (actions ?? lastActions.current) : null;
+  // Going into the pill (actionsStyle "inside" now): their own pill stays until it's in
+  const goingIn = useRef(false);
+  const wasDetached = useRef(detached);
+  if (wasDetached.current && !detached && actions) goingIn.current = true;
+  if (detached) goingIn.current = false;
+  wasDetached.current = detached;
+  const shownActions = detached || goingIn.current ? (actions ?? lastActions.current) : null;
   const atom = useRef<HTMLElement | null>(null);
   const [actionsAcross, setActionsAcross] = useState(false);
   // With a wheel, short of room: how long their row of actions is, showing what fits
@@ -445,6 +451,7 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
           const fromInside = styleChanged && insideSpot.current ? atPoint(insideSpot.current.x, insideSpot.current.y, 1) : undefined;
           // At their size as they are now: turned while they were in, they don't grow from their old shape
           cancel(atomElement, MORPH, true);
+          cancel(atomElement, MOVE);
           bud(root, atomElement, "split", 0, durations(atomElement).enter, fromInside, !!fromInside);
         } else if (moving && was === "compact" && Number.isFinite(from.left) && Number.isFinite(from.top)) {
           // Moving with the group (gathered or spread, another one coming or going): it slides there
@@ -461,11 +468,14 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
       } else if (animate && !atomOut && was === "compact") {
         const { fade, exit } = durations(atomElement);
         if (styleChanged && host.actionsStyle === "inside" && insideSpot.current) {
-          // Into the pill, where they now are in it, seen the whole way (their content too)
+          // Into the pill, where they now are in it, seen the whole way (their content too: no exit's fade)
+          cancel(atomElement, EXIT, true);
           for (const child of atomElement.children) (child as HTMLElement).style.opacity = "1";
           bud(root, atomElement, "join", 0, exit, atPoint(insideSpot.current.x, insideSpot.current.y, 1), true);
           setTimeout(() => {
             for (const child of atomElement.children) (child as HTMLElement).style.removeProperty("opacity");
+            goingIn.current = false;
+            refresh();
           }, exit + 20);
         } else if (tucked) {
           bud(root, atomElement, "join", 0, Math.max(exit, fade + durations(atomElement).change), hostCentre());

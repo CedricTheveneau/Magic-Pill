@@ -47,7 +47,7 @@ const CLOSED: ReadonlySet<PillPresence> = new Set(["rest", "hidden"]);
 /** Tags this module's animations, so a size change can stop the one before it. */
 export const MORPH = "mp-morph";
 /** Tags the placement animation, which runs alongside the size ones. */
-const MOVE = "mp-move";
+export const MOVE = "mp-move";
 /** The length of the fading edge over the panel's clipped content. */
 const EDGE = 48;
 export const EASING = "ease-in-out";
@@ -151,7 +151,7 @@ export function planMorph(
 }
 
 /** Tags the exit played by script (see `planExit`). */
-const EXIT = "mp-exit";
+export const EXIT = "mp-exit";
 
 /** What the exit starts from: where the pill and its content are now (an entry may be under way). */
 export interface ExitStart {
