@@ -38,7 +38,7 @@ export const ELECTRON_DEFAULTS: ElectronSettings = {
   actionsSide: "start",
   actionsOrientation: "auto",
   actionsWheel: false,
-  nearestToPill: "electrons",
+  nearestToPill: "actions",
 };
 
 const KEY = "magic-pill-demo-electron";

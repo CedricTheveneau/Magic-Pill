@@ -35,7 +35,7 @@ const CHOICES = [
   { key: "actionsSide", legend: "Their side", prop: "actionsSide", options: [["start", "Start"], ["end", "End"], ["beside", "Beside"]] },
   { key: "actionsOrientation", legend: "Their orientation", prop: "actionsOrientation", options: [["auto", "Automatic"], ["horizontal", "Horizontal"], ["vertical", "Vertical"]] },
   { key: "actionsWheel", legend: "Short of room", prop: "actionsWheel", options: yesNo("What fits shows, the rest in a wheel", "They turn across") },
-  { key: "nearestToPill", legend: "Nearer the pill", prop: "nearestToPill", options: [["electrons", "The electrons"], ["actions", "The actions"]] },
+  { key: "nearestToPill", legend: "Nearer the pill", prop: "nearestToPill", options: [["actions", "The actions"], ["electrons", "The electrons"]] },
   { key: "labels", legend: "The navbar's labels", prop: "labels (PillNavbar)", options: [["auto", "Automatic"], ["current", "The current page's"], ["closed", "None"]] },
 ] as Choice<keyof ElectronSettings>[];
 
@@ -227,7 +227,7 @@ import { satellites } from "magic-pill/satellites";
               ["`orbitalsOpenOn`", "`\"press-hover\"` (or `\"press\"`, `\"tap\"`)"],
               ["`orbitalLabels` / `orbitalsStayOpen`", "`true` / `true`"],
               ["`actionsStyle` / `actionsSide` / `actionsOrientation`", "`\"detached\"` / `\"start\"` / `\"auto\"`"],
-              ["`actionsWheel` / `nearestToPill`", "`false` / `\"electrons\"` (or `\"actions\"`)"],
+              ["`actionsWheel` / `nearestToPill`", "`false` / `\"actions\"` (or `\"electrons\"`)"],
               ["`actionsLabel`", "`\"Page actions\"`"],
             ]}
           />
