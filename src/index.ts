@@ -6,6 +6,8 @@
 // 1. The pill primitive
 export { default as Pill } from './Pill/Pill';
 export { PillIcon, PillDivider, PillMessage, PillActions } from './Pill/parts';
+export { PillProgress } from './Pill/PillProgress';
+export type { PillProgressProps } from './Pill/PillProgress';
 export { default as PillAction } from './Pill/PillAction';
 export { PillPanel, PillPanelTrigger } from './Pill/PillPanel';
 export { usePill } from './Pill/PillContext';

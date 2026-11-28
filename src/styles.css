@@ -494,6 +494,34 @@
         outline-offset: 2px;
       }
 
+      /* A progress ring around its content, in the text colour */
+      & [data-mp="progress"] {
+        position: relative;
+        display: grid;
+        place-items: center;
+        inline-size: var(--_mp-action-size);
+        block-size: var(--_mp-action-size);
+
+        & > svg {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          inline-size: var(--mp-progress-size, 3.375rem);
+          block-size: var(--mp-progress-size, 3.375rem);
+          translate: -50% -50%;
+          rotate: -90deg;
+          overflow: visible;
+          fill: none;
+          stroke: currentColor;
+          stroke-width: var(--mp-progress-width, 3.5);
+          stroke-linecap: round;
+        }
+      }
+
+      & [data-mp="progress-track"] {
+        opacity: 0.25;
+      }
+
       & [data-mp="action"][aria-disabled="true"] {
         cursor: not-allowed;
         opacity: 0.6;
