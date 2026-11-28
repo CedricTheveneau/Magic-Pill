@@ -469,7 +469,7 @@
          what fits shows, the others turn in, each snapping into place; the
          ends that hide some fade out, a cut that starts right at the divider */
       & [data-mp="actions"][data-wheel] {
-        --_mp-wheel-fade: calc(var(--_mp-action-size) * 0.6);
+        --_mp-wheel-fade: calc(var(--_mp-action-size) * 0.4);
         --_mp-wheel-start: 0px;
         --_mp-wheel-end: 0px;
         max-inline-size: var(--_mp-wheel-length);
@@ -479,10 +479,10 @@
         scrollbar-width: none;
         mask-image: linear-gradient(
           to var(--_mp-wheel-to, right),
-          transparent,
+          rgb(0 0 0 / 0.2),
           #000 var(--_mp-wheel-start),
           #000 calc(100% - var(--_mp-wheel-end)),
-          transparent
+          rgb(0 0 0 / 0.2)
         );
 
         &::-webkit-scrollbar {
