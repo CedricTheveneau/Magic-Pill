@@ -1,6 +1,6 @@
 "use client"
-// magic-pill/satellites (beta): the Electron, and later its orbitals and the
-// page's actions. Optional: pass `satellites` to the host, and apps that don't
+// magic-pill/satellites (beta): the Electron (electrons and their orbitals)
+// and the page's actions. Optional: pass `satellites` to the host, and apps that don't
 // pay nothing for them.
 //
 //   import { satellites } from "magic-pill/satellites";
@@ -19,6 +19,7 @@ export type {
   ElectronEnding,
   ElectronLine,
   ElectronSide,
+  NearestToPill,
   OrbitalsOpenOn,
   PillSatellites,
   SatelliteArrangement,

@@ -159,4 +159,62 @@ describe("planSatellites, with the page's actions", () => {
     expect(layout.actionsAcross).toBe(true);
     expect(layout.boxes.actions).toMatchObject({ width: 72, height: 124 });
   });
+
+  const four = { width: 14 * 2 + 44 * 4 + 8 * 3, height: 72 }; // 228
+  const overlaps = (a: { left: number; top: number; width: number; height: number }, b: typeof a) =>
+    a.left < b.left + b.width && b.left < a.left + a.width && a.top < b.top + b.height && b.top < a.top + a.height;
+
+  it("beside the pill, keeps the actions and the electrons clear of each other and on the screen", () => {
+    // A 390 px phone: four actions (228) and the second electron go above the pill, in a row of their own
+    const layout = planSatellites(
+      phone({ viewport: { width: 390, height: 720 }, electrons: [electron("e1"), electron("e2")], actions: { ...four, side: "start", turn: "auto" } }),
+    );
+    expect(layout.movedBeside).toEqual(["e2", "actions"]);
+    const { actions, e2 } = layout.boxes;
+    expect(overlaps(actions, e2)).toBe(false);
+    expect(actions.top).toBe(e2.top);
+    for (const box of [actions, e2]) {
+      expect(box.left).toBeGreaterThanOrEqual(24);
+      expect(box.left + box.width).toBeLessThanOrEqual(390 - 24);
+    }
+    expect(layout.actionsAcross).toBe(false);
+  });
+
+  it("turns automatic ones across beside the pill when their row is too long along it", () => {
+    const six = { width: 14 * 2 + 44 * 6 + 8 * 5, height: 72 }; // 332
+    const layout = planSatellites(phone({ electrons: [electron("e1"), electron("e2")], actions: { ...six, side: "start", turn: "auto" } }));
+    expect(layout.actionsAcross).toBe(true);
+    expect(overlaps(layout.boxes.actions, layout.boxes.e2)).toBe(false);
+    // Against the pill's side of their row: their bottom one gap above the pill
+    expect(layout.boxes.actions.top + layout.boxes.actions.height).toBe(624 - 16);
+  });
+
+  it("wraps into a further row when even that doesn't fit", () => {
+    const six = { width: 332, height: 72 };
+    const layout = planSatellites(phone({ electrons: [electron("e1"), electron("e2")], actions: { ...six, side: "start", turn: "along" } }));
+    expect(layout.boxes.actions.top).toBe(624 - 16 - 72);
+    expect(layout.boxes.e2.top).toBe(624 - 2 * (16 + 72));
+  });
+
+  it("with a wheel, shows what fits instead of turning across", () => {
+    const wheel = { count: 4, first: 14 * 2 + 44, step: 44 + 8 };
+    // A narrow window: the four actions don't fit in the pill's row, two of them do
+    const tight = laptop({ viewport: { width: 560, height: 580 }, host: { left: 140, top: 484, width: 280, height: 72 } });
+    const layout = planSatellites({ ...tight, actions: { ...four, side: "start", turn: "auto", wheel } });
+    // 560 − 48 − 280 − 16 − 72 − 16 = 128 px: the pill with one (72) and one more (52)
+    expect(layout.actionsShown).toBe(2);
+    expect(layout.actionsAcross).toBe(false);
+    expect(layout.boxes.actions.width).toBe(72 + 52);
+    expect(layout.movedBeside).toEqual([]);
+    // All of them where there's room
+    expect(planSatellites(laptop({ actions: { ...four, side: "start", turn: "auto", wheel } })).actionsShown).toBeUndefined();
+  });
+
+  it("puts the actions nearer the pill than the electrons when asked", () => {
+    const sameSide = laptop({ electrons: [electron("e1")], actions: { ...two, side: "end", turn: "auto" } });
+    const electronsNearer = planSatellites(sameSide);
+    expect(electronsNearer.boxes.e1.left).toBeLessThan(electronsNearer.boxes.actions.left);
+    const actionsNearer = planSatellites({ ...sameSide, nearest: "actions" });
+    expect(actionsNearer.boxes.actions.left).toBeLessThan(actionsNearer.boxes.e1.left);
+  });
 });

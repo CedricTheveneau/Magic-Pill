@@ -41,6 +41,7 @@ import type {
   ElectronEnding,
   ElectronLine,
   ElectronSide,
+  NearestToPill,
   OrbitalsOpenOn,
   PillSatellites,
   SatelliteArrangement,
@@ -124,6 +125,14 @@ export interface MagicPillProps
   actionsSide?: ActionsSide;
   /** The page's actions run like the pill, turning across when room runs out (default), or horizontal, or vertical (beta). */
   actionsOrientation?: ActionsOrientation;
+  /**
+   * Short of room, the page's actions show what fits and turn the rest in a
+   * wheel (a mouse wheel, a drag, the arrow keys), instead of turning across.
+   * Default false (beta).
+   */
+  actionsWheel?: boolean;
+  /** On a side they share, the electrons are nearer the pill (default), or the page's actions (beta). */
+  nearestToPill?: NearestToPill;
   /** The page's actions' accessible name. Default "Page actions" (beta). */
   actionsLabel?: string;
 }
@@ -233,6 +242,8 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
     actionsStyle = "detached",
     actionsSide = "start",
     actionsOrientation = "auto",
+    actionsWheel = false,
+    nearestToPill = "electrons",
     actionsLabel = "Page actions",
     placement = "bottom",
     orientation,
@@ -477,6 +488,8 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
         actionsStyle,
         actionsSide,
         actionsOrientation,
+        actionsWheel,
+        nearestToPill,
         actionsLabel,
       }
     : undefined;
