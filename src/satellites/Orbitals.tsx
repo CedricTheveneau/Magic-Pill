@@ -262,7 +262,7 @@ export function Orbitals({
     const link = getElement()?.querySelector<HTMLElement>('[data-mp="electron"]');
     if (!link || !hasItems) return;
     link.setAttribute("aria-haspopup", "menu");
-    let press: { x: number; y: number; opened: boolean; moved: boolean; timer: ReturnType<typeof setTimeout> } | null = null;
+    let press: { x: number; y: number; opened: boolean; moved: boolean; already?: boolean; timer: ReturnType<typeof setTimeout> } | null = null;
     let hoverTimer: ReturnType<typeof setTimeout> | undefined;
     let swallowClick = false;
     const hotAt = (event: PointerEvent) => {
@@ -273,6 +273,16 @@ export function Orbitals({
     const onPointerDown = (event: PointerEvent) => {
       if (event.button !== 0) return;
       clearTimeout(hoverTimer);
+      // Already open (they stay open after an action): no need to wait, the slide starts at once
+      if (api.current.ring) {
+        press = { x: event.clientX, y: event.clientY, opened: true, moved: false, already: true, timer: setTimeout(() => {}, 0) };
+        try {
+          link.setPointerCapture(event.pointerId);
+        } catch {
+          // Released already
+        }
+        return;
+      }
       const longPress = settings.current?.longPress ?? readSettings(getElement()!).longPress;
       press = {
         x: event.clientX,
@@ -293,18 +303,20 @@ export function Orbitals({
     };
     const onPointerMove = (event: PointerEvent) => {
       if (!press) return;
-      if (!press.opened && Math.hypot(event.clientX - press.x, event.clientY - press.y) > 12) {
+      if (Math.hypot(event.clientX - press.x, event.clientY - press.y) > 12) {
+        if (!press.opened) clearTimeout(press.timer);
         press.moved = true;
-        clearTimeout(press.timer);
       }
       if (press.opened) hotAt(event);
     };
     const onPointerUp = () => {
       if (!press) return;
       clearTimeout(press.timer);
-      const { opened } = press;
+      const { opened, already, moved } = press;
       press = null;
       if (!opened) return;
+      // They were open, and it didn't slide onto one: a plain tap (it goes back)
+      if (already && !moved && api.current.hot < 0) return;
       // A long press: no tap after it. Released on an orbital: it runs; on none: they stay open
       swallowClick = true;
       const { hot: index } = api.current;
