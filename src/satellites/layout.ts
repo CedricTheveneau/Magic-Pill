@@ -5,10 +5,12 @@
 // bottom pill, down it for a sidebar), the electrons go after the pill,
 // before it, or beside it, one row towards the page. The group is centred
 // (or at the start or the end, for a placement's -start and -end), or the
-// satellites are spread to the screen's edges. Short of room, the last ones
-// move beside the pill, like the ladder.
+// satellites are spread to the screen's edges. The page's actions (the wide
+// atom) go on the start or the end side, or beside, along the pill or turned
+// across it. Short of room, they turn across first, then the last ones move
+// beside the pill, like the ladder.
 import type { PillPlacement } from "../Pill/types";
-import type { ElectronLine, ElectronSide, SatelliteArrangement } from "./types";
+import type { ActionsSide, ElectronLine, ElectronSide, SatelliteArrangement } from "./types";
 
 export interface Box {
   left: number;
@@ -39,6 +41,12 @@ export interface SatelliteLayoutInput {
   rtl: boolean;
   /** The electrons that are out, in the order they were started */
   electrons: readonly Satellite[];
+  /**
+   * The page's actions, if they're out: their box along the pill (as wide
+   * as their row in a horizontal pill), where they go, and whether they run
+   * along the pill, across it, or along unless room runs out ("auto")
+   */
+  actions?: { width: number; height: number; side: ActionsSide; turn: "along" | "across" | "auto" };
   side: ElectronSide;
   line: ElectronLine;
   arrange: SatelliteArrangement;
@@ -55,12 +63,21 @@ export interface SatelliteLayout {
   boxes: Record<string, Box>;
   /** The ones that went beside the pill for lack of room */
   movedBeside: string[];
+  /** The actions run across the pill (a column under a horizontal pill, a row beside a sidebar) */
+  actionsAcross: boolean;
 }
 
 export function planSatellites(input: SatelliteLayoutInput): SatelliteLayout {
-  const { viewport, host, placement, vertical, electrons, side, line, gap, offset } = input;
+  const { viewport, host, placement, vertical, electrons, side, line, gap, offset, actions } = input;
   const rtl = input.rtl && !vertical;
-  const sizes = new Map(electrons.map((electron) => [electron.id, electron]));
+  const sizes = new Map<string, { width: number; height: number }>(electrons.map((electron) => [electron.id, electron]));
+  // The actions' box along the pill, or turned across it
+  let actionsAcross = actions?.turn === "across";
+  const setActionsBox = () => {
+    if (!actions) return;
+    sizes.set("actions", actionsAcross ? { width: actions.height, height: actions.width } : { width: actions.width, height: actions.height });
+  };
+  setActionsBox();
   const len = (box: { width: number; height: number }) => (vertical ? box.height : box.width);
   const mainLength = vertical ? viewport.height : viewport.width;
   const available = mainLength - offset * 2;
@@ -72,18 +89,35 @@ export function planSatellites(input: SatelliteLayoutInput): SatelliteLayout {
     if (line === "across" && index > 0) stacked.push(electron.id);
     else sides[side].push(electron.id);
   });
+  const actionsSide = actions ? ({ start: "before", end: "after", beside: "beside" } as const)[actions.side] : undefined;
+  if (actionsSide) sides[actionsSide].push("actions");
   const lengthOf = (ids: readonly string[]) => ids.reduce((sum, id) => sum + len(sizes.get(id)!) + gap, 0);
   const rowLength = () => lengthOf(sides.before) + len(host) + lengthOf(sides.after);
   const leastRowLength = () => lengthOf(sides.before) + Math.min(len(host), input.hostMin ?? Infinity) + lengthOf(sides.after);
 
-  // Short of room, even with the host as short as it gets: the last ones go beside the pill
+  // Short of room, even with the host as short as it gets: automatic actions turn across first,
+  // then the last electron, the actions and the first electron go beside the pill
+  if (leastRowLength() > available && actions?.turn === "auto" && actionsSide !== "beside") {
+    actionsAcross = true;
+    setActionsBox();
+  }
   const movedBeside: string[] = [];
-  while (leastRowLength() > available) {
-    const from = sides.after.length > 0 ? "after" : sides.before.length > 0 ? "before" : null;
-    if (!from) break;
-    const id = sides[from].pop()!;
-    sides.beside.push(id);
-    movedBeside.push(id);
+  // The last electrons first, then the actions, then the first electron
+  const [firstElectron, ...otherElectrons] = electrons.map((electron) => electron.id);
+  const order = [...otherElectrons.reverse(), ...(actions ? ["actions"] : []), ...(firstElectron ? [firstElectron] : [])];
+  for (const id of order) {
+    if (leastRowLength() <= available) break;
+    for (const from of ["after", "before"] as const) {
+      if (!sides[from].includes(id)) continue;
+      sides[from] = sides[from].filter((other) => other !== id);
+      sides.beside.push(id);
+      movedBeside.push(id);
+    }
+  }
+  // Beside the pill, automatic actions have room again: along it
+  if (actions?.turn === "auto" && sides.beside.includes("actions") && actionsAcross) {
+    actionsAcross = false;
+    setActionsBox();
   }
 
   // Along the edge, measured from its start (the right in a right-to-left page)
@@ -133,9 +167,15 @@ export function planSatellites(input: SatelliteLayoutInput): SatelliteLayout {
   if (input.arrange !== "spread" || !spread()) gather();
   const hostStart = at.host;
   const hostEnd = hostStart + len(host);
-  // Beside the pill: from its end, inwards
+  // Beside the pill: the electrons from its end inwards, the actions from its start
   let cursor = hostEnd;
+  let fromStart = hostStart;
   for (const id of sides.beside) {
+    if (id === "actions") {
+      at[id] = fromStart;
+      fromStart += len(sizes.get(id)!) + gap;
+      continue;
+    }
     cursor -= len(sizes.get(id)!);
     at[id] = cursor;
     cursor -= gap;
@@ -173,5 +213,6 @@ export function planSatellites(input: SatelliteLayoutInput): SatelliteLayout {
     reserve: vertical ? 0 : lengthOf(sides.before) + lengthOf(sides.after),
     boxes,
     movedBeside,
+    actionsAcross,
   };
 }

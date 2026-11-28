@@ -112,3 +112,51 @@ describe("planSatellites", () => {
     expect(layout.boxes.e1).toEqual({ left: 24 + 72 + 16, top: 246 + 228 - 72, width: 72, height: 72 });
   });
 });
+
+describe("planSatellites, with the page's actions", () => {
+  const two = { width: 14 * 2 + 44 * 2 + 8, height: 72 };
+  const laptop = (overrides: Partial<SatelliteLayoutInput> = {}) =>
+    phone({ viewport: { width: 960, height: 580 }, host: { left: 340, top: 484, width: 280, height: 72 }, ...overrides });
+
+  it("puts them on the start side, the electron after: the group centred", () => {
+    const layout = planSatellites(laptop({ actions: { ...two, side: "start", turn: "auto" } }));
+    const total = 124 + 16 + 280 + 16 + 72;
+    const start = 480 - total / 2;
+    expect(layout.boxes.actions).toEqual({ left: start, top: 484, width: 124, height: 72 });
+    expect(layout.shift).toBe(start + 124 + 16 - 340);
+    expect(layout.boxes.e1.left).toBe(start + 124 + 16 + 280 + 16);
+    expect(layout.actionsAcross).toBe(false);
+  });
+
+  it("puts them on the end side, after the electron", () => {
+    const layout = planSatellites(laptop({ actions: { ...two, side: "end", turn: "auto" } }));
+    expect(layout.boxes.actions.left).toBeGreaterThan(layout.boxes.e1.left);
+  });
+
+  it("short of room, turns automatic ones across first, then moves them beside the pill, along it again", () => {
+    // A phone: 124 + 16 + 228 + 16 + 72 doesn't fit, nor does 72 + 16 + 228 + 16 + 72
+    const layout = planSatellites(phone({ actions: { ...two, side: "start", turn: "auto" } }));
+    expect(layout.movedBeside).toEqual(["actions"]);
+    expect(layout.actionsAcross).toBe(false);
+    // From the pill's start, the pill having moved to keep it and its electron centred
+    expect(layout.boxes.actions).toEqual({ left: 29.5, top: 624 - 16 - 72, width: 124, height: 72 });
+    expect(layout.boxes.e1.top).toBe(624);
+  });
+
+  it("keeps them turned across when that's enough", () => {
+    // Without an electron, on a 380 px screen (332 px of room): 72 + 16 + 228 fits where 124 + 16 + 228 doesn't
+    const layout = planSatellites(
+      phone({ electrons: [], viewport: { width: 380, height: 720 }, host: { left: 76, top: 624, width: 228, height: 72 }, actions: { ...two, side: "start", turn: "auto" } }),
+    );
+    expect(layout.actionsAcross).toBe(true);
+    expect(layout.boxes.actions).toMatchObject({ width: 72, height: 124 });
+    // On the edge line: their bottom is the pill's
+    expect(layout.boxes.actions.top + 124).toBe(624 + 72);
+  });
+
+  it("turns them across when asked, even with room", () => {
+    const layout = planSatellites(laptop({ actions: { ...two, side: "start", turn: "across" } }));
+    expect(layout.actionsAcross).toBe(true);
+    expect(layout.boxes.actions).toMatchObject({ width: 72, height: 124 });
+  });
+});
