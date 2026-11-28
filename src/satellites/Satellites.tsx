@@ -253,6 +253,8 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
   // Where each one was, next to the host (its side and row): one that changes goes back in and out again
   const spots = useRef(new Map<string, string>());
   const rejoining = useRef(new Set<string>());
+  // Back in, to come out at their new spot on the next pass
+  const splitNext = useRef(new Set<string>());
 
   // Measures, places, and moves: animated after a render, at once while the host resizes
   const arrange = useRef<(animate: boolean) => void>(() => {});
@@ -321,9 +323,26 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
     const moving = animate && !reduced && typeof root.animate === "function";
     const timings = durations(out[0] ? elements.current.get(out[0].electron.id)! : root);
 
+    const boxes = layout.boxes;
+    // Along the host's edge: where its centre will be, and which side of it a box is on, in which row
+    const hostAlong = (vertical ? root.offsetTop : root.offsetLeft) + layout.shift + (vertical ? root.offsetHeight : root.offsetWidth) / 2;
+    const alongOf = (box: Box) => (vertical ? box.top + box.height / 2 : box.left + box.width / 2);
+    const spotOf = (box: Box) => `${alongOf(box) < hostAlong ? "before" : "after"} ${Math.round(vertical ? box.left : box.top)}`;
+    // One that changes side or row (or actions that turn) goes back into the host first: meanwhile,
+    // the host and the others stay where they are; then the host moves as it comes out at its new spot
+    const changing = (id: string, box: Box | undefined) =>
+      !!box && presences.current.get(id) === "compact" && spots.current.has(id) && spots.current.get(id) !== spotOf(box);
+    const turning = !!atomElement && !!atomOut && layout.actionsAcross !== across.current && presences.current.get(ACTIONS) === "compact";
+    const startsRejoin =
+      animate &&
+      !reduced &&
+      (out.some(({ electron }) => !rejoining.current.has(electron.id) && changing(electron.id, boxes[electron.id])) ||
+        (!!atomOut && !rejoining.current.has(ACTIONS) && (turning || changing(ACTIONS, boxes.actions))));
+    const holding = startsRejoin || rejoining.current.size > 0;
+
     // The host moves to keep the group where its placement says, and leaves the satellites their room
     const previous = applied.current;
-    if (Math.abs(layout.shift - previous.shift) > 0.5) {
+    if (!holding && Math.abs(layout.shift - previous.shift) > 0.5) {
       const along = (value: number) => (vertical ? `0px ${value}px` : `${value}px 0px`);
       if (layout.shift) root.style.setProperty("translate", along(layout.shift));
       else root.style.removeProperty("translate");
@@ -336,17 +355,12 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
         });
       }
     }
-    if (!vertical && layout.reserve !== previous.reserve) {
+    if (!holding && !vertical && layout.reserve !== previous.reserve) {
       if (layout.reserve) root.style.setProperty("--_mp-shift-x", `${layout.reserve}px`);
       else root.style.removeProperty("--_mp-shift-x");
     }
-    applied.current = { shift: layout.shift, reserve: layout.reserve };
+    if (!holding) applied.current = { shift: layout.shift, reserve: layout.reserve };
 
-    const boxes = layout.boxes;
-    // Along the host's edge: where its centre will be, and which side of it a box is on, in which row
-    const hostAlong = (vertical ? root.offsetTop : root.offsetLeft) + layout.shift + (vertical ? root.offsetHeight : root.offsetWidth) / 2;
-    const alongOf = (box: Box) => (vertical ? box.top + box.height / 2 : box.left + box.width / 2);
-    const spotOf = (box: Box) => `${alongOf(box) < hostAlong ? "before" : "after"} ${Math.round(vertical ? box.left : box.top)}`;
     // Back into the host now, out again at its new spot once it's in
     const rejoin = (id: string, element: HTMLElement, then: () => void) => {
       rejoining.current.add(id);
@@ -384,21 +398,23 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
         const length = layout.actionsShown !== undefined ? wheel.action + (layout.actionsShown - 1) * wheel.step : undefined;
         if (length !== wheelLength) setWheelLength(length);
       }
-      if (box && atomOut && settled && !rejoining.current.has(ACTIONS)) {
+      if (box && atomOut && settled && !rejoining.current.has(ACTIONS) && !holding) {
         // By the edge that faces the host: an action's label opening on hover grows away from it
         const before = alongOf(box) < hostAlong;
         const width = atomElement.offsetWidth || box.width;
         const height = atomElement.offsetHeight || box.height;
-        const from = atomElement.getBoundingClientRect();
-        atomElement.style.left = `${!vertical && before ? box.left + box.width - width : box.left}px`;
-        atomElement.style.top = `${vertical && before ? box.top + box.height - height : box.top}px`;
+        // From where it was placed, not where an animation has it now
+        const from = { left: Number.parseFloat(atomElement.style.left), top: Number.parseFloat(atomElement.style.top) };
+        const left = !vertical && before ? box.left + box.width - width : box.left;
+        const top = vertical && before ? box.top + box.height - height : box.top;
+        atomElement.style.left = `${left}px`;
+        atomElement.style.top = `${top}px`;
         spots.current.set(ACTIONS, spotOf(box));
         if (animate && was !== "compact") playSplit(root, atomElement, "split", { delay: 0, duration: durations(atomElement).enter });
-        else if (moving && was === "compact" && from.width > 0) {
+        else if (moving && was === "compact" && Number.isFinite(from.left) && Number.isFinite(from.top)) {
           // Moving with the group (gathered or spread, another one coming or going): it slides there
-          const to = atomElement.getBoundingClientRect();
-          if (Math.abs(from.left - to.left) > 0.5 || Math.abs(from.top - to.top) > 0.5) {
-            atomElement.animate([{ translate: `${from.left - to.left}px ${from.top - to.top}px` }, { translate: "0px 0px" }], {
+          if (Math.abs(from.left - left) > 0.5 || Math.abs(from.top - top) > 0.5) {
+            atomElement.animate([{ translate: `${from.left - left}px ${from.top - top}px` }, { translate: "0px 0px" }], {
               id: SHIFT,
               duration: timings.change,
               easing: "ease-in-out",
@@ -411,7 +427,7 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
         playSplit(root, atomElement, "join", { delay: fade, duration: exit });
         spots.current.delete(ACTIONS);
       }
-      if (animate && !rejoining.current.has(ACTIONS) && (settled || !atomOut)) presences.current.set(ACTIONS, actionsPresence);
+      if (animate && !rejoining.current.has(ACTIONS) && !holding && (settled || !atomOut)) presences.current.set(ACTIONS, actionsPresence);
     }
     const crossOf = (box: Box) => Math.round(vertical ? box.left : box.top);
     out.forEach(({ electron }, index) => {
@@ -420,27 +436,37 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
       const was = presences.current.get(electron.id);
       // On its way back in, to come out elsewhere: it stays where it was meanwhile
       if (rejoining.current.has(electron.id)) return;
+      if (splitNext.current.delete(electron.id)) {
+        // Back in: out at its new spot, as the host moves
+        element.style.left = `${box.left}px`;
+        element.style.top = `${box.top}px`;
+        rows.current.set(electron.id, String(crossOf(box)));
+        playSplit(root, element, "split", { delay: 0, duration: durations(element).enter });
+        return;
+      }
       const moved = was === "compact" && spots.current.has(electron.id) && spots.current.get(electron.id) !== spotOf(box);
       if (animate && moved && !reduced) {
         spots.current.set(electron.id, spotOf(box));
         rejoin(electron.id, element, () => {
-          arrange.current(false);
-          const next = elements.current.get(electron.id);
-          if (next) playSplit(root, next, "split", { delay: 0, duration: durations(next).enter });
+          splitNext.current.add(electron.id);
+          arrange.current(true);
         });
         return;
       }
+      // Another one is going back in: this one waits with the host
+      if (holding) return;
       spots.current.set(electron.id, spotOf(box));
-      const from = element.getBoundingClientRect();
+      // From where it was placed, not where an animation (a split, a slide) has it now
+      const from = { left: Number.parseFloat(element.style.left), top: Number.parseFloat(element.style.top) };
       element.style.left = `${box.left}px`;
       element.style.top = `${box.top}px`;
       const row = String(crossOf(box));
       const changedRow = rows.current.has(electron.id) && rows.current.get(electron.id) !== row;
       rows.current.set(electron.id, row);
+      const placed = Number.isFinite(from.left) && Number.isFinite(from.top);
       if (!animate) {
-        if (changedRow && !reduced && typeof element.animate === "function") {
-          const to = element.getBoundingClientRect();
-          element.animate([{ translate: `${from.left - to.left}px ${from.top - to.top}px` }, { translate: "0px 0px" }], {
+        if (changedRow && placed && !reduced && typeof element.animate === "function") {
+          element.animate([{ translate: `${from.left - box.left}px ${from.top - box.top}px` }, { translate: "0px 0px" }], {
             id: SHIFT,
             duration: timings.change,
             easing: "ease-in-out",
@@ -455,9 +481,8 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
         const neighbour = before ? elements.current.get(before.electron.id) : undefined;
         const anchor = neighbour && before && nextTo(boxes[before.electron.id], box, gap) ? neighbour : root;
         playSplit(anchor, element, "split", { delay: 0, duration: durations(element).enter });
-      } else if (moving && (Math.abs(from.left - box.left) > 0.5 || Math.abs(from.top - box.top) > 0.5)) {
-        const to = element.getBoundingClientRect();
-        element.animate([{ translate: `${from.left - to.left}px ${from.top - to.top}px` }, { translate: "0px 0px" }], {
+      } else if (moving && placed && (Math.abs(from.left - box.left) > 0.5 || Math.abs(from.top - box.top) > 0.5)) {
+        element.animate([{ translate: `${from.left - box.left}px ${from.top - box.top}px` }, { translate: "0px 0px" }], {
           id: SHIFT,
           duration: timings.change,
           easing: "ease-in-out",
@@ -465,7 +490,8 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
         });
       }
     });
-    if (animate) {
+    // Holding: the next pass, once it's back in, takes the others' changes
+    if (animate && !holding) {
       for (const entry of entries) {
         const element = elements.current.get(entry.electron.id);
         if (!element || entry.presence !== "hidden" || presences.current.get(entry.electron.id) !== "compact") continue;
