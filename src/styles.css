@@ -47,7 +47,7 @@
   }
 
   @layer look {
-    /* How far a scrolling navbar's ends fade (see the sidebars' navbar):
+    /* How far a scrolling navbar's ends fade (see the navbars):
        registered, so that a scroll-driven animation can move them */
     @property --_mp-scroll-start {
       syntax: "<length>";
@@ -899,9 +899,43 @@
       }
 
       /* A navbar stays in its pill: where it's too narrow, the open label is
-         cut short, rather than the last items */
+         cut short, rather than the last items. With its labels folded and
+         still too long (many items, a narrow phone), it scrolls inside the
+         pill like a sidebar's, the ends that hide some fading out; it reaches
+         the pill's top and bottom, so that a focus ring isn't cut */
       &[data-orientation="horizontal"] [data-mp="navbar"] {
         min-inline-size: 0;
+        margin-block: calc(var(--_mp-padding) * -1);
+        padding-block: var(--_mp-padding);
+        overflow: auto hidden;
+        overscroll-behavior-x: contain;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+
+        @supports (animation-timeline: scroll()) {
+          mask-image: linear-gradient(
+            to right,
+            transparent,
+            #000 var(--_mp-scroll-start),
+            #000 calc(100% - var(--_mp-scroll-end)),
+            transparent
+          );
+          animation: mp-scroll-ends linear both;
+          animation-timeline: scroll(self inline);
+
+          &:dir(rtl) {
+            mask-image: linear-gradient(
+              to left,
+              transparent,
+              #000 var(--_mp-scroll-start),
+              #000 calc(100% - var(--_mp-scroll-end)),
+              transparent
+            );
+          }
+        }
 
         & [data-mp="action"] {
           flex: 0 1 auto;
