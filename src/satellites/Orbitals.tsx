@@ -8,6 +8,11 @@
 // none, they stay open until a tap away. The keyboard opens them with the
 // arrow pointing away from the edge (or Shift+F10, or the context-menu key),
 // and moves around them with the arrows: an ARIA menu.
+//
+// When they don't all fit clear of everything, they're a wheel: the arc shows
+// what fits, the next one peeking out at each end, and turns with the mouse
+// wheel, a drag along it, or the arrow keys. A wheel stays open until a tap
+// away or Escape.
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import Pill from "../Pill/Pill";
@@ -16,7 +21,7 @@ import type { Electron, Orbital } from "../store/store";
 import { useIsomorphicLayoutEffect } from "../utils/react";
 import { parseDuration } from "../utils/timing";
 import { durations, toPixels } from "./measure";
-import { orbitalAt, planOrbit, type Orbit } from "./orbits";
+import { orbitalAt, planOrbit, spotOn, wheelEnd, type Orbit } from "./orbits";
 import type { SatelliteHost } from "./types";
 
 const MENU_STYLE = { position: "fixed", inset: 0, pointerEvents: "none", zIndex: "var(--mp-z-index, 50)" } as CSSProperties;
@@ -94,6 +99,9 @@ export function Orbitals({
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const labelRef = useRef<HTMLSpanElement | null>(null);
   const focusFirst = useRef(false);
+  // How far the wheel has turned, in orbitals (0 when they all fit)
+  const turn = useRef(0);
+  const snapping = useRef(0);
 
   const clearTimers = () => {
     timers.current.forEach(clearTimeout);
@@ -130,6 +138,67 @@ export function Orbitals({
     return read;
   };
 
+  // Every orbital where the wheel puts it: fading past its ends, out of reach once faint
+  const applyTurn = () => {
+    const current = orbit.current;
+    if (!current) return;
+    items.forEach((_, index) => {
+      const pill = pills.current.get(index);
+      if (!pill) return;
+      const spot = spotOn(current, index, turn.current);
+      pill.style.left = `${spot.x - pill.offsetWidth / 2}px`;
+      pill.style.top = `${spot.y - pill.offsetHeight / 2}px`;
+      if (current.wheel) {
+        pill.style.opacity = String(spot.shown);
+        pill.style.scale = String((0.6 + 0.4 * spot.shown) * (api.current.hot === index ? 1.12 : 1));
+        pill.style.pointerEvents = spot.shown < 0.5 ? "none" : "auto";
+      } else {
+        pill.style.removeProperty("opacity");
+        pill.style.removeProperty("scale");
+        pill.style.pointerEvents = "auto";
+      }
+    });
+    placeLabel();
+  };
+
+  // The label of the one under the finger: outwards from it, inside the screen
+  const placeLabel = () => {
+    const label = labelRef.current;
+    const index = api.current.hot;
+    if (!label || index < 0 || !orbit.current || !settings.current) return;
+    const spot = spotOn(orbit.current, index, turn.current);
+    const distance = settings.current.size / 2 + 22;
+    const angle = (spot.angle * Math.PI) / 180;
+    const width = label.offsetWidth;
+    const height = label.offsetHeight;
+    const x = Math.min(Math.max(spot.x + Math.cos(angle) * distance, width / 2 + 6), window.innerWidth - width / 2 - 6);
+    const y = Math.min(Math.max(spot.y + Math.sin(angle) * distance, height / 2 + 6), window.innerHeight - height / 2 - 6);
+    label.style.translate = `${x - width / 2}px ${y - height / 2}px`;
+  };
+
+  // The wheel turns to `to` (a little past its ends while dragging), easing there for a snap
+  const turnTo = (to: number, ease = false) => {
+    const current = orbit.current;
+    if (!current?.wheel) return;
+    const target = Math.min(Math.max(to, ease ? 0 : -0.35), wheelEnd(current) + (ease ? 0 : 0.35));
+    cancelAnimationFrame(snapping.current);
+    if (!ease) {
+      turn.current = target;
+      applyTurn();
+      return;
+    }
+    const from = turn.current;
+    const startedAt = performance.now();
+    const step = (now: number) => {
+      const t = Math.min(1, (now - startedAt) / 180);
+      turn.current = from + (target - from) * (1 - (1 - t) ** 3);
+      applyTurn();
+      if (t < 1) snapping.current = requestAnimationFrame(step);
+    };
+    snapping.current = requestAnimationFrame(step);
+  };
+  const snap = () => turnTo(Math.round(turn.current), true);
+
   const open = (how: How) => {
     if (items.length === 0 || !out) return;
     window.dispatchEvent(new CustomEvent(OPENED, { detail: electron.id }));
@@ -137,6 +206,7 @@ export function Orbitals({
     const read = plan();
     if (!read) return;
     focusFirst.current = how === "key";
+    turn.current = 0;
     setHot(-1);
     setRing({ how });
     items.forEach((_, index) => timers.current.push(setTimeout(() => showAt(index, true), index * read.stagger)));
@@ -155,8 +225,8 @@ export function Orbitals({
   };
 
   // The latest of everything, for the electron's listeners
-  const api = useRef({ open, close, ring, items, hot, setHot });
-  api.current = { open, close, ring, items, hot, setHot };
+  const api = useRef({ open, close, ring, items, hot, setHot, turnTo, snap });
+  api.current = { open, close, ring, items, hot, setHot, turnTo, snap };
 
   // The electron: a long press, hovering it, a tap, the keyboard
   const hasItems = items.length > 0;
@@ -170,7 +240,7 @@ export function Orbitals({
     const hotAt = (event: PointerEvent) => {
       const element = getElement();
       if (!orbit.current || !settings.current || !element) return;
-      api.current.setHot(orbitalAt(orbit.current, settings.current.size, element.offsetWidth / 2, event.clientX, event.clientY));
+      api.current.setHot(orbitalAt(orbit.current, settings.current.size, element.offsetWidth / 2, event.clientX, event.clientY, turn.current));
     };
     const onPointerDown = (event: PointerEvent) => {
       if (event.button !== 0) return;
@@ -291,7 +361,7 @@ export function Orbitals({
     };
     let leaving: ReturnType<typeof setTimeout> | undefined;
     const onPointerMove = (event: PointerEvent) => {
-      if (ring.how !== "hover" || !orbit.current || !settings.current) return;
+      if (ring.how !== "hover" || !orbit.current || !settings.current || orbit.current.wheel) return;
       const far = Math.hypot(event.clientX - orbit.current.x, event.clientY - orbit.current.y) > orbit.current.radius + settings.current.size / 2 + 26;
       if (far && leaving === undefined) leaving = setTimeout(() => api.current.close(), 220);
       if (!far) {
@@ -302,13 +372,62 @@ export function Orbitals({
     const onOtherOpened = (event: Event) => {
       if ((event as CustomEvent).detail !== electron.id) api.current.close(true);
     };
+    // The wheel: the mouse wheel over it, or a drag along it from one of them
+    const near = (x: number, y: number) =>
+      !!orbit.current && !!settings.current && Math.hypot(x - orbit.current.x, y - orbit.current.y) <= orbit.current.radius + settings.current.size;
+    let settle: ReturnType<typeof setTimeout> | undefined;
+    const onWheel = (event: WheelEvent) => {
+      if (!orbit.current?.wheel || !(inside(event.target) || near(event.clientX, event.clientY))) return;
+      event.preventDefault();
+      api.current.turnTo(turn.current + (event.deltaY + event.deltaX) / 90);
+      clearTimeout(settle);
+      settle = setTimeout(() => api.current.snap(), 160);
+    };
+    const angleOf = (event: PointerEvent) =>
+      orbit.current ? (Math.atan2(event.clientY - orbit.current.y, event.clientX - orbit.current.x) * 180) / Math.PI : 0;
+    let drag: { angle: number; turn: number; x: number; y: number; moved: boolean } | null = null;
+    const onDragStart = (event: PointerEvent) => {
+      if (!orbit.current?.wheel || event.button !== 0 || !(event.target instanceof Node)) return;
+      if (![...pills.current.values()].some((pill) => pill.contains(event.target as Node))) return;
+      drag = { angle: angleOf(event), turn: turn.current, x: event.clientX, y: event.clientY, moved: false };
+    };
+    const onDragMove = (event: PointerEvent) => {
+      if (!drag || !orbit.current) return;
+      if (!drag.moved && Math.hypot(event.clientX - drag.x, event.clientY - drag.y) <= 6) return;
+      drag.moved = true;
+      const turned = ((angleOf(event) - drag.angle + 540) % 360) - 180;
+      api.current.turnTo(drag.turn + (orbit.current.rtl ? turned : -turned) / orbit.current.step);
+    };
+    const onDragEnd = () => {
+      if (!drag) return;
+      const { moved } = drag;
+      drag = null;
+      if (!moved) return;
+      api.current.snap();
+      // A drag isn't a tap: the orbital it started on doesn't run
+      const swallow = (event: MouseEvent) => {
+        event.preventDefault();
+        event.stopPropagation();
+      };
+      document.addEventListener("click", swallow, { capture: true, once: true });
+      setTimeout(() => document.removeEventListener("click", swallow, { capture: true }), 0);
+    };
     document.addEventListener("pointerdown", onPointerDown, true);
     document.addEventListener("pointermove", onPointerMove);
+    document.addEventListener("wheel", onWheel, { passive: false });
+    document.addEventListener("pointerdown", onDragStart);
+    document.addEventListener("pointermove", onDragMove);
+    document.addEventListener("pointerup", onDragEnd);
     window.addEventListener(OPENED, onOtherOpened);
     return () => {
       clearTimeout(leaving);
+      clearTimeout(settle);
       document.removeEventListener("pointerdown", onPointerDown, true);
       document.removeEventListener("pointermove", onPointerMove);
+      document.removeEventListener("wheel", onWheel);
+      document.removeEventListener("pointerdown", onDragStart);
+      document.removeEventListener("pointermove", onDragMove);
+      document.removeEventListener("pointerup", onDragEnd);
       window.removeEventListener(OPENED, onOtherOpened);
     };
   }, [ring, electron.id]);
@@ -321,21 +440,27 @@ export function Orbitals({
     if (ring) api.current.close(true);
   }, [host.pathname]);
 
-  useEffect(() => clearTimers, []);
+  useEffect(
+    () => () => {
+      clearTimers();
+      cancelAnimationFrame(snapping.current);
+    },
+    [],
+  );
 
   // Into their spots, out of the electron (or back into it) as each one shows or hides
   useIsomorphicLayoutEffect(() => {
     const element = getElement();
     if (!ring || !element || !orbit.current) return;
+    applyTurn();
     items.forEach((_, index) => {
       const pill = pills.current.get(index);
-      const spot = orbit.current?.spots[index];
-      if (!pill || !spot) return;
-      pill.style.left = `${spot.x - pill.offsetWidth / 2}px`;
-      pill.style.top = `${spot.y - pill.offsetHeight / 2}px`;
+      if (!pill || !orbit.current) return;
+      // Only the ones fully on the arc: the goo's overlay can't draw a faint one
+      const onArc = spotOn(orbit.current, index, turn.current).shown === 1;
       const now = !!shown[index];
-      if (now && !was.current[index]) playSplit(element, pill, "split", { delay: 0, duration: durations(pill).enter });
-      if (!now && was.current[index]) {
+      if (now && !was.current[index] && onArc) playSplit(element, pill, "split", { delay: 0, duration: durations(pill).enter });
+      if (!now && was.current[index] && onArc) {
         const { fade, exit } = durations(pill);
         playSplit(element, pill, "join", { delay: fade, duration: exit });
       }
@@ -345,21 +470,12 @@ export function Orbitals({
       focusFirst.current = false;
       pills.current.get(0)?.querySelector<HTMLElement>('[data-mp="orbital"]')?.focus();
     }
-    // The label of the one under the finger: outwards from it, inside the screen
-    const label = labelRef.current;
-    const spot = hot >= 0 ? orbit.current.spots[hot] : undefined;
-    if (label && spot && settings.current) {
-      const distance = settings.current.size / 2 + 22;
-      const angle = (spot.angle * Math.PI) / 180;
-      const width = label.offsetWidth;
-      const height = label.offsetHeight;
-      const x = Math.min(Math.max(spot.x + Math.cos(angle) * distance, width / 2 + 6), window.innerWidth - width / 2 - 6);
-      const y = Math.min(Math.max(spot.y + Math.sin(angle) * distance, height / 2 + 6), window.innerHeight - height / 2 - 6);
-      label.style.translate = `${x - width / 2}px ${y - height / 2}px`;
-    }
   });
   useEffect(() => {
-    if (!ring) was.current = [];
+    if (!ring) {
+      was.current = [];
+      turn.current = 0;
+    }
   }, [ring]);
 
   if (!ring || items.length === 0) return null;
@@ -372,6 +488,12 @@ export function Orbitals({
     const count = items.length;
     const focus = (next: number) => {
       event.preventDefault();
+      const current = orbit.current;
+      if (current?.wheel) {
+        // In view: the wheel turns so that it's between the arc's ends
+        const wanted = Math.min(Math.max(turn.current, next - current.visible + 1), next);
+        if (wanted !== turn.current) turnTo(wanted, true);
+      }
       setHot(next);
       pills.current.get(next)?.querySelector<HTMLElement>('[data-mp="orbital"]')?.focus();
     };
