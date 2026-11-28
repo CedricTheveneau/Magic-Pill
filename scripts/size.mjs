@@ -109,8 +109,12 @@ const PROBES = [
     // 22.75 kB with the wheel (turning with the mouse wheel, a drag and the keys, snapping, peeking where clear),
     // 23.62 kB with the page's actions (usePillActions, their pill, their side and orientation),
     // 24.37 kB with tucking in while the host travels, going back in and out to change sides, and
-    // the actions growing away from the pill
-    budget: 24.75 * KB,
+    // the actions growing away from the pill,
+    // 27.03 kB with the orbitals bulging out of their electron's centre and back (playOrbit), the
+    // actions' wheel (turning, snapping, fading, cut at the divider inside the pill), a row of their
+    // own beside the pill, nearestToPill, deciding again once a resize settles, the actions sliding
+    // with the group, waiting for the host to grow back, and the orbitals' label as a pill
+    budget: 27.5 * KB,
   },
 ];
 const STYLESHEETS = [
@@ -124,8 +128,10 @@ const STYLESHEETS = [
     // then from 3 kB for the panel's slots: 3.09 kB,
     // a vertical pill's circle: 3.10 kB, notifications in rows: 3.20 kB,
     // then from 3.5 kB for the electron (its link, its value) and PillProgress's ring: 3.66 kB,
-    // then from 3.75 kB for the orbitals and their label: 3.92 kB
-    budget: 4 * KB, // 2.15 kB at 9.0.0-next.1 (3.89 kB with its comments, as shipped)
+    // then from 3.75 kB for the orbitals and their label: 3.92 kB,
+    // then from 4 kB for the actions' wheel, the orbitals' label as a pill, and a sidebar's navbar
+    // scrolling with its ends fading: 4.33 kB
+    budget: 4.5 * KB, // 2.15 kB at 9.0.0-next.1 (3.89 kB with its comments, as shipped)
   },
   {
     name: "themes.css",
