@@ -22,6 +22,7 @@ const yesNo = (yes: string, no: string): [boolean, string][] => [
 
 /** Every setting of the main pill's satellites, as the prop it sets. */
 const CHOICES = [
+  { key: "slowMotion", legend: "Slow motion", prop: "--mp-duration-*", options: [[1, "×1"], [3, "×3"], [6, "×6"], [12, "×12"]] },
   { key: "theme", legend: "Theme", prop: "theme", options: [["plain", "Plain"], ["glass", "Glass"], ["liquid", "Liquid Glass"]] },
   { key: "electronSide", legend: "Where electrons go", prop: "electronSide", options: [["after", "After the pill"], ["before", "Before it"], ["beside", "Beside it"]] },
   { key: "electronLine", legend: "Several electrons", prop: "electronLine", options: [["along", "Along the pill"], ["across", "Stacked across"]] },
@@ -176,7 +177,7 @@ usePillActions([
       <DocsSection id="settings" title="Every setting, on every page">
         <p className="hint">
           Each one sets the main pill’s prop it names, on every page of this site, and stays on this device. Start the timer,
-          pick, and go elsewhere.
+          pick, and go elsewhere. Slow motion scales the motion tokens, to watch each split and join closely.
         </p>
         <Settings />
       </DocsSection>
