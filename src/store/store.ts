@@ -254,7 +254,8 @@ function createStore(name: string): PillStore {
     getElectrons: () => electrons,
 
     electron(input) {
-      const id = input.id ?? `mp-${++lastId}`;
+      // An empty id is no id: two electrons given "" would be one, flickering between them
+      const id = input.id || `mp-${++lastId}`;
       if (isServer()) {
         devWarn(`pill("${name}").electron() was called on the server and does nothing: call it from client code.`);
         return id;
