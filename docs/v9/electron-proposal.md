@@ -1,6 +1,8 @@
 # The Electron, its orbitals and the wide atom: API proposal
 
 > **Status: approved by the maintainer on 2026-11-28** ("just PERFECT"), with the answers in §10. Built from a throwaway prototype, the **Electron lab** (private page, version 2 of 2026-11-28), with every setting adjustable. The maintainer tried version 1 in detail on 2026-11-27 ("exactly what I had in mind") and answered every question; version 2 carries those answers. **Beta:** it ships in `9.4.0-next.N` releases and is marked beta in the docs and the demo until it settles.
+>
+> **Built** (§9, #126–#131) and published in **9.4.0-next.1**, then **9.4.0-next.2** after three rounds of the maintainer's feedback (#133, #134). What the feedback changed from this proposal: the orbitals, the electrons and the page's actions bud out of their anchor (an orbital out of its electron's centre) and draw themselves the whole way, the goo drawing only the necks; satellites beside the pill make a row of their own; for a notification they go into the pill's centre; two new host props, `actionsWheel` (short of room, the actions show what fits and turn like a wheel) and `nearestToPill` (default `"actions"`). The README is the reference; this file keeps the reasoning.
 
 ## 1. What was decided (the maintainer, 2026-11-27)
 

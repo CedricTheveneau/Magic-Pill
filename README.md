@@ -30,7 +30,7 @@ On top of it come ready-made **templates** (a notification, a navbar, a form pan
  - [X] Accessible: screen reader announcements, keyboard focus pauses the countdown, focus handling for panels and modals
  - [X] Works in any React 18+ app, including React Server Components (Next.js App Router), with any router
  - [X] Styles you can override without `!important`, design tokens, no fonts loaded behind your back
- - [X] Tiny: the quick start adds about **19 kB gzipped** to your app (15.5 kB of JavaScript + 3.7 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
+ - [X] Tiny: the quick start adds about **20 kB gzipped** to your app (16 kB of JavaScript + 4.4 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
  - [X] Written in TypeScript, zero runtime dependencies
 
 ## Installation
@@ -233,7 +233,7 @@ export function AppPill() {
 </MagicPill>
 ```
 
-- **The active link** shows its label and gets `aria-current="page"`. `labels` says which labels show at rest: `"auto"` (the default) shows the current page's while the pill has room for it, and folds it when it doesn't (next to an electron on a phone, or on a very narrow screen, where the pill used to cut its last items off); `"current"` always shows it; `"closed"` shows none. An item pointed at or focused shows its label in every case. A folded navbar has `data-folded`.
+- **The active link** shows its label and gets `aria-current="page"`. `labels` says which labels show at rest: `"auto"` (the default) shows the current page's while the pill has room for it, and folds it when it doesn't (next to an electron on a phone, or on a very narrow screen, where the pill used to cut its last items off); `"current"` always shows it; `"closed"` shows none. An item pointed at or focused shows its label in every case. A folded navbar has `data-folded`. Too long for its pill even then (many items on a narrow phone, a sidebar on a short screen), it scrolls inside it, and where the browser has scroll-driven animations, the ends that hide some fade out.
 - **Without `pathname`**, the navbar reads `window.location.pathname` after mounting and on back/forward navigation. That misses client-side navigations, so pass `pathname` when you use a client-side router.
 - **On a narrow screen**, when there's no room for the current page's label and the one you point at (or focus), the current one folds meanwhile. A label that still has no room ends with an ellipsis.
 - **`aria-label`** defaults to `"Main"`.
@@ -318,10 +318,10 @@ pill().endElectron(id); // it goes back into the pill
 | `electronEnding` | `"join"` | `"join"` or `"pop"`. |
 | `arrange` | `"gather"` | `"gather"`: the pill and its electrons are centred as a group (or at the edge, for a `-start` or `-end` placement). `"spread"`: the pill stays where it is, the electrons go to the screen's edge (under the thumb on a tablet). |
 | `orbitalsOpenOn` | `"press-hover"` | What opens an electron's orbitals: a long press, or hovering it with a mouse; `"press"`, a long press only; `"tap"`, a tap, with a first orbital going back. |
-| `orbitalLabels` | `true` | The orbital under the finger, the pointer or the focus shows its label next to it. |
+| `orbitalLabels` | `true` | The orbital under the finger, the pointer or the focus shows its label next to it, in a small pill of the electron's look (its theme and colours). |
 | `orbitalsStayOpen` | `true` | They stay open after one of them runs (Pause becomes Resume in place). |
 
-**Orbitals** are an electron's quick actions, small round pills that bulge out of it with the goo:
+**Orbitals** are an electron's quick actions, small round pills that bud out of its centre with the goo, one after the other, and fold back into it (quicker, the other way round):
 
 ```ts
 pill().electron({
@@ -335,13 +335,14 @@ pill().electron({
 });
 ```
 
-- A long press opens them. Keep pressing, slide to one (it's picked by its angle from the electron) and release to run it; released on none, they stay open until a tap away. With a mouse, hovering opens them too, and they close once the pointer leaves them.
-- They fan out on an arc away from the screen's edge, clear of the pill, the other electrons and the screen's edges, moving out a little if they must. **When they don't all fit, they're a wheel:** the arc shows what fits and turns to show the others, with the mouse wheel, a drag along it, or the arrow keys (it brings the focused one into view). One past an end fades out (it peeks out faintly where its spot is clear). A wheel stays open until a tap away or Escape. `--mp-orbital-size` (an action's size), `--mp-orbital-distance` (`0.875rem`), `--mp-orbital-spread` (`auto`, or an angle such as `120deg`), `--mp-orbital-stagger` (`30ms`), `--mp-hover-delay` (`300ms`) and `--mp-long-press` (`450ms`) tune them.
+- A long press opens them. Keep pressing, slide to one (it's picked by its angle from the electron) and release to run it; released on none, they stay open until a tap away. While they're open, a press slides onto one at once. With a mouse, hovering opens them too, and they close once the pointer leaves them; on their way back in, they're out of reach.
+- They fan out on an arc away from the screen's edge, clear of the pill, the other electrons, the page's actions and the screen's edges, moving out a little if they must. **When they don't all fit, they're a wheel:** the arc shows what fits and turns to show the others, with the mouse wheel, a drag along it, or the arrow keys (it brings the focused one into view). One past an end fades out (it peeks out faintly where its spot is clear). A wheel stays open until a tap away or Escape. `--mp-orbital-size` (an action's size), `--mp-orbital-distance` (`0.875rem`), `--mp-orbital-spread` (`auto`, or an angle such as `120deg`), `--mp-orbital-stagger` (`30ms`), `--mp-hover-delay` (`300ms`) and `--mp-long-press` (`450ms`) tune them.
 - The keyboard opens them with the arrow pointing away from the edge, Shift+F10 or the context-menu key, and goes round them with the arrows, Home and End; Escape closes them and gives the focus back. An ARIA menu named after the electron.
 
 **How it behaves:**
-- **Short of room** (the pill and its electrons wider than the screen), a navbar folds its labels first (`labels="auto"`, its default); if they still don't fit, the last ones go beside the pill, one row towards the page, like the ladder.
-- It splits and joins with the goo, on the split's tokens (`--mp-duration-split`, `--mp-duration-join`, `--mp-ease-split`, `--mp-goo`, `--mp-electron-start`, see [Styling](#styling)); `--mp-electron-gap` (`--mp-gap` by default) keeps it apart from the pill. With reduced motion, it fades.
+- **Short of room** (the pill and its electrons wider than the screen), a navbar folds its labels first (`labels="auto"`, its default); if they still don't fit, the last ones go beside the pill, one row towards the page, like the ladder. There they make a row of their own, clear of each other and on the screen, wrapping into a further row as a last resort.
+- It comes out of the pill and goes back into it as the orbitals do, drawing itself the whole way (its glass too), the goo's neck under it, on the split's tokens (`--mp-duration-split`, `--mp-duration-join`, `--mp-ease-split`, `--mp-goo`, `--mp-electron-start`, see [Styling](#styling)); `--mp-electron-gap` (`--mp-gap` by default) keeps it apart from the pill. With reduced motion, it fades.
+- While a notification has the pill (or it travels to another placement), it goes into the pill's centre as the pill closes to a circle, and comes out once the pill has grown back. Changing sides or rows, it goes back in, the pill waiting until it is, then comes out at its new spot as the pill moves. Two satellites passing each other melt together as they meet.
 - It's a link (or a button, or an image for neither) named after its `label` and `valueText`, with its own focus ring.
 
 ### The page's actions (beta)
@@ -366,12 +367,14 @@ export function InboxPage() {
 
 | Host prop | Default | Notes |
 |---|---|---|
-| `actionsStyle` | `"detached"` | `"detached"`: a pill of their own, which comes out of the host with the goo and goes back into it when the page has none (or while a notification has the pill). `"inside"`: in the pill itself, after a divider. |
+| `actionsStyle` | `"detached"` | `"detached"`: a pill of their own, which comes out of the host with the goo and goes back into it when the page has none (or while a notification has the pill). `"inside"`: in the pill itself, after a divider. Changing it, they go into the pill (or out of it) with the goo. |
 | `actionsSide` | `"start"` | `"start"` or `"end"` (following the text direction: under the thumb you want), or `"beside"` (one row towards the page). |
-| `actionsOrientation` | `"auto"` | `"auto"`: like the pill, turning across it when they'd leave the pill too little room (a column next to a bottom pill), and back once they're beside it. `"horizontal"` or `"vertical"`, always. |
+| `actionsOrientation` | `"auto"` | `"auto"`: like the pill, turning across it when they'd leave the pill too little room (a column next to a bottom pill), in its row or in the row beside it; decided again once a resize settles. `"horizontal"` or `"vertical"`, always. Turning, they go back into the pill and come out turned. |
+| `actionsWheel` | `false` | Short of room, they show what fits (two at least in the pill's row) and the others turn in, like the orbitals' wheel: a mouse wheel, a drag, a swipe or the arrow keys, each one snapping into place, the ends that hide some fading out. Instead of turning across. In the pill (`"inside"`), the cut starts at the divider. |
+| `nearestToPill` | `"actions"` | On a side they share, the page's actions are nearer the pill, or `"electrons"` are. |
 | `actionsLabel` | `"Page actions"` | Their accessible name. |
 
-Short of room, the actions turn across first (`"auto"`), then the last electrons, the actions and the first electron go beside the pill, in that order.
+Short of room, the actions turn across first (`"auto"`, or show what fits with `actionsWheel`), then the farthest ones go beside the pill: the last electrons, then the first electron and the actions, the nearer of them last. They slide with the group as it changes (gathered or spread, another one coming or going).
 
 ## The primitive
 Everything above is built from `<Pill>` and its parts, and you can use them directly. A `<Pill>` you write yourself isn't connected to `pill()`: you control it with props.
