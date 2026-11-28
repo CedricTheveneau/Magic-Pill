@@ -20,22 +20,6 @@
      sets a display. Your own unlayered CSS still beats both. */
   @layer look, theme, forms, behaviour;
 
-  @layer look {
-    /* The label of the orbital under the finger (magic-pill/satellites):
-       outside any pill, so it takes the public tokens */
-    [data-mp="orbital-label"] {
-      z-index: calc(var(--mp-z-index, 50) + 1);
-      padding: 0.3rem 0.7rem;
-      border-radius: 999px;
-      background: var(--mp-action, #f9f9f9);
-      color: var(--mp-on-action, #141414);
-      box-shadow: 0 4px 10px rgb(20 20 20 / 0.25);
-      font: 700 0.8125rem / 1.2 var(--mp-font-accent, inherit);
-      white-space: nowrap;
-      pointer-events: none;
-    }
-  }
-
   @layer behaviour {
     /* ─── Behaviour: kept by `unstyled` pills ──────────────────────────────── */
 
@@ -63,6 +47,38 @@
   }
 
   @layer look {
+    /* How far a scrolling navbar's ends fade (see the navbars):
+       registered, so that a scroll-driven animation can move them */
+    @property --_mp-scroll-start {
+      syntax: "<length>";
+      inherits: false;
+      initial-value: 0px;
+    }
+
+    @property --_mp-scroll-end {
+      syntax: "<length>";
+      inherits: false;
+      initial-value: 0px;
+    }
+
+    /* A scrolling navbar's ends: no fade at the end it's at. Without anything
+       to scroll, the timeline is inactive and there's no fade at all */
+    @keyframes mp-scroll-ends {
+      0% {
+        --_mp-scroll-start: 0px;
+        --_mp-scroll-end: 1.5rem;
+      }
+      10%,
+      90% {
+        --_mp-scroll-start: 1.5rem;
+        --_mp-scroll-end: 1.5rem;
+      }
+      100% {
+        --_mp-scroll-start: 1.5rem;
+        --_mp-scroll-end: 0px;
+      }
+    }
+
     /* ─── Look ─────────────────────────────────────────────────────────────── */
 
     [data-mp="pill"]:not([data-unstyled]) {
@@ -316,7 +332,29 @@
         }
       }
 
+      /* The label of the orbital under the finger: a small pill of the same
+         look (its theme, its colours), above the orbitals, there at once */
+      &[data-satellite="orbital-label"] {
+        --_mp-padding: 0.3rem;
+        --_mp-rest-size: calc(1lh + 0.6rem);
+        --_mp-change: 0ms;
+        --_mp-fade: 0ms;
+        z-index: calc(var(--mp-z-index, 50) + 1);
+        min-block-size: 0;
+        padding: 0.3rem 0.7rem;
+        font: 700 0.8125rem / 1.2 var(--mp-font-accent, inherit);
+        white-space: nowrap;
+        pointer-events: none;
+        transition: none;
+      }
+
       /* An electron whose activity ends can pop away instead, like any pill leaving */
+      /* An electron and the page's actions never change size: they go back
+         into the pill once their content has faded, not after a size change */
+      &[data-satellite] {
+        --_mp-exit-wait: var(--_mp-fade);
+      }
+
       &[data-satellite][data-ending="pop"] {
         --_mp-exit-scale: 0;
 
@@ -457,6 +495,56 @@
       &[data-orientation="vertical"] [data-mp="actions"] {
         flex-direction: column;
         align-items: var(--_mp-align);
+      }
+
+      /* The page's actions cut short (actionsWheel, magic-pill/satellites):
+         what fits shows, the others turn in, each snapping into place; the
+         ends that hide some fade out, a cut that starts right at the divider */
+      & [data-mp="actions"][data-wheel] {
+        --_mp-wheel-fade: calc(var(--_mp-action-size) * 0.4);
+        --_mp-wheel-start: 0px;
+        --_mp-wheel-end: 0px;
+        max-inline-size: var(--_mp-wheel-length);
+        overflow: auto hidden;
+        overscroll-behavior: contain;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        mask-image: linear-gradient(
+          to var(--_mp-wheel-to, right),
+          rgb(0 0 0 / 0.2),
+          #000 var(--_mp-wheel-start),
+          #000 calc(100% - var(--_mp-wheel-end)),
+          rgb(0 0 0 / 0.2)
+        );
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+
+        & > * {
+          flex: none;
+          scroll-snap-align: start;
+        }
+
+        &[data-more-start] {
+          --_mp-wheel-start: var(--_mp-wheel-fade);
+        }
+
+        &[data-more-end] {
+          --_mp-wheel-end: var(--_mp-wheel-fade);
+        }
+
+        &:dir(rtl) {
+          --_mp-wheel-to: left;
+        }
+      }
+
+      &[data-orientation="vertical"] [data-mp="actions"][data-wheel] {
+        --_mp-wheel-to: bottom;
+        max-inline-size: none;
+        max-block-size: var(--_mp-wheel-length);
+        overflow: hidden auto;
+        scroll-snap-type: y mandatory;
       }
 
       /* A notification in rows (layout="rows"): the message and the actions
@@ -779,10 +867,75 @@
         }
       }
 
+      /* A sidebar's navbar longer than the screen scrolls inside its pill
+         (the docs of an app with many sections, a short phone held
+         sideways). It reaches the pill's edges, so that what scrolls goes
+         under them, and where the browser can tell, the ends that hide some
+         fade out */
+      &[data-orientation="vertical"] [data-mp="navbar"] {
+        flex: 0 1 auto;
+        min-block-size: 0;
+        margin: calc(var(--_mp-padding) * -1);
+        padding: var(--_mp-padding);
+        overflow: hidden auto;
+        overscroll-behavior: contain;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+
+        @supports (animation-timeline: scroll()) {
+          mask-image: linear-gradient(
+            to bottom,
+            transparent,
+            #000 var(--_mp-scroll-start),
+            #000 calc(100% - var(--_mp-scroll-end)),
+            transparent
+          );
+          animation: mp-scroll-ends linear both;
+          animation-timeline: scroll(self block);
+        }
+      }
+
       /* A navbar stays in its pill: where it's too narrow, the open label is
-         cut short, rather than the last items */
+         cut short, rather than the last items. With its labels folded and
+         still too long (many items, a narrow phone), it scrolls inside the
+         pill like a sidebar's, the ends that hide some fading out; it reaches
+         the pill's top and bottom, so that a focus ring isn't cut */
       &[data-orientation="horizontal"] [data-mp="navbar"] {
         min-inline-size: 0;
+        margin-block: calc(var(--_mp-padding) * -1);
+        padding-block: var(--_mp-padding);
+        overflow: auto hidden;
+        overscroll-behavior-x: contain;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+
+        @supports (animation-timeline: scroll()) {
+          mask-image: linear-gradient(
+            to right,
+            transparent,
+            #000 var(--_mp-scroll-start),
+            #000 calc(100% - var(--_mp-scroll-end)),
+            transparent
+          );
+          animation: mp-scroll-ends linear both;
+          animation-timeline: scroll(self inline);
+
+          &:dir(rtl) {
+            mask-image: linear-gradient(
+              to left,
+              transparent,
+              #000 var(--_mp-scroll-start),
+              #000 calc(100% - var(--_mp-scroll-end)),
+              transparent
+            );
+          }
+        }
 
         & [data-mp="action"] {
           flex: 0 1 auto;

@@ -47,7 +47,7 @@ const CLOSED: ReadonlySet<PillPresence> = new Set(["rest", "hidden"]);
 /** Tags this module's animations, so a size change can stop the one before it. */
 export const MORPH = "mp-morph";
 /** Tags the placement animation, which runs alongside the size ones. */
-const MOVE = "mp-move";
+export const MOVE = "mp-move";
 /** The length of the fading edge over the panel's clipped content. */
 const EDGE = 48;
 export const EASING = "ease-in-out";
@@ -151,7 +151,7 @@ export function planMorph(
 }
 
 /** Tags the exit played by script (see `planExit`). */
-const EXIT = "mp-exit";
+export const EXIT = "mp-exit";
 
 /** What the exit starts from: where the pill and its content are now (an entry may be under way). */
 export interface ExitStart {
@@ -160,6 +160,8 @@ export interface ExitStart {
   content?: string;
   /** The scale it ends at: 0, or what the stylesheet says (`--_mp-exit-scale`: a flag goes back into its sidebar at its own size) */
   to?: string;
+  /** How long it waits before it goes, in ms: its content's fade and its size change, or what the stylesheet says (`--_mp-exit-wait`: an electron never changes size) */
+  wait?: number;
 }
 
 export interface ExitPlan {
@@ -176,7 +178,7 @@ export interface ExitPlan {
  * Played by script on top, the exit keeps its course. Pure, so it can be tested.
  */
 export function planExit(start: ExitStart, timings: MorphTimings, exit: number): ExitPlan | null {
-  const wait = timings.fade + timings.change;
+  const wait = start.wait ?? timings.fade + timings.change;
   const total = wait + exit;
   if (exit <= 0 || total <= 0) return null;
   const plan: ExitPlan = {
@@ -215,7 +217,9 @@ function playExit(element: HTMLElement, timings: MorphTimings): Animation[] {
   const opacity = content.length > 0 ? getComputedStyle(content[0]).opacity : "0";
   const exit = parseDuration(style.getPropertyValue("--_mp-exit"), 300);
   const to = style.getPropertyValue("--_mp-exit-scale").trim() || undefined;
-  const plan = planExit({ scale, content: Number(opacity) > 0 ? opacity : undefined, to }, timings, exit);
+  const waitValue = style.getPropertyValue("--_mp-exit-wait").trim();
+  const wait = waitValue ? parseDuration(waitValue, timings.fade + timings.change) : undefined;
+  const plan = planExit({ scale, content: Number(opacity) > 0 ? opacity : undefined, to, wait }, timings, exit);
   if (!plan) return [];
   const animations = [element.animate(plan.pill.keyframes, plan.pill.options)];
   if (plan.content) {

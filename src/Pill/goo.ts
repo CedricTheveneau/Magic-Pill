@@ -151,10 +151,12 @@ const SVG = "http://www.w3.org/2000/svg";
 /** The overlay: a filter (blur, threshold, the anchor's inside cut out, a fill, a shadow) and two shapes. */
 function createOverlay(zIndex: number, color: string, shadow: Shadow | null) {
   const id = `mp-goo-${++overlays}`;
+  // Only as big as the two pills, plus room for the blur and the shadow (placed at every frame):
+  // a filter over the whole screen, once per orbital, made opening them stutter
   const root = document.createElement("div");
   root.setAttribute("data-mp", "goo");
   root.setAttribute("aria-hidden", "true");
-  root.style.cssText = `position:fixed;inset:0;pointer-events:none;z-index:${zIndex};`;
+  root.style.cssText = `position:fixed;left:0;top:0;width:0;height:0;pointer-events:none;z-index:${zIndex};`;
   const svg = document.createElementNS(SVG, "svg");
   svg.setAttribute("width", "0");
   svg.setAttribute("height", "0");
@@ -200,15 +202,34 @@ function createOverlay(zIndex: number, color: string, shadow: Shadow | null) {
   return { root, layer, blur: filter.querySelector("feGaussianBlur")!, anchor, moving };
 }
 
-/** Puts a shape where a pill is on screen, with its rounded corners at its current scale. */
-function place(shape: HTMLElement, element: HTMLElement) {
-  const rect = element.getBoundingClientRect();
-  const scale = element.offsetWidth > 0 ? rect.width / element.offsetWidth : 1;
-  const radius = Number.parseFloat(getComputedStyle(element).borderTopLeftRadius) || 0;
-  shape.style.width = `${rect.width}px`;
-  shape.style.height = `${rect.height}px`;
-  shape.style.transform = `translate(${rect.left}px, ${rect.top}px)`;
-  shape.style.borderRadius = `${Math.min(radius * scale, rect.width / 2, rect.height / 2)}px`;
+/**
+ * Puts the overlay around the two pills (with `margin` for the blur and the
+ * shadow), and each shape where its pill is, with its rounded corners at its
+ * current scale (`radius`: read once, at its full size).
+ */
+function placeAll(
+  overlay: { root: HTMLElement; anchor: HTMLElement; moving: HTMLElement },
+  pills: { anchor: HTMLElement; moving: HTMLElement },
+  radii: { anchor: number; moving: number },
+  margin: number,
+) {
+  const a = pills.anchor.getBoundingClientRect();
+  const m = pills.moving.getBoundingClientRect();
+  const left = Math.min(a.left, m.left) - margin;
+  const top = Math.min(a.top, m.top) - margin;
+  const root = overlay.root.style;
+  root.transform = `translate(${left}px, ${top}px)`;
+  root.width = `${Math.max(a.right, m.right) + margin - left}px`;
+  root.height = `${Math.max(a.bottom, m.bottom) + margin - top}px`;
+  const put = (shape: HTMLElement, rect: DOMRect, element: HTMLElement, radius: number) => {
+    const scale = element.offsetWidth > 0 ? rect.width / element.offsetWidth : 1;
+    shape.style.width = `${rect.width}px`;
+    shape.style.height = `${rect.height}px`;
+    shape.style.transform = `translate(${rect.left - left}px, ${rect.top - top}px)`;
+    shape.style.borderRadius = `${Math.min(radius * scale, rect.width / 2, rect.height / 2)}px`;
+  };
+  put(overlay.anchor, a, pills.anchor, radii.anchor);
+  put(overlay.moving, m, pills.moving, radii.moving);
 }
 
 // The moving pill's own look, transparent while the overlay draws it. Its
@@ -252,6 +273,11 @@ export function playSplit(anchor: HTMLElement, moving: HTMLElement, kind: "split
   const easing = kind === "split" ? splitEasing(style.getPropertyValue("--mp-ease-split")) : SMOOTH;
 
   let overlay: ReturnType<typeof createOverlay> | null = null;
+  const radii = { anchor: 0, moving: 0 };
+  let margin = 0;
+  const placeShapes = () => {
+    if (overlay) placeAll(overlay, { anchor, moving }, radii, margin);
+  };
   // A join starts apart, with its blur; a split starts inside the anchor, without
   let glass = kind === "join";
   const saved = new Map<string, [string, string]>();
@@ -329,9 +355,12 @@ export function playSplit(anchor: HTMLElement, moving: HTMLElement, kind: "split
     saved.set("transition", [moving.style.getPropertyValue("transition"), moving.style.getPropertyPriority("transition")]);
     moving.style.setProperty("transition", "none", "important");
     const own = getComputedStyle(moving);
-    overlay = createOverlay(zIndex, own.backgroundColor, dropShadow(own.boxShadow));
-    place(overlay.anchor, anchor);
-    place(overlay.moving, moving);
+    const shadow = dropShadow(own.boxShadow);
+    overlay = createOverlay(zIndex, own.backgroundColor, shadow);
+    radii.anchor = Number.parseFloat(getComputedStyle(anchor).borderTopLeftRadius) || 0;
+    radii.moving = Number.parseFloat(own.borderTopLeftRadius) || 0;
+    margin = goo * 3 + (shadow ? shadow.blur + Math.max(Math.abs(shadow.x), Math.abs(shadow.y)) : 0) + 8;
+    placeShapes();
     hideOwnLook();
     if (kind === "split") {
       for (const name of BLUR) {
@@ -359,8 +388,7 @@ export function playSplit(anchor: HTMLElement, moving: HTMLElement, kind: "split
     if (begun && overlay) {
       const k = Math.min(1, Math.max(0, (elapsed - timing.delay) / timing.duration));
       overlay.blur.setAttribute("stdDeviation", (goo * gooAmount(k)).toFixed(2));
-      place(overlay.anchor, anchor);
-      place(overlay.moving, moving);
+      placeShapes();
       setGlass(!overlaps(moving.getBoundingClientRect(), anchor.getBoundingClientRect()));
     }
     if (elapsed >= timing.delay + timing.duration) {
@@ -372,5 +400,176 @@ export function playSplit(anchor: HTMLElement, moving: HTMLElement, kind: "split
   if (timing.delay <= 0) begin();
   frame = requestAnimationFrame(draw);
   running.set(moving, stop);
+  return stop;
+}
+
+/** Where a pill starts (or ends) inside another, from its spot: an offset, and a scale. */
+export type Inside = (rect: DOMRect, element: HTMLElement) => { x: number; y: number; scale: number };
+
+export interface BudItem {
+  element: HTMLElement;
+  delay: number;
+  /** How much of it shows at its spot (a wheel's faint ends). Default 1 */
+  shown?: number;
+  /** Where it's inside the anchor. Default: the anchor's centre, at 0.3 */
+  from?: Inside;
+  /** It's seen the whole way (the page's actions moving out of the pill): no fade */
+  opaque?: boolean;
+}
+
+/** Inside the anchor at its nearest edge, as a flag goes into its sidebar (`--mp-electron-start`). */
+export const atEdgeOf =
+  (anchor: HTMLElement): Inside =>
+  (rect, element) =>
+    tuckedOffset(anchor.getBoundingClientRect(), rect, readNumber(getComputedStyle(element), "--mp-electron-start", 1));
+
+/** Inside the anchor at a point of the screen (where a pill closing to a circle ends), small. */
+export const atPoint =
+  (x: number, y: number, scale = 0.3): Inside =>
+  (rect) => ({ x: x - (rect.left + rect.width / 2), y: y - (rect.top + rect.height / 2), scale });
+
+// The motion each pill is in, so that the next one stops it first
+const budding = new WeakMap<HTMLElement, () => void>();
+
+/**
+ * Pills budding out of another (or going back into it), one after the other,
+ * as the concept drew an electron's orbitals: from inside it, small and
+ * see-through, to their spot. The pills draw themselves the whole time (their
+ * glass, rim and shadow stay, no colour switch at the end); one overlay under
+ * them draws only the necks between them and the anchor: the goo of the
+ * moment, every pill's inside cut out of it. An electron's orbitals, an
+ * electron out of its host or out of the one next to it, the page's actions.
+ */
+export function playOrbit(electron: HTMLElement, items: BudItem[], kind: "open" | "close", timing: { duration: number }): () => void {
+  for (const { element } of items) {
+    budding.get(element)?.();
+    for (const animation of element.getAnimations?.() ?? []) if (animation.id === SPLIT) animation.cancel();
+  }
+  if (timing.duration <= 0 || prefersReducedMotion() || typeof electron.animate !== "function" || items.length === 0) return () => {};
+
+  const style = getComputedStyle(electron);
+  const easing = kind === "open" ? splitEasing(style.getPropertyValue("--mp-ease-split")) : SMOOTH;
+  const centre = electron.getBoundingClientRect();
+  const cx = centre.left + centre.width / 2;
+  const cy = centre.top + centre.height / 2;
+  const longest = Math.max(...items.map(({ delay }) => delay)) + timing.duration;
+
+  // Each one from inside the anchor, small and see-through, to its spot (or back)
+  for (const { element, delay, shown = 1, from = atPoint(cx, cy), opaque = false } of items) {
+    if (shown <= 0) continue;
+    const rect = element.getBoundingClientRect();
+    const start = from(rect, element);
+    const end = getComputedStyle(element).scale;
+    type Frame = { translate: string; scale: string; opacity: number; offset?: number };
+    const inside: Frame = { translate: `${start.x}px ${start.y}px`, scale: String(start.scale), opacity: opaque ? shown : 0 };
+    const out: Frame = { translate: "0px 0px", scale: end === "none" ? "1" : end, opacity: shown };
+    // Opaque once out of the electron (and until it's back in): it shows only outside it
+    const frames: Frame[] = kind === "open" ? [inside, { ...out, offset: 0.35 }, out] : [out, { ...out, offset: 0.65 }, inside];
+    const options: KeyframeAnimationOptions = { id: SPLIT, duration: timing.duration, delay, fill: kind === "open" ? "backwards" : "forwards" };
+    // Opacity and position on their own curves: the overshoot is the position's
+    const ends = (kind === "open" ? [inside, out] : [out, inside]).map(({ translate, scale }) => ({ translate, scale }));
+    try {
+      element.animate(ends, { ...options, easing });
+    } catch {
+      element.animate(ends, { ...options, easing: POP });
+    }
+    if (!opaque) {
+      element.animate(frames.map(({ opacity, offset }) => (offset === undefined ? { opacity } : { opacity, offset })), { ...options, easing: "linear" });
+    } else if (kind === "close") {
+      // Seen the whole way, and gone as it gets there (what it went into shows it from then on)
+      element.animate([{ opacity: shown }, { opacity: shown, offset: 0.85 }, { opacity: 0 }], { ...options, easing: "linear" });
+    }
+  }
+  const stop = playNecks([electron, ...items.filter(({ shown = 1 }) => shown > 0).map(({ element }) => element)], longest);
+  const stopAll = () => {
+    stop();
+    for (const { element } of items) if (budding.get(element) === stopAll) budding.delete(element);
+  };
+  for (const { element } of items) budding.set(element, stopAll);
+  return stopAll;
+}
+
+/**
+ * The necks between pills, for `duration` ms: the goo of the moment under
+ * them, every pill's inside cut out of it, in the first one's colour. The
+ * pills draw themselves. Pills sliding past each other (or out of one
+ * another) seem to melt together as they meet and part.
+ */
+export function playNecks(pills: HTMLElement[], duration: number): () => void {
+  if (pills.length < 2 || duration <= 0 || prefersReducedMotion() || typeof document === "undefined") return () => {};
+  const style = getComputedStyle(pills[0]);
+  const goo = readNumber(style, "--mp-goo", DEFAULT_GOO);
+  if (goo <= 0) return () => {};
+  const longest = duration;
+
+  // The necks: the goo of every pill, with every pill's inside cut out
+  const id = `mp-goo-${++overlays}`;
+  const root = document.createElement("div");
+  root.setAttribute("data-mp", "goo");
+  root.setAttribute("aria-hidden", "true");
+  root.style.cssText = `position:fixed;left:0;top:0;width:0;height:0;pointer-events:none;z-index:${(Number.parseInt(style.zIndex, 10) || 50) - 1};`;
+  const svg = document.createElementNS(SVG, "svg");
+  svg.setAttribute("width", "0");
+  svg.setAttribute("height", "0");
+  svg.style.position = "absolute";
+  const filter = document.createElementNS(SVG, "filter");
+  filter.id = id;
+  for (const [name, value] of Object.entries({ x: "-50%", y: "-50%", width: "200%", height: "200%", "color-interpolation-filters": "sRGB" })) {
+    filter.setAttribute(name, value);
+  }
+  filter.innerHTML = `
+    <feGaussianBlur in="SourceAlpha" stdDeviation="0" result="blur"/>
+    <feComponentTransfer in="blur" result="goo"><feFuncA type="linear" slope="24" intercept="-12"/></feComponentTransfer>
+    <feMorphology in="SourceAlpha" operator="erode" radius="1" result="inside"/>
+    <feComposite in="goo" in2="inside" operator="out" result="necks"/>
+    <feFlood result="color"/>
+    <feComposite in="color" in2="necks" operator="in"/>`;
+  (filter.querySelector("feFlood") as SVGElement).style.setProperty("flood-color", style.backgroundColor);
+  svg.append(filter);
+  const layer = document.createElement("div");
+  layer.style.cssText = `position:absolute;inset:0;filter:url(#${id});`;
+  const radii = pills.map((pill) => Number.parseFloat(getComputedStyle(pill).borderTopLeftRadius) || 0);
+  const shapes = pills.map(() => {
+    const shape = document.createElement("div");
+    shape.style.cssText = "position:absolute;left:0;top:0;background:#000;";
+    layer.append(shape);
+    return shape;
+  });
+  root.append(svg, layer);
+  document.body.append(root);
+  const blur = filter.querySelector("feGaussianBlur")!;
+  const margin = goo * 3 + 8;
+
+  let frame = 0;
+  let stopped = false;
+  const stop = () => {
+    if (stopped) return;
+    stopped = true;
+    cancelAnimationFrame(frame);
+    root.remove();
+  };
+  const startedAt = performance.now();
+  const draw = (now: number) => {
+    if (stopped) return;
+    const elapsed = now - startedAt;
+    const rects = pills.map((pill) => pill.getBoundingClientRect());
+    const left = Math.min(...rects.map((rect) => rect.left)) - margin;
+    const top = Math.min(...rects.map((rect) => rect.top)) - margin;
+    root.style.transform = `translate(${left}px, ${top}px)`;
+    root.style.width = `${Math.max(...rects.map((rect) => rect.right)) + margin - left}px`;
+    root.style.height = `${Math.max(...rects.map((rect) => rect.bottom)) + margin - top}px`;
+    rects.forEach((rect, index) => {
+      const scale = pills[index].offsetWidth > 0 ? rect.width / pills[index].offsetWidth : 1;
+      const shape = shapes[index].style;
+      shape.width = `${rect.width}px`;
+      shape.height = `${rect.height}px`;
+      shape.transform = `translate(${rect.left - left}px, ${rect.top - top}px)`;
+      shape.borderRadius = `${Math.min(radii[index] * scale, rect.width / 2, rect.height / 2)}px`;
+    });
+    blur.setAttribute("stdDeviation", (goo * gooAmount(Math.min(1, elapsed / longest))).toFixed(2));
+    if (elapsed >= longest) return stop();
+    frame = requestAnimationFrame(draw);
+  };
+  frame = requestAnimationFrame(draw);
   return stop;
 }
