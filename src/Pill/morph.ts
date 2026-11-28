@@ -158,6 +158,8 @@ export interface ExitStart {
   scale: string;
   /** The content's opacity, or nothing if it's already out of sight */
   content?: string;
+  /** The scale it ends at: 0, or what the stylesheet says (`--_mp-exit-scale`: a flag goes back into its sidebar at its own size) */
+  to?: string;
 }
 
 export interface ExitPlan {
@@ -182,7 +184,7 @@ export function planExit(start: ExitStart, timings: MorphTimings, exit: number):
       keyframes: [
         { scale: start.scale, visibility: "visible" },
         { scale: start.scale, visibility: "visible", offset: wait / total, easing: "ease-in" },
-        { scale: "0", visibility: "visible" },
+        { scale: start.to ?? "0", visibility: "visible" },
       ],
       options: { id: EXIT, duration: total },
     },
@@ -212,7 +214,8 @@ function playExit(element: HTMLElement, timings: MorphTimings): Animation[] {
   const content = fadingContent(element);
   const opacity = content.length > 0 ? getComputedStyle(content[0]).opacity : "0";
   const exit = parseDuration(style.getPropertyValue("--_mp-exit"), 300);
-  const plan = planExit({ scale, content: Number(opacity) > 0 ? opacity : undefined }, timings, exit);
+  const to = style.getPropertyValue("--_mp-exit-scale").trim() || undefined;
+  const plan = planExit({ scale, content: Number(opacity) > 0 ? opacity : undefined, to }, timings, exit);
   if (!plan) return [];
   const animations = [element.animate(plan.pill.keyframes, plan.pill.options)];
   if (plan.content) {
