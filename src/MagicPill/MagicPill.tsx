@@ -34,7 +34,15 @@ import { BASE, IDLE, NONE, isOpen, readTimings, type Displayed, type Scene, type
 import { flagStyle, measureFlagSpot, type FlagSpot } from "./flag";
 import { playSplit } from "../Pill/goo";
 import { useChoreography } from "./useChoreography";
-import type { ElectronEnding, ElectronLine, ElectronSide, PillSatellites, SatelliteArrangement, SatelliteHost } from "../satellites/types";
+import type {
+  ElectronEnding,
+  ElectronLine,
+  ElectronSide,
+  OrbitalsOpenOn,
+  PillSatellites,
+  SatelliteArrangement,
+  SatelliteHost,
+} from "../satellites/types";
 
 export interface MagicPillProps
   extends Omit<PillProps, "presence" | "defaultPresence" | "onPresenceChange" | "children" | "scene" | "sceneChange"> {
@@ -94,6 +102,16 @@ export interface MagicPillProps
   electronEnding?: ElectronEnding;
   /** Satellites gathered around the pill (default) or spread to the screen's edges (beta). */
   arrange?: SatelliteArrangement;
+  /**
+   * What opens an electron's orbitals: a long press, or hovering it with a
+   * mouse (default); a long press only; or a tap, which then adds a first
+   * orbital going back (beta).
+   */
+  orbitalsOpenOn?: OrbitalsOpenOn;
+  /** The label of the orbital under the finger, the pointer or the focus shows next to it. Default true (beta). */
+  orbitalLabels?: boolean;
+  /** Orbitals stay open after one of them runs. Default true (beta). */
+  orbitalsStayOpen?: boolean;
 }
 
 const DEFAULT_DURATION = 5000;
@@ -195,6 +213,9 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
     keepElectronsOut = false,
     electronEnding = "join",
     arrange = "gather",
+    orbitalsOpenOn = "press-hover",
+    orbitalLabels = true,
+    orbitalsStayOpen = true,
     placement = "bottom",
     orientation,
     moveThroughCircle,
@@ -538,6 +559,9 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
             keepElectronsOut,
             electronEnding,
             arrange,
+            orbitalsOpenOn,
+            orbitalLabels,
+            orbitalsStayOpen,
           } satisfies SatelliteHost}
         />
       )}

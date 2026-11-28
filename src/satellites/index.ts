@@ -14,7 +14,8 @@ export type {
   ElectronEnding,
   ElectronLine,
   ElectronSide,
+  OrbitalsOpenOn,
   PillSatellites,
   SatelliteArrangement,
 } from "./types";
-export type { ElectronOptions, Electron } from "../store/store";
+export type { ElectronOptions, Electron, Orbital } from "../store/store";

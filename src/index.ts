@@ -101,6 +101,7 @@ export type {
   DismissReason,
   ElectronOptions,
   Electron,
+  Orbital,
 } from './store/store';
 export { usePillQueue } from './store/usePillQueue';
 

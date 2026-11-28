@@ -20,6 +20,22 @@
      sets a display. Your own unlayered CSS still beats both. */
   @layer look, theme, forms, behaviour;
 
+  @layer look {
+    /* The label of the orbital under the finger (magic-pill/satellites):
+       outside any pill, so it takes the public tokens */
+    [data-mp="orbital-label"] {
+      z-index: calc(var(--mp-z-index, 50) + 1);
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      background: var(--mp-action, #f9f9f9);
+      color: var(--mp-on-action, #141414);
+      box-shadow: 0 4px 10px rgb(20 20 20 / 0.25);
+      font: 700 0.8125rem / 1.2 var(--mp-font-accent, inherit);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+  }
+
   @layer behaviour {
     /* ─── Behaviour: kept by `unstyled` pills ──────────────────────────────── */
 
@@ -276,6 +292,30 @@
         }
       }
 
+      /* An electron's orbitals: small round pills, the size of an action. The
+         one under the finger, the pointer or the focus takes the actions'
+         colours and grows a little */
+      &[data-satellite="orbital"] {
+        --_mp-padding: 0px;
+        --_mp-change: 0ms;
+        --_mp-action-size: var(--mp-orbital-size, var(--mp-action-size, 2.75rem));
+
+        &:not([data-presence="hidden"]) {
+          transition:
+            scale 120ms ease-out,
+            background-color 120ms ease-out,
+            color 120ms ease-out,
+            var(--_mp-also, visibility 0s),
+            visibility 0s;
+        }
+
+        &[data-hot] {
+          scale: 1.12;
+          background-color: var(--_mp-action);
+          color: var(--_mp-on-action);
+        }
+      }
+
       /* An electron whose activity ends can pop away instead, like any pill leaving */
       &[data-satellite][data-ending="pop"] {
         --_mp-exit-scale: 0;
@@ -521,6 +561,38 @@
         text-decoration: none;
         cursor: pointer;
         -webkit-tap-highlight-color: transparent;
+      }
+
+      /* With orbitals: a long press opens them, with no scrolling or callout */
+      & [data-mp="electron"][aria-haspopup] {
+        touch-action: none;
+        -webkit-touch-callout: none;
+        user-select: none;
+      }
+
+      & [data-mp="orbital"] {
+        display: grid;
+        place-items: center;
+        inline-size: var(--_mp-action-size);
+        block-size: var(--_mp-action-size);
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: none;
+        color: inherit;
+        font-size: 1.25rem;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+
+        & > :is(svg, img) {
+          inline-size: 1em;
+          block-size: 1em;
+        }
+      }
+
+      & [data-mp="orbital"]:focus-visible {
+        outline: 2px solid currentColor;
+        outline-offset: -4px;
       }
 
       & [data-mp="electron"]:focus-visible {
