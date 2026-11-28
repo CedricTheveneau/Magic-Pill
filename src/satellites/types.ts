@@ -19,6 +19,9 @@ export type ActionsStyle = "detached" | "inside";
 /** The page's actions run like the pill (turning across when room runs out: "auto"), or horizontal, or vertical. */
 export type ActionsOrientation = "auto" | "horizontal" | "vertical";
 
+/** Which satellites are nearer the pill on a side they share: the electrons, or the page's actions. */
+export type NearestToPill = "electrons" | "actions";
+
 /** What opens an electron's orbitals: a long press or hovering it with a mouse, a long press only, or a tap. */
 export type OrbitalsOpenOn = "press-hover" | "press" | "tap";
 
@@ -46,6 +49,8 @@ export interface SatelliteHost {
   actionsStyle: ActionsStyle;
   actionsSide: ActionsSide;
   actionsOrientation: ActionsOrientation;
+  actionsWheel: boolean;
+  nearestToPill: NearestToPill;
   actionsLabel: string;
 }
 
