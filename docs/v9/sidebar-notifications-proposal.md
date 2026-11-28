@@ -78,7 +78,7 @@ Each layout opens a notification's panel from where it is, the way panels alread
 
 The flag is a **satellite of the host**: a second element, next to the sidebar, while the sidebar stays mounted and usable (unlike the other layouts, where the notification takes the pill over).
 
-- **Its motion:** it splits off the sidebar's edge as a circle (the prototype's pop, with a short bridge between the two while they part), grows into its pill, and goes back the same way. **This is the Electron's split, and will follow it**: when the Electron's join/split morph is designed (gooey bridge, timings), the flag gets the same. Until then it uses the prototype's motion, documented as subject to change.
+- **Its motion:** it splits off the sidebar's edge as a circle (the prototype's pop, with a short bridge between the two while they part), grows into its pill, and goes back the same way. **This is the Electron's split, and will follow it**: when the Electron's join/split morph is designed (gooey bridge, timings), the flag gets the same. Until then it uses the prototype's motion, documented as subject to change. **Since 9.4 it splits with the goo** (`Pill/goo.ts`, the Electron proposal §7); the bridge is gone.
 - **Between notifications:** the flag is a pill of its own, so the next one slides in it (`swap="queue"`, the default), and `at` moves it along the sidebar.
 - **Where:** next to the item whose `href` matches `at` (with the navbar's `matchPath`), else in the middle; kept inside the screen. It covers the page beside the sidebar, like an open panel; the ladder doesn't move for it.
 - **Pauses and announcements:** as today. Pointing at or focusing the flag pauses it; the live region reads it. The sidebar stays in the focus order.

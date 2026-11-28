@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Added
+- The split's tokens, for a sidebar's flag: `--mp-duration-split` and `--mp-duration-join` (the enter and exit durations by default), `--mp-ease-split` (`bouncy`, the default, `pop`, `smooth` or any CSS easing), `--mp-goo` (`12`; `0` for no neck) and `--mp-electron-start` (`1`)
+
+### Changed
+- A sidebar's flag comes out of the sidebar's edge as a droplet, with goo: a neck forms between them, stretches and snaps, on a bouncy curve, and it goes back into the sidebar the same way. It no longer pops in at its spot with a short bridge, nor scales in and out. With reduced motion it still fades. On the glass themes, its blur waits until it's clear of the sidebar
+
 ## [9.3.0] - 2026-11-27
 A token for the content's fade, the built-in icons deprecated, and two fixes. Nothing to change in your code: the icons still work as before, and leaving them can wait until the next major version.
 
