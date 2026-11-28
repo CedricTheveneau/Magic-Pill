@@ -498,3 +498,20 @@
   text-transform: uppercase;
   vertical-align: 0.1em;
 }
+
+/* The Electron's settings: a card of chip rows, each naming its prop */
+.electron-settings {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.electron-settings .chips + .chips {
+  margin-top: 0;
+}
+
+.electron-settings legend code {
+  font: 400 0.8rem var(--font-mono, ui-monospace, monospace);
+  font-style: normal;
+  margin-inline-start: 0.4rem;
+  opacity: 0.7;
+}

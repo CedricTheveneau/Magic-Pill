@@ -6,8 +6,13 @@ import { pill, type ElectronOptions } from "magic-pill";
 
 import { CrossIcon, PauseIcon, PlayIcon, PlusIcon, SkipIcon, StopIcon, UploadIcon } from "../../icons";
 
-/** Where the electrons go back to: this page (the router adds the site's base path) */
-export const ORIGIN = "/docs/electron/";
+/**
+ * Where each one goes back to: pages of their own, as an app's timer would
+ * have its timer page (the router adds the site's base path). Not this page,
+ * so that they come out at once here, and a tap takes you somewhere.
+ */
+export const TIMER_PAGE = { href: "/", name: "the Playground" };
+export const UPLOAD_PAGE = { href: "/templates/", name: "Templates" };
 
 const FOCUS = 25 * 60;
 const BREAK = 5 * 60;
@@ -33,7 +38,7 @@ function timerElectron(current: Timer): ElectronOptions {
     valueText: `${minutes} minute${minutes > 1 ? "s" : ""} left${current.paused ? ", paused" : ""}`,
     progress: 1 - current.left / current.total,
     variant: current.mode === "break" ? "success" : undefined,
-    href: ORIGIN,
+    href: TIMER_PAGE.href,
     announce: current.announce,
     orbitals: [
       { id: "add", icon: <PlusIcon />, label: "+1 min", onClick: () => change((t) => ({ left: t.left + 60, total: t.total + 60 })) },
@@ -73,8 +78,9 @@ export function startFocus() {
         : { mode: "focus", left: FOCUS, total: FOCUS, announce: "Back to focus" },
     );
   }, 1000);
-  timer = { id: "", mode: "focus", left: FOCUS, total: FOCUS, paused: false, interval };
-  timer.id = pill().electron(timerElectron(timer));
+  // An id of its own: the upload has another
+  timer = { id: "docs-focus-timer", mode: "focus", left: FOCUS, total: FOCUS, paused: false, interval };
+  pill().electron(timerElectron(timer));
 }
 
 export function stopFocus() {
@@ -99,7 +105,7 @@ function uploadElectron(current: Upload): ElectronOptions {
     value: `${current.done}%`,
     valueText: `${Math.floor(current.done / 10) * 10}%${current.paused ? ", paused" : ""}`,
     progress: current.done / 100,
-    href: ORIGIN,
+    href: UPLOAD_PAGE.href,
     // It's done: no need to go back into the pill
     ending: "pop",
     orbitals: [
@@ -135,6 +141,6 @@ export function startUpload() {
     upload = { ...upload, done: upload.done + 1 };
     pill().updateElectron(upload.id, uploadElectron(upload));
   }, 400);
-  upload = { id: "", done: 0, paused: false, interval };
-  upload.id = pill().electron(uploadElectron(upload));
+  upload = { id: "docs-upload", done: 0, paused: false, interval };
+  pill().electron(uploadElectron(upload));
 }
