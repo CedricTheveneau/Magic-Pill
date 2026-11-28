@@ -35,8 +35,10 @@ const PROBES = [
     // then from 12 kB for cards (11.57 kB) and a sidebar's flag, a second pill with its own steps and
     // pauses, and the navbar's matching to find its section (MagicPill/flag.ts, useChoreography.ts): 13.08 kB,
     // then from 13.5 kB for the goo, a flag's split and join (Pill/goo.ts: an overlay and its SVG filter,
-    // the curves, the content's fade, the glass' blur kept off the sidebar), in place of the bridge: 15.16 kB
-    budget: 15.5 * KB, // 4.89 kB at 9.0.0-next.0
+    // the curves, the content's fade, the glass' blur kept off the sidebar), in place of the bridge: 15.16 kB,
+    // then from 15.5 kB for the electrons' part of the store and the host (pill().electron(), the host's
+    // satellites props and its warning without them; the rest is in magic-pill/satellites): 15.54 kB
+    budget: 15.75 * KB, // 4.89 kB at 9.0.0-next.0
   },
   {
     name: "Pill primitive",
@@ -60,8 +62,9 @@ const PROBES = [
     code: 'export { MagicPill, pill, PillFormPanel, PillInput, PillSwitch } from "ENTRY";',
     // 12.17 kB, then 12.71 kB with the busy labels, 13.38 kB with scenes,
     // 13.88 kB with the exit played by script, 14.23 kB with placement changes through the circle,
-    // 14.62 kB with notifications in rows, 16.33 kB with cards and the flag, 18.48 kB with the goo
-    budget: 18.75 * KB,
+    // 14.62 kB with notifications in rows, 16.33 kB with cards and the flag, 18.48 kB with the goo,
+    // 18.88 kB with the electrons' part of the store and the host
+    budget: 19 * KB,
   },
   {
     name: "Everything",
@@ -86,8 +89,16 @@ const PROBES = [
     // then from 30.25 kB for placement changes through the circle: 30.23 kB,
     // then from 30.75 kB for notifications in rows: 30.68 kB,
     // then from 31.25 kB for cards and the flag: 32.39 kB,
-    // then from 32.75 kB for the goo: 34.74 kB
-    budget: 35 * KB, // 9.07 kB at 9.0.0-next.0
+    // then from 32.75 kB for the goo: 34.74 kB,
+    // then from 35 kB for the electrons' part of the store and the host, and PillProgress: 35.31 kB
+    budget: 35.5 * KB, // 9.07 kB at 9.0.0-next.0
+  },
+  {
+    name: "With the satellites",
+    description: "the quick start, with the electrons (magic-pill/satellites, beta)",
+    code: 'export { MagicPill, pill } from "ENTRY"; export { satellites } from "SATELLITES";',
+    // 18.16 kB with the electrons (the layer, the layout, PillProgress): 2.62 kB more than the quick start
+    budget: 18.5 * KB,
   },
 ];
 const STYLESHEETS = [
@@ -99,8 +110,9 @@ const STYLESHEETS = [
     // the variants' text and action colours: 2.71 kB,
     // then from 2.75 kB for a navbar's narrow screens and colours that change together: 2.90 kB,
     // then from 3 kB for the panel's slots: 3.09 kB,
-    // a vertical pill's circle: 3.10 kB, notifications in rows: 3.20 kB
-    budget: 3.5 * KB, // 2.15 kB at 9.0.0-next.1 (3.89 kB with its comments, as shipped)
+    // a vertical pill's circle: 3.10 kB, notifications in rows: 3.20 kB,
+    // then from 3.5 kB for the electron (its link, its value) and PillProgress's ring: 3.66 kB
+    budget: 3.75 * KB, // 2.15 kB at 9.0.0-next.1 (3.89 kB with its comments, as shipped)
   },
   {
     name: "themes.css",
@@ -125,12 +137,16 @@ const STYLESHEETS = [
 
 const root = resolve(import.meta.dirname, "..");
 const entry = join(root, "dist", "index.mjs");
+const satellitesEntry = join(root, "dist", "satellites.mjs");
 const gzip = (buffer) => gzipSync(buffer, { level: 9 }).length;
 
 async function measureProbe(probe, workDir, index) {
   const input = join(workDir, `probe-${index}.mjs`);
   const outDir = join(workDir, `out-${index}`);
-  writeFileSync(input, probe.code.replace("ENTRY", entry.replaceAll("\\", "/")));
+  writeFileSync(
+    input,
+    probe.code.replace("ENTRY", entry.replaceAll("\\", "/")).replace("SATELLITES", satellitesEntry.replaceAll("\\", "/")),
+  );
   await build({
     config: false,
     entry: { probe: input },
