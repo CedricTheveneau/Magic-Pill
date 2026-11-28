@@ -123,7 +123,34 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
     if (!entry.leaving && !electrons.some((electron) => electron.id === id)) shown.current.set(id, { ...entry, leaving: true });
   }
 
-  const tucked = host.notifying && !host.keepElectronsOut;
+  // The host travels to another placement (or turns) through the circle: the satellites tuck in
+  // meanwhile, and come out at its new place once it's open again
+  const [travelling, setTravelling] = useState(false);
+  const spot = `${host.placement} ${host.vertical}`;
+  const lastSpot = useRef(spot);
+  useIsomorphicLayoutEffect(() => {
+    if (lastSpot.current === spot) return;
+    lastSpot.current = spot;
+    setTravelling(true);
+  }, [spot]);
+  useEffect(() => {
+    const root = host.rootRef.current;
+    if (!travelling || !root) return;
+    let closed = false;
+    const watch = new MutationObserver(() => {
+      const presence = root.dataset.presence;
+      if (presence === "rest" || presence === "hidden") closed = true;
+      else if (closed) setTravelling(false);
+    });
+    watch.observe(root, { attributes: true, attributeFilter: ["data-presence"] });
+    // A pill that travels without closing (reduced motion, moveThroughCircle={false})
+    const fallback = setTimeout(() => setTravelling(false), 1500);
+    return () => {
+      watch.disconnect();
+      clearTimeout(fallback);
+    };
+  }, [travelling, host.rootRef]);
+  const tucked = (host.notifying && !host.keepElectronsOut) || travelling;
 
   // The page's actions, in a pill of their own: out while there are some, the last ones kept while they go back
   const actions = useHostActions(host);
@@ -155,6 +182,9 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
   const hostMin = useRef<number | undefined>(undefined);
   // The row each electron was in: one that changes rows moves there, even while following the host
   const rows = useRef(new Map<string, string>());
+  // Where each one was, next to the host (its side and row): one that changes goes back in and out again
+  const spots = useRef(new Map<string, string>());
+  const rejoining = useRef(new Set<string>());
 
   // Measures, places, and moves: animated after a render, at once while the host resizes
   const arrange = useRef<(animate: boolean) => void>(() => {});
@@ -223,31 +253,76 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
     }
     applied.current = { shift: layout.shift, reserve: layout.reserve };
 
-    // They turn after a render only, never while following the host as it resizes (no back and forth)
-    if (animate && atomOut && layout.actionsAcross !== across.current) setActionsAcross(layout.actionsAcross);
+    const boxes = layout.boxes;
+    // Along the host's edge: where its centre will be, and which side of it a box is on, in which row
+    const hostAlong = (vertical ? root.offsetTop : root.offsetLeft) + layout.shift + (vertical ? root.offsetHeight : root.offsetWidth) / 2;
+    const alongOf = (box: Box) => (vertical ? box.top + box.height / 2 : box.left + box.width / 2);
+    const spotOf = (box: Box) => `${alongOf(box) < hostAlong ? "before" : "after"} ${Math.round(vertical ? box.left : box.top)}`;
+    // Back into the host now, out again at its new spot once it's in
+    const rejoin = (id: string, element: HTMLElement, then: () => void) => {
+      rejoining.current.add(id);
+      const { exit } = durations(element);
+      playSplit(root, element, "join", { delay: 0, duration: exit });
+      setTimeout(() => {
+        rejoining.current.delete(id);
+        then();
+      }, exit + 20);
+    };
 
     // The actions: into their spot, out of the host as they come, back into it as they go
-    const boxes = layout.boxes;
     if (atomElement) {
       const was = presences.current.get(ACTIONS);
       const box = boxes.actions;
       // Turning across: placed (and coming out) on the next pass, once it has turned
       const settled = layout.actionsAcross === across.current;
-      if (box && atomOut && settled) {
-        atomElement.style.left = `${box.left}px`;
-        atomElement.style.top = `${box.top}px`;
+      const moved = !!box && spots.current.has(ACTIONS) && spots.current.get(ACTIONS) !== spotOf(box);
+      if (animate && atomOut && was === "compact" && (!settled || moved) && !reduced && !rejoining.current.has(ACTIONS)) {
+        // Turning, or changing sides: back into the host, then out again, turned or on its new side
+        const turnTo = layout.actionsAcross;
+        rejoin(ACTIONS, atomElement, () => {
+          presences.current.set(ACTIONS, "hidden");
+          spots.current.delete(ACTIONS);
+          setActionsAcross(turnTo);
+          refresh();
+        });
+      } else if (animate && atomOut && !settled && !rejoining.current.has(ACTIONS)) {
+        // They turn after a render only, never while following the host as it resizes (no back and forth)
+        setActionsAcross(layout.actionsAcross);
+      }
+      if (box && atomOut && settled && !rejoining.current.has(ACTIONS)) {
+        // By the edge that faces the host: an action's label opening on hover grows away from it
+        const before = alongOf(box) < hostAlong;
+        const width = atomElement.offsetWidth || box.width;
+        const height = atomElement.offsetHeight || box.height;
+        atomElement.style.left = `${!vertical && before ? box.left + box.width - width : box.left}px`;
+        atomElement.style.top = `${vertical && before ? box.top + box.height - height : box.top}px`;
+        spots.current.set(ACTIONS, spotOf(box));
         if (animate && was !== "compact") playSplit(root, atomElement, "split", { delay: 0, duration: durations(atomElement).enter });
       } else if (animate && !atomOut && was === "compact") {
         const { fade, change, exit } = durations(atomElement);
         playSplit(root, atomElement, "join", { delay: fade + change, duration: exit });
+        spots.current.delete(ACTIONS);
       }
-      if (animate && (settled || !atomOut)) presences.current.set(ACTIONS, actionsPresence);
+      if (animate && !rejoining.current.has(ACTIONS) && (settled || !atomOut)) presences.current.set(ACTIONS, actionsPresence);
     }
     const crossOf = (box: Box) => Math.round(vertical ? box.left : box.top);
     out.forEach(({ electron }, index) => {
       const element = elements.current.get(electron.id)!;
       const box = boxes[electron.id];
       const was = presences.current.get(electron.id);
+      // On its way back in, to come out elsewhere: it stays where it was meanwhile
+      if (rejoining.current.has(electron.id)) return;
+      const moved = was === "compact" && spots.current.has(electron.id) && spots.current.get(electron.id) !== spotOf(box);
+      if (animate && moved && !reduced) {
+        spots.current.set(electron.id, spotOf(box));
+        rejoin(electron.id, element, () => {
+          arrange.current(false);
+          const next = elements.current.get(electron.id);
+          if (next) playSplit(root, next, "split", { delay: 0, duration: durations(next).enter });
+        });
+        return;
+      }
+      spots.current.set(electron.id, spotOf(box));
       const from = element.getBoundingClientRect();
       element.style.left = `${box.left}px`;
       element.style.top = `${box.top}px`;
@@ -287,6 +362,7 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
         const element = elements.current.get(entry.electron.id);
         if (!element || entry.presence !== "hidden" || presences.current.get(entry.electron.id) !== "compact") continue;
         const ending = entry.leaving ? (entry.electron.input.ending ?? host.electronEnding) : "join";
+        spots.current.delete(entry.electron.id);
         if (ending === "pop") continue; // the stylesheet scales it out
         const { fade, change, exit } = durations(element);
         playSplit(root, element, "join", { delay: fade + change, duration: exit });
@@ -327,6 +403,7 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
         shown.current.delete(id);
         presences.current.delete(id);
         rows.current.delete(id);
+        spots.current.delete(id);
         refresh();
       }, fade + change + exit + 100);
     });

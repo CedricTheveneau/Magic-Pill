@@ -53,6 +53,15 @@ describe("the controller", () => {
     window.history.pushState({}, "", "/");
   });
 
+  it("gives an electron with an empty id an id of its own (two of them aren't one)", () => {
+    pill().electron({ id: "", label: "Focus timer" });
+    pill().electron({ id: "", label: "Upload" });
+    const ids = getStore("main").getElectrons().map((electron) => electron.id);
+    expect(ids).toHaveLength(2);
+    expect(new Set(ids).size).toBe(2);
+    expect(ids).not.toContain("");
+  });
+
   it("takes its own href as its origin", () => {
     pill().electron({ label: "Upload", href: "/notes" });
     expect(getStore("main").getElectrons()[0].origin).toBe("/notes");
@@ -111,6 +120,16 @@ describe("the satellites' electrons", () => {
 
     advance(FADE + CHANGE + EXIT + 100);
     expect(electron()).toBeNull();
+  });
+
+  it("tucks in while the host travels to another placement, and comes out once it's there", () => {
+    const { rerender } = render(<App />);
+    start({ label: "Focus timer", href: "/focus" });
+    expect(electron()?.dataset.presence).toBe("compact");
+    rerender(<App placement="left" />);
+    expect(electron()?.dataset.presence).toBe("hidden");
+    advance(1600);
+    expect(electron()?.dataset.presence).toBe("compact");
   });
 
   it("pops away instead with ending=\"pop\"", () => {
