@@ -4,7 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import MagicPill from "../MagicPill/MagicPill";
 import { PillNavbar } from "../PillNavbar/PillNavbar";
 import { getStore, pill, resetStores, type ElectronOptions } from "../store/store";
-import { satellites } from "./index";
+import { satellites, usePillActions } from "./index";
+import type { PillActionItem } from "../store/store";
 
 const FADE = 150;
 const CHANGE = 250;
@@ -317,5 +318,148 @@ describe("an electron's orbitals as a wheel", () => {
     act(() => void document.dispatchEvent(Object.assign(new Event("pointermove"), { clientX: 10, clientY: 10 })));
     advance(1000);
     expect(document.querySelector('[role="menu"]')).not.toBeNull();
+  });
+});
+
+describe("the page's actions", () => {
+  beforeEach(() => {
+    resetStores();
+    vi.useFakeTimers();
+  });
+
+  const write: PillActionItem[] = [
+    { icon: <span>✎</span>, label: "Write" },
+    { icon: <span>✓</span>, label: "Mark all as read", href: "/inbox/read" },
+  ];
+  function Inbox({ items = write }: { items?: PillActionItem[] | null }) {
+    usePillActions(items);
+    return null;
+  }
+  const atom = () => document.querySelector<HTMLElement>('[data-mp="pill"][data-satellite="actions"]');
+
+  it("are set by the page while it's mounted, and go with it", () => {
+    const { rerender } = render(
+      <>
+        <App />
+        <Inbox />
+      </>,
+    );
+    expect(getStore("main").getActions()).toBe(write);
+    rerender(<App />);
+    expect(getStore("main").getActions()).toBeNull();
+  });
+
+  it("leave the next page's own alone", () => {
+    const next: PillActionItem[] = [{ icon: <span>+</span>, label: "New note" }];
+    const { rerender } = render(
+      <>
+        <App />
+        <Inbox />
+      </>,
+    );
+    rerender(
+      <>
+        <App />
+        <Inbox items={next} />
+      </>,
+    );
+    expect(getStore("main").getActions()).toBe(next);
+  });
+
+  it("come out of the host in a pill of their own, named, with a label on each", () => {
+    render(
+      <>
+        <App />
+        <Inbox />
+      </>,
+    );
+    expect(atom()?.dataset.presence).toBe("compact");
+    expect(atom()?.getAttribute("aria-label")).toBe("Page actions");
+    expect([...atom()!.querySelectorAll('[data-mp="action"] [data-mp="label"]')].map((label) => label.textContent)).toEqual([
+      "Write",
+      "Mark all as read",
+    ]);
+    expect(atom()!.querySelector("a")?.getAttribute("href")).toBe("/inbox/read");
+  });
+
+  it("go back into the host when there are none, and while a notification has the pill", () => {
+    const { rerender } = render(
+      <>
+        <App />
+        <Inbox />
+      </>,
+    );
+    act(() => void pill().notify({ message: "Saved" }));
+    expect(atom()?.dataset.presence).toBe("hidden");
+    rerender(
+      <>
+        <App />
+        <Inbox items={null} />
+      </>,
+    );
+    expect(atom()?.dataset.presence).toBe("hidden");
+  });
+
+  it("can be set from anywhere with pill().setActions()", () => {
+    render(<App />);
+    act(() => pill().setActions(write));
+    expect(atom()?.dataset.presence).toBe("compact");
+    act(() => pill().setActions([]));
+    expect(getStore("main").getActions()).toBeNull();
+  });
+
+  it("go in the pill itself, after a divider, with actionsStyle=\"inside\"", () => {
+    render(
+      <>
+        <App actionsStyle="inside" />
+        <Inbox />
+      </>,
+    );
+    expect(atom()).toBeNull();
+    const parts = [...host().children].map((child) => child.getAttribute("data-mp"));
+    expect(parts.slice(0, 3)).toEqual(["actions", "divider", "navbar"]);
+  });
+
+  it("after the content on the end side", () => {
+    render(
+      <>
+        <App actionsStyle="inside" actionsSide="end" />
+        <Inbox />
+      </>,
+    );
+    const parts = [...host().children].map((child) => child.getAttribute("data-mp"));
+    expect(parts.slice(0, 3)).toEqual(["navbar", "divider", "actions"]);
+  });
+});
+
+describe("the page's actions turning across", () => {
+  beforeEach(() => {
+    resetStores();
+    vi.useFakeTimers();
+  });
+
+  it("settles instead of turning back and forth when the turned pill measures oddly (its size animating)", () => {
+    // A 390 px phone: the host 290 px wide (240 folded), the actions 128 × 72 along it; turned, their pill
+    // measures 200 × 128 while its size animates. Laid out on that, they'd turn back and forth forever
+    const width = (element: HTMLElement) => {
+      if (element.dataset.satellite === "actions") return element.dataset.orientation === "vertical" ? 200 : 128;
+      // 240 px with its navbar's labels folded (the satellites measure that on a copy)
+      if (element.dataset.mp === "pill") return element.querySelector('[data-mp="navbar"][data-folded]') ? 240 : 290;
+      return 0;
+    };
+    const height = (element: HTMLElement) => (element.dataset.satellite === "actions" && element.dataset.orientation === "vertical" ? 128 : 72);
+    vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockImplementation(function (this: HTMLElement) {
+      return width(this);
+    });
+    vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockImplementation(function (this: HTMLElement) {
+      return height(this);
+    });
+    vi.stubGlobal("innerWidth", 390);
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    render(<App />);
+    act(() => pill().setActions([{ icon: <span>✎</span>, label: "Write" }, { icon: <span>✓</span>, label: "Done" }]));
+    advance(100);
+    expect(errors).not.toHaveBeenCalledWith(expect.stringContaining("Maximum update depth"), expect.anything(), expect.anything());
+    expect(document.querySelector('[data-satellite="actions"]')).not.toBeNull();
   });
 });

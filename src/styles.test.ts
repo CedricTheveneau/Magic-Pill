@@ -77,6 +77,15 @@ describe("styles.css", () => {
     expect(flag).toMatch(/&\[data-presence="hidden"\] {\s*scale: 1;\s*}/);
   });
 
+  it("sizes an electron's link as the whole circle, padding included, whatever box-sizing an app's reset sets", () => {
+    // Assert: an app's "* { box-sizing: border-box }" beats the layers; with content-box, the circle shrank to 44 px
+    const electron = /& \[data-mp="electron"\] {([^}]*)}/.exec(withoutComments)?.[1] ?? "";
+    expect(electron).toContain("box-sizing: border-box;");
+    expect(electron).toContain("inline-size: var(--_mp-rest-size);");
+    expect(electron).toContain("block-size: var(--_mp-rest-size);");
+    expect(electron).toContain("margin: calc(var(--_mp-padding) * -1);");
+  });
+
   it("lines a sidebar's items up along its screen edge, overridable with --mp-align", () => {
     // Assert
     expect(withoutComments).toContain("--_mp-align: var(--mp-align, center);");
