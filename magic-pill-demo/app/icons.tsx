@@ -157,3 +157,52 @@ export const ShapesIcon = () => (
     <circle cx="16.5" cy="17.5" r="3.5" />
   </svg>
 );
+
+export const AtomIcon = () => (
+  <svg {...stroke}>
+    <circle cx="9.5" cy="12" r="5" />
+    <circle cx="18.5" cy="12" r="2.5" />
+  </svg>
+);
+
+export const PlusIcon = () => (
+  <svg {...stroke}>
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+);
+
+export const PauseIcon = () => (
+  <svg {...stroke}>
+    <path d="M9 5.5v13M15 5.5v13" />
+  </svg>
+);
+
+export const PlayIcon = () => (
+  <svg {...stroke}>
+    <path d="M7.5 5.5v13l10-6.5Z" />
+  </svg>
+);
+
+export const StopIcon = () => (
+  <svg {...stroke}>
+    <rect x="6" y="6" width="12" height="12" rx="2.5" />
+  </svg>
+);
+
+export const UploadIcon = () => (
+  <svg {...stroke}>
+    <path d="M12 16V5M7.5 9.5 12 5l4.5 4.5M5 19.5h14" />
+  </svg>
+);
+
+export const CrossIcon = () => (
+  <svg {...stroke}>
+    <path d="M6 6l12 12M18 6 6 18" />
+  </svg>
+);
+
+export const ChecksIcon = () => (
+  <svg {...stroke}>
+    <path d="m3.5 12.5 4 4L15 9M10 16l1 1 9.5-9.5" />
+  </svg>
+);
