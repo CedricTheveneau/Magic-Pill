@@ -6,6 +6,7 @@ import { BoxIcon, DocumentIcon, InfoIcon, MagicPill, PillNavbar } from "magic-pi
 import { satellites } from "magic-pill/satellites";
 
 import { useDemo } from "./demo-context";
+import { useElectronSettings } from "./electron-settings";
 import { BookIcon } from "./icons";
 import { useStage } from "./stage";
 
@@ -23,9 +24,11 @@ export const NAV_ITEMS = [
  */
 export function AppPill() {
   const { showNavbar } = useDemo();
+  // The Electron's settings (beta), from its docs page: on every page
+  const { settings: electron } = useElectronSettings();
   const { stage } = useStage();
   const pathname = usePathname();
-  const navbar = showNavbar && <PillNavbar items={NAV_ITEMS} pathname={pathname} linkComponent={Link} />;
+  const navbar = showNavbar && <PillNavbar items={NAV_ITEMS} pathname={pathname} linkComponent={Link} labels={electron.labels} />;
   // `content: null` is a stage too: no base layer at all
   const staged = stage !== null && stage.content !== undefined;
 
@@ -34,6 +37,18 @@ export function AppPill() {
       linkComponent={Link}
       pathname={pathname}
       satellites={satellites}
+      theme={electron.theme === "plain" ? undefined : electron.theme}
+      electronSide={electron.electronSide}
+      electronLine={electron.electronLine}
+      keepElectronsOut={electron.keepElectronsOut}
+      electronEnding={electron.electronEnding}
+      arrange={electron.arrange}
+      orbitalsOpenOn={electron.orbitalsOpenOn}
+      orbitalLabels={electron.orbitalLabels}
+      orbitalsStayOpen={electron.orbitalsStayOpen}
+      actionsStyle={electron.actionsStyle}
+      actionsSide={electron.actionsSide}
+      actionsOrientation={electron.actionsOrientation}
       {...stage?.pill}
       className={stage?.pill?.className ? `app-pill ${stage.pill.className}` : "app-pill"}
       scene={staged ? stage.id : "navbar"}

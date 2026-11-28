@@ -1,9 +1,13 @@
 import { Lexend, Overlock } from "next/font/google";
+import { PillOptics } from "magic-pill";
 import "magic-pill/styles.css";
+// The glass themes, on every page: the Electron's settings can turn the main pill to glass anywhere
+import "magic-pill/themes.css";
 import "./globals.css";
 
 import { AppPill } from "./app-pill";
 import { DemoProvider } from "./demo-context";
+import { ElectronSettingsProvider } from "./electron-settings";
 import { HelpPill } from "./help-pill";
 import { StageProvider } from "./stage";
 
@@ -27,12 +31,16 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`${overlock.variable} ${lexend.variable}`}>
       <body>
         <DemoProvider>
-          <StageProvider>
-            {/* Before the pages: pills that share a spot line up in the order they mount, and this one keeps its own */}
-            <HelpPill />
-            {children}
-            <AppPill />
-          </StageProvider>
+          <ElectronSettingsProvider>
+            <StageProvider>
+              {/* Before the pages: pills that share a spot line up in the order they mount, and this one keeps its own */}
+              <HelpPill />
+              {children}
+              <AppPill />
+              {/* Refraction and adaptive tinting for the glass: it costs nothing to plain pills */}
+              <PillOptics />
+            </StageProvider>
+          </ElectronSettingsProvider>
         </DemoProvider>
       </body>
     </html>

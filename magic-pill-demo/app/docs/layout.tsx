@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
-import { PillOptics } from "magic-pill";
-// The optional stylesheets, for the docs' themes, forms and calendars
-import "magic-pill/themes.css";
+// The optional stylesheets, for the docs' forms and calendars (the themes are the whole site's)
 import "magic-pill/forms.css";
 import "magic-pill/calendar.css";
 import "./docs.css";
@@ -16,8 +14,6 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
   return (
     <>
       <DocsPill />
-      {/* Refraction and adaptive tinting for the glass examples: it costs nothing to plain pills */}
-      <PillOptics />
       <main className="page docs">{children}</main>
     </>
   );
