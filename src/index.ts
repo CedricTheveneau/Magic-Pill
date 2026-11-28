@@ -102,6 +102,7 @@ export type {
   ElectronOptions,
   Electron,
   Orbital,
+  PillActionItem,
 } from './store/store';
 export { usePillQueue } from './store/usePillQueue';
 

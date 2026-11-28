@@ -62,6 +62,18 @@ export interface PillQueueState {
   readonly queued: readonly QueuedNotification[];
 }
 
+/** One of the current page's actions, next to the pill (beta, `magic-pill/satellites`). */
+export interface PillActionItem {
+  icon: ReactNode;
+  /** Its name: shown on hover and focus, or all the time with `expanded` */
+  label: string;
+  onClick?: (event: { preventDefault(): void }) => void;
+  /** A link instead (with the host's `linkComponent`) */
+  href?: string;
+  expanded?: boolean;
+  id?: string;
+}
+
 /** One of an electron's quick actions (beta). */
 export interface Orbital {
   icon: ReactNode;
@@ -141,6 +153,11 @@ export interface PillController {
   updateElectron: (id: string, patch: Partial<ElectronOptions>) => void;
   /** End an electron: it joins back into the pill (or pops away). */
   endElectron: (id: string) => void;
+  /**
+   * The current page's actions, next to the pill (beta, `magic-pill/satellites`);
+   * `null` or none: they go. `usePillActions()` does it for a page while it's mounted.
+   */
+  setActions: (items: readonly PillActionItem[] | null) => void;
 }
 
 /** One named pill's queue. Internal: the host uses more than the controller exposes. */
@@ -157,6 +174,8 @@ export interface PillStore {
   electron: (input: ElectronOptions) => string;
   updateElectron: (id: string, patch: Partial<ElectronOptions>) => void;
   endElectron: (id: string) => void;
+  getActions: () => readonly PillActionItem[] | null;
+  setActions: (items: readonly PillActionItem[] | null) => void;
 }
 
 export const NO_ELECTRONS: readonly Electron[] = Object.freeze([]);
@@ -173,6 +192,7 @@ function createStore(name: string): PillStore {
   let state: PillQueueState = EMPTY_STATE;
   let hosts = 0;
   let electrons: readonly Electron[] = NO_ELECTRONS;
+  let actions: readonly PillActionItem[] | null = null;
   const listeners = new Set<() => void>();
   const setElectrons = (next: readonly Electron[]) => {
     electrons = next.length === 0 ? NO_ELECTRONS : next;
@@ -259,6 +279,15 @@ function createStore(name: string): PillStore {
       if (electrons.some((electron) => electron.id === id)) setElectrons(electrons.filter((electron) => electron.id !== id));
     },
 
+    getActions: () => actions,
+
+    setActions(items) {
+      const next = items && items.length > 0 ? items : null;
+      if (next === actions) return;
+      actions = next;
+      listeners.forEach((listener) => listener());
+    },
+
     registerHost() {
       hosts += 1;
       if (hosts > 1) {
@@ -299,6 +328,7 @@ export function pill(name = "main"): PillController {
       electron: (input: ElectronOptions) => store.electron(input),
       updateElectron: (id: string, patch: Partial<ElectronOptions>) => store.updateElectron(id, patch),
       endElectron: (id: string) => store.endElectron(id),
+      setActions: (items: readonly PillActionItem[] | null) => store.setActions(items),
     });
     controllers.set(name, controller);
   }
