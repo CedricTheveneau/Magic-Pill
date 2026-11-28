@@ -151,10 +151,12 @@ const SVG = "http://www.w3.org/2000/svg";
 /** The overlay: a filter (blur, threshold, the anchor's inside cut out, a fill, a shadow) and two shapes. */
 function createOverlay(zIndex: number, color: string, shadow: Shadow | null) {
   const id = `mp-goo-${++overlays}`;
+  // Only as big as the two pills, plus room for the blur and the shadow (placed at every frame):
+  // a filter over the whole screen, once per orbital, made opening them stutter
   const root = document.createElement("div");
   root.setAttribute("data-mp", "goo");
   root.setAttribute("aria-hidden", "true");
-  root.style.cssText = `position:fixed;inset:0;pointer-events:none;z-index:${zIndex};`;
+  root.style.cssText = `position:fixed;left:0;top:0;width:0;height:0;pointer-events:none;z-index:${zIndex};`;
   const svg = document.createElementNS(SVG, "svg");
   svg.setAttribute("width", "0");
   svg.setAttribute("height", "0");
@@ -200,15 +202,34 @@ function createOverlay(zIndex: number, color: string, shadow: Shadow | null) {
   return { root, layer, blur: filter.querySelector("feGaussianBlur")!, anchor, moving };
 }
 
-/** Puts a shape where a pill is on screen, with its rounded corners at its current scale. */
-function place(shape: HTMLElement, element: HTMLElement) {
-  const rect = element.getBoundingClientRect();
-  const scale = element.offsetWidth > 0 ? rect.width / element.offsetWidth : 1;
-  const radius = Number.parseFloat(getComputedStyle(element).borderTopLeftRadius) || 0;
-  shape.style.width = `${rect.width}px`;
-  shape.style.height = `${rect.height}px`;
-  shape.style.transform = `translate(${rect.left}px, ${rect.top}px)`;
-  shape.style.borderRadius = `${Math.min(radius * scale, rect.width / 2, rect.height / 2)}px`;
+/**
+ * Puts the overlay around the two pills (with `margin` for the blur and the
+ * shadow), and each shape where its pill is, with its rounded corners at its
+ * current scale (`radius`: read once, at its full size).
+ */
+function placeAll(
+  overlay: { root: HTMLElement; anchor: HTMLElement; moving: HTMLElement },
+  pills: { anchor: HTMLElement; moving: HTMLElement },
+  radii: { anchor: number; moving: number },
+  margin: number,
+) {
+  const a = pills.anchor.getBoundingClientRect();
+  const m = pills.moving.getBoundingClientRect();
+  const left = Math.min(a.left, m.left) - margin;
+  const top = Math.min(a.top, m.top) - margin;
+  const root = overlay.root.style;
+  root.transform = `translate(${left}px, ${top}px)`;
+  root.width = `${Math.max(a.right, m.right) + margin - left}px`;
+  root.height = `${Math.max(a.bottom, m.bottom) + margin - top}px`;
+  const put = (shape: HTMLElement, rect: DOMRect, element: HTMLElement, radius: number) => {
+    const scale = element.offsetWidth > 0 ? rect.width / element.offsetWidth : 1;
+    shape.style.width = `${rect.width}px`;
+    shape.style.height = `${rect.height}px`;
+    shape.style.transform = `translate(${rect.left - left}px, ${rect.top - top}px)`;
+    shape.style.borderRadius = `${Math.min(radius * scale, rect.width / 2, rect.height / 2)}px`;
+  };
+  put(overlay.anchor, a, pills.anchor, radii.anchor);
+  put(overlay.moving, m, pills.moving, radii.moving);
 }
 
 // The moving pill's own look, transparent while the overlay draws it. Its
@@ -252,6 +273,11 @@ export function playSplit(anchor: HTMLElement, moving: HTMLElement, kind: "split
   const easing = kind === "split" ? splitEasing(style.getPropertyValue("--mp-ease-split")) : SMOOTH;
 
   let overlay: ReturnType<typeof createOverlay> | null = null;
+  const radii = { anchor: 0, moving: 0 };
+  let margin = 0;
+  const placeShapes = () => {
+    if (overlay) placeAll(overlay, { anchor, moving }, radii, margin);
+  };
   // A join starts apart, with its blur; a split starts inside the anchor, without
   let glass = kind === "join";
   const saved = new Map<string, [string, string]>();
@@ -329,9 +355,12 @@ export function playSplit(anchor: HTMLElement, moving: HTMLElement, kind: "split
     saved.set("transition", [moving.style.getPropertyValue("transition"), moving.style.getPropertyPriority("transition")]);
     moving.style.setProperty("transition", "none", "important");
     const own = getComputedStyle(moving);
-    overlay = createOverlay(zIndex, own.backgroundColor, dropShadow(own.boxShadow));
-    place(overlay.anchor, anchor);
-    place(overlay.moving, moving);
+    const shadow = dropShadow(own.boxShadow);
+    overlay = createOverlay(zIndex, own.backgroundColor, shadow);
+    radii.anchor = Number.parseFloat(getComputedStyle(anchor).borderTopLeftRadius) || 0;
+    radii.moving = Number.parseFloat(own.borderTopLeftRadius) || 0;
+    margin = goo * 3 + (shadow ? shadow.blur + Math.max(Math.abs(shadow.x), Math.abs(shadow.y)) : 0) + 8;
+    placeShapes();
     hideOwnLook();
     if (kind === "split") {
       for (const name of BLUR) {
@@ -359,8 +388,7 @@ export function playSplit(anchor: HTMLElement, moving: HTMLElement, kind: "split
     if (begun && overlay) {
       const k = Math.min(1, Math.max(0, (elapsed - timing.delay) / timing.duration));
       overlay.blur.setAttribute("stdDeviation", (goo * gooAmount(k)).toFixed(2));
-      place(overlay.anchor, anchor);
-      place(overlay.moving, moving);
+      placeShapes();
       setGlass(!overlaps(moving.getBoundingClientRect(), anchor.getBoundingClientRect()));
     }
     if (elapsed >= timing.delay + timing.duration) {

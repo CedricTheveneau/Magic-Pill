@@ -115,6 +115,15 @@ describe("playSplit", () => {
     expect(moving.style.getPropertyValue("transition")).toBe("");
   });
 
+  it("only covers the two pills, not the whole screen (a filter per orbital made them stutter)", () => {
+    const { anchor, moving } = pills();
+    playSplit(anchor, moving, "split", { delay: 0, duration: 40 });
+    const overlay = document.querySelector<HTMLElement>('[data-mp="goo"]')!;
+    expect(overlay.style.inset).toBe("");
+    expect(overlay.style.width).not.toBe("");
+    expect(overlay.style.width).not.toBe("100%");
+  });
+
   it("a join waits for its delay before it moves", async () => {
     const { anchor, moving } = pills();
     playSplit(anchor, moving, "join", { delay: 60, duration: 40 });
