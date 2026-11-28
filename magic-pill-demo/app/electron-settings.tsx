@@ -19,6 +19,8 @@ export interface ElectronSettings {
   actionsStyle: NonNullable<MagicPillProps["actionsStyle"]>;
   actionsSide: NonNullable<MagicPillProps["actionsSide"]>;
   actionsOrientation: NonNullable<MagicPillProps["actionsOrientation"]>;
+  actionsWheel: boolean;
+  nearestToPill: NonNullable<MagicPillProps["nearestToPill"]>;
 }
 
 export const ELECTRON_DEFAULTS: ElectronSettings = {
@@ -35,6 +37,8 @@ export const ELECTRON_DEFAULTS: ElectronSettings = {
   actionsStyle: "detached",
   actionsSide: "start",
   actionsOrientation: "auto",
+  actionsWheel: false,
+  nearestToPill: "electrons",
 };
 
 const KEY = "magic-pill-demo-electron";

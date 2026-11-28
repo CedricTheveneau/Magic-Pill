@@ -49,6 +49,8 @@ export function AppPill() {
       actionsStyle={electron.actionsStyle}
       actionsSide={electron.actionsSide}
       actionsOrientation={electron.actionsOrientation}
+      actionsWheel={electron.actionsWheel}
+      nearestToPill={electron.nearestToPill}
       {...stage?.pill}
       className={stage?.pill?.className ? `app-pill ${stage.pill.className}` : "app-pill"}
       scene={staged ? stage.id : "navbar"}

@@ -34,6 +34,8 @@ const CHOICES = [
   { key: "actionsStyle", legend: "The page's actions", prop: "actionsStyle", options: [["detached", "A pill of their own"], ["inside", "In the pill"]] },
   { key: "actionsSide", legend: "Their side", prop: "actionsSide", options: [["start", "Start"], ["end", "End"], ["beside", "Beside"]] },
   { key: "actionsOrientation", legend: "Their orientation", prop: "actionsOrientation", options: [["auto", "Automatic"], ["horizontal", "Horizontal"], ["vertical", "Vertical"]] },
+  { key: "actionsWheel", legend: "Short of room", prop: "actionsWheel", options: yesNo("What fits shows, the rest in a wheel", "They turn across") },
+  { key: "nearestToPill", legend: "Nearer the pill", prop: "nearestToPill", options: [["electrons", "The electrons"], ["actions", "The actions"]] },
   { key: "labels", legend: "The navbar's labels", prop: "labels (PillNavbar)", options: [["auto", "Automatic"], ["current", "The current page's"], ["closed", "None"]] },
 ] as Choice<keyof ElectronSettings>[];
 
@@ -186,7 +188,8 @@ usePillActions([
             wide
             code={`"use client";
 import { MagicPill, PillNavbar } from "magic-pill";
-import { satellites } from "magic-pill/satellites"; // optional: only the apps that use it pay for it
+// The electrons, their orbitals and the page's actions; optional: only the apps that use them pay for them
+import { satellites } from "magic-pill/satellites";
 
 <MagicPill pathname={pathname} satellites={satellites} linkComponent={Link}>
   <PillNavbar items={items} pathname={pathname} linkComponent={Link} />
@@ -224,6 +227,7 @@ import { satellites } from "magic-pill/satellites"; // optional: only the apps t
               ["`orbitalsOpenOn`", "`\"press-hover\"` (or `\"press\"`, `\"tap\"`)"],
               ["`orbitalLabels` / `orbitalsStayOpen`", "`true` / `true`"],
               ["`actionsStyle` / `actionsSide` / `actionsOrientation`", "`\"detached\"` / `\"start\"` / `\"auto\"`"],
+              ["`actionsWheel` / `nearestToPill`", "`false` / `\"electrons\"` (or `\"actions\"`)"],
               ["`actionsLabel`", "`\"Page actions\"`"],
             ]}
           />
