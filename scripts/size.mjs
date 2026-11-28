@@ -99,8 +99,10 @@ const PROBES = [
     description: "the quick start, with the electrons (magic-pill/satellites, beta)",
     code: 'export { MagicPill, pill } from "ENTRY"; export { satellites } from "SATELLITES";',
     // 18.16 kB with the electrons (the layer, the layout, PillProgress): 2.62 kB more than the quick start,
-    // 18.49 kB with the navbar's folded width, to know whether an electron fits next to it
-    budget: 18.75 * KB,
+    // 18.49 kB with the navbar's folded width, to know whether an electron fits next to it,
+    // 21.71 kB with the orbitals (their arc around obstacles, the long press, sliding to one,
+    // hovering, the keyboard's menu, their labels)
+    budget: 22 * KB,
   },
 ];
 const STYLESHEETS = [
@@ -113,8 +115,9 @@ const STYLESHEETS = [
     // then from 2.75 kB for a navbar's narrow screens and colours that change together: 2.90 kB,
     // then from 3 kB for the panel's slots: 3.09 kB,
     // a vertical pill's circle: 3.10 kB, notifications in rows: 3.20 kB,
-    // then from 3.5 kB for the electron (its link, its value) and PillProgress's ring: 3.66 kB
-    budget: 3.75 * KB, // 2.15 kB at 9.0.0-next.1 (3.89 kB with its comments, as shipped)
+    // then from 3.5 kB for the electron (its link, its value) and PillProgress's ring: 3.66 kB,
+    // then from 3.75 kB for the orbitals and their label: 3.92 kB
+    budget: 4 * KB, // 2.15 kB at 9.0.0-next.1 (3.89 kB with its comments, as shipped)
   },
   {
     name: "themes.css",
