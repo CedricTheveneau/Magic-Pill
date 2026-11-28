@@ -47,6 +47,38 @@
   }
 
   @layer look {
+    /* How far a scrolling navbar's ends fade (see the sidebars' navbar):
+       registered, so that a scroll-driven animation can move them */
+    @property --_mp-scroll-start {
+      syntax: "<length>";
+      inherits: false;
+      initial-value: 0px;
+    }
+
+    @property --_mp-scroll-end {
+      syntax: "<length>";
+      inherits: false;
+      initial-value: 0px;
+    }
+
+    /* A scrolling navbar's ends: no fade at the end it's at. Without anything
+       to scroll, the timeline is inactive and there's no fade at all */
+    @keyframes mp-scroll-ends {
+      0% {
+        --_mp-scroll-start: 0px;
+        --_mp-scroll-end: 1.5rem;
+      }
+      10%,
+      90% {
+        --_mp-scroll-start: 1.5rem;
+        --_mp-scroll-end: 1.5rem;
+      }
+      100% {
+        --_mp-scroll-start: 1.5rem;
+        --_mp-scroll-end: 0px;
+      }
+    }
+
     /* ─── Look ─────────────────────────────────────────────────────────────── */
 
     [data-mp="pill"]:not([data-unstyled]) {
@@ -832,6 +864,37 @@
         & [data-mp="action-body"] {
           justify-content: center;
           inline-size: 100%;
+        }
+      }
+
+      /* A sidebar's navbar longer than the screen scrolls inside its pill
+         (the docs of an app with many sections, a short phone held
+         sideways). It reaches the pill's edges, so that what scrolls goes
+         under them, and where the browser can tell, the ends that hide some
+         fade out */
+      &[data-orientation="vertical"] [data-mp="navbar"] {
+        flex: 0 1 auto;
+        min-block-size: 0;
+        margin: calc(var(--_mp-padding) * -1);
+        padding: var(--_mp-padding);
+        overflow: hidden auto;
+        overscroll-behavior: contain;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+
+        @supports (animation-timeline: scroll()) {
+          mask-image: linear-gradient(
+            to bottom,
+            transparent,
+            #000 var(--_mp-scroll-start),
+            #000 calc(100% - var(--_mp-scroll-end)),
+            transparent
+          );
+          animation: mp-scroll-ends linear both;
+          animation-timeline: scroll(self block);
         }
       }
 
