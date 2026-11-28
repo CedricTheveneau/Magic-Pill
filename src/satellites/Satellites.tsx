@@ -16,6 +16,7 @@ import {
 
 import Pill from "../Pill/Pill";
 import { playSplit } from "../Pill/goo";
+import { MORPH } from "../Pill/morph";
 import { PillProgress } from "../Pill/PillProgress";
 import type { PillPresence } from "../Pill/types";
 import { findActiveIndex } from "../PillNavbar/matchPath";
@@ -150,7 +151,31 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
       clearTimeout(fallback);
     };
   }, [travelling, host.rootRef]);
-  const tucked = (host.notifying && !host.keepElectronsOut) || travelling;
+  // Back from a notification (or a trip), the host grows to its base layer first: they come out
+  // once it has. Held in from the render it ends on (a frame out would start a split and a join)
+  const wanted = (host.notifying && !host.keepElectronsOut) || travelling;
+  const wasTucked = useRef(wanted);
+  const holding = useRef(false);
+  if (wasTucked.current && !wanted) holding.current = true;
+  wasTucked.current = wanted;
+  useIsomorphicLayoutEffect(() => {
+    const root = host.rootRef.current;
+    if (wanted || !holding.current) return;
+    const release = () => {
+      holding.current = false;
+      refresh();
+    };
+    const morphs = (root?.getAnimations?.() ?? []).filter((animation) => animation.id === MORPH);
+    if (morphs.length === 0) return release();
+    let cancelled = false;
+    void Promise.allSettled(morphs.map((animation) => animation.finished)).then(() => {
+      if (!cancelled) release();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [wanted]);
+  const tucked = wanted || holding.current;
 
   // The page's actions, in a pill of their own: out while there are some, the last ones kept while they go back
   const actions = useHostActions(host);
@@ -299,8 +324,8 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
         spots.current.set(ACTIONS, spotOf(box));
         if (animate && was !== "compact") playSplit(root, atomElement, "split", { delay: 0, duration: durations(atomElement).enter });
       } else if (animate && !atomOut && was === "compact") {
-        const { fade, change, exit } = durations(atomElement);
-        playSplit(root, atomElement, "join", { delay: fade + change, duration: exit });
+        const { fade, exit } = durations(atomElement);
+        playSplit(root, atomElement, "join", { delay: fade, duration: exit });
         spots.current.delete(ACTIONS);
       }
       if (animate && !rejoining.current.has(ACTIONS) && (settled || !atomOut)) presences.current.set(ACTIONS, actionsPresence);
@@ -364,8 +389,8 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
         const ending = entry.leaving ? (entry.electron.input.ending ?? host.electronEnding) : "join";
         spots.current.delete(entry.electron.id);
         if (ending === "pop") continue; // the stylesheet scales it out
-        const { fade, change, exit } = durations(element);
-        playSplit(root, element, "join", { delay: fade + change, duration: exit });
+        const { fade, exit } = durations(element);
+        playSplit(root, element, "join", { delay: fade, duration: exit });
       }
       for (const entry of entries) presences.current.set(entry.electron.id, entry.presence);
     }
