@@ -68,6 +68,15 @@ describe("styles.css", () => {
     expect(withoutComments).toContain("--_mp-fade: var(--mp-duration-fade, 150ms);");
   });
 
+  it("lets a sidebar's flag come out of its edge (goo.ts) without scaling, on the split's and the join's durations", () => {
+    // Assert
+    const flag = /&\[data-layout="flag"\] {([\s\S]*?)\n {6}}/.exec(withoutComments)?.[1] ?? "";
+    expect(flag).toContain("--_mp-enter: var(--mp-duration-split, var(--mp-duration-enter, 500ms));");
+    expect(flag).toContain("--_mp-exit: var(--mp-duration-join, var(--mp-duration-exit, 300ms));");
+    expect(flag).toContain("--_mp-exit-scale: 1;");
+    expect(flag).toMatch(/&\[data-presence="hidden"\] {\s*scale: 1;\s*}/);
+  });
+
   it("lines a sidebar's items up along its screen edge, overridable with --mp-align", () => {
     // Assert
     expect(withoutComments).toContain("--_mp-align: var(--mp-align, center);");
