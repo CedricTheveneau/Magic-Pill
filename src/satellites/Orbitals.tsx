@@ -16,7 +16,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import Pill from "../Pill/Pill";
-import { playSplit } from "../Pill/goo";
+import { playOrbit } from "../Pill/goo";
 import type { Electron, Orbital } from "../store/store";
 import { useIsomorphicLayoutEffect } from "../utils/react";
 import { parseDuration } from "../utils/timing";
@@ -95,7 +95,6 @@ export function Orbitals({
   const orbit = useRef<Orbit | null>(null);
   const settings = useRef<Settings | null>(null);
   const pills = useRef(new Map<number, HTMLElement>());
-  const was = useRef<boolean[]>([]);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const labelRef = useRef<HTMLSpanElement | null>(null);
   const focusFirst = useRef(false);
@@ -107,12 +106,6 @@ export function Orbitals({
     timers.current.forEach(clearTimeout);
     timers.current = [];
   };
-  const showAt = (index: number, value: boolean) =>
-    setShown((current) => {
-      const next = [...current];
-      next[index] = value;
-      return next;
-    });
 
   // Where they go: measured as they open, from the electron and what's around it
   const plan = () => {
@@ -151,11 +144,11 @@ export function Orbitals({
       if (current.wheel) {
         pill.style.opacity = String(spot.shown);
         pill.style.scale = String((0.6 + 0.4 * spot.shown) * (api.current.hot === index ? 1.12 : 1));
-        pill.style.pointerEvents = spot.shown < 0.5 ? "none" : "auto";
+        pill.style.pointerEvents = spot.shown < 0.5 || closing.current ? "none" : "auto";
       } else {
         pill.style.removeProperty("opacity");
         pill.style.removeProperty("scale");
-        pill.style.pointerEvents = "auto";
+        pill.style.pointerEvents = closing.current ? "none" : "auto";
       }
     });
     placeLabel();
@@ -199,29 +192,64 @@ export function Orbitals({
   };
   const snap = () => turnTo(Math.round(turn.current), true);
 
+  // The motion of the moment, so that the next one stops it first
+  const motion = useRef<() => void>(() => {});
+  // They're on their way out: the next render plays their bulging out of the electron
+  const opening = useRef(false);
+  // On their way back in: out of reach, so that a pointer still over them can't hold them
+  const closing = useRef(false);
+
+  /** The orbitals that show, each with its delay: one after the other along the arc (or the other way round). */
+  const sequence = (reverse: boolean, stagger: number) => {
+    const current = orbit.current;
+    const shownOnes = items
+      .map((_, index) => ({ index, shown: current ? spotOn(current, index, turn.current).shown : 1 }))
+      .filter(({ shown }) => shown > 0);
+    return shownOnes.map(({ index, shown }, rank) => ({
+      element: pills.current.get(index)!,
+      shown,
+      delay: (reverse ? shownOnes.length - 1 - rank : rank) * stagger,
+    })).filter(({ element }) => element);
+  };
+
   const open = (how: How) => {
     if (items.length === 0 || !out) return;
     window.dispatchEvent(new CustomEvent(OPENED, { detail: electron.id }));
     clearTimers();
-    const read = plan();
-    if (!read) return;
+    motion.current();
+    if (!plan()) return;
     focusFirst.current = how === "key";
     turn.current = 0;
+    opening.current = true;
+    closing.current = false;
     setHot(-1);
     setRing({ how });
-    items.forEach((_, index) => timers.current.push(setTimeout(() => showAt(index, true), index * read.stagger)));
+    setShown(items.map(() => true));
   };
 
   const close = (quick = false) => {
     if (!ring) return;
     clearTimers();
     setHot(-1);
-    const element = pills.current.get(0);
-    const { fade, exit } = element ? durations(element) : { fade: 150, exit: 300 };
+    closing.current = true;
+    for (const pill of pills.current.values()) pill.style.pointerEvents = "none";
+    const element = getElement();
+    const first = pills.current.get(0);
+    const { fade, exit } = first ? durations(first) : { fade: 150, exit: 300 };
+    // Snappier than they came out; at once when their electron goes (the stop of a timer)
+    const duration = quick ? fade + 100 : exit * 0.8;
     const stagger = quick ? 0 : (settings.current?.stagger ?? 30) * 0.6;
-    const count = items.length;
-    items.forEach((_, index) => timers.current.push(setTimeout(() => showAt(index, false), (count - 1 - index) * stagger)));
-    timers.current.push(setTimeout(() => setRing(null), (count - 1) * stagger + fade + exit + 50));
+    const steps = sequence(true, stagger);
+    motion.current();
+    if (element) motion.current = playOrbit(element, steps, "close", { duration });
+    const longest = Math.max(0, ...steps.map(({ delay }) => delay)) + duration;
+    timers.current.push(
+      setTimeout(() => {
+        setRing(null);
+        setShown([]);
+        closing.current = false;
+      }, longest + 30),
+    );
   };
 
   // The latest of everything, for the electron's listeners
@@ -448,34 +476,24 @@ export function Orbitals({
     [],
   );
 
-  // Into their spots, out of the electron (or back into it) as each one shows or hides
+  // Into their spots; just opened, out of the electron's centre, one after the other
   useIsomorphicLayoutEffect(() => {
     const element = getElement();
     if (!ring || !element || !orbit.current) return;
     applyTurn();
-    items.forEach((_, index) => {
-      const pill = pills.current.get(index);
-      if (!pill || !orbit.current) return;
-      // Only the ones fully on the arc: the goo's overlay can't draw a faint one
-      const onArc = spotOn(orbit.current, index, turn.current).shown === 1;
-      const now = !!shown[index];
-      if (now && !was.current[index] && onArc) playSplit(element, pill, "split", { delay: 0, duration: durations(pill).enter });
-      if (!now && was.current[index] && onArc) {
-        const { fade, exit } = durations(pill);
-        playSplit(element, pill, "join", { delay: fade, duration: exit });
-      }
-      was.current[index] = now;
-    });
+    if (opening.current && pills.current.size >= items.length) {
+      opening.current = false;
+      const first = pills.current.get(0);
+      const duration = (first ? durations(first).enter : 500) * 0.8;
+      motion.current = playOrbit(element, sequence(false, settings.current?.stagger ?? 30), "open", { duration });
+    }
     if (focusFirst.current && shown[0]) {
       focusFirst.current = false;
       pills.current.get(0)?.querySelector<HTMLElement>('[data-mp="orbital"]')?.focus();
     }
   });
   useEffect(() => {
-    if (!ring) {
-      was.current = [];
-      turn.current = 0;
-    }
+    if (!ring) turn.current = 0;
   }, [ring]);
 
   if (!ring || items.length === 0) return null;
@@ -538,7 +556,9 @@ export function Orbitals({
             data-index={index}
             data-hot={hot === index ? "" : undefined}
             style={ORBITAL_STYLE}
-            onPointerEnter={() => setHot(index)}
+            onPointerEnter={() => {
+              if (!closing.current) setHot(index);
+            }}
             onPointerLeave={() => setHot(-1)}
           >
             {item.href !== undefined ? (
