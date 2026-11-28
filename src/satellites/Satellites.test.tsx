@@ -156,3 +156,114 @@ describe("the satellites' electrons", () => {
     expect(electron()).toBeNull();
   });
 });
+
+describe("an electron's orbitals", () => {
+  beforeEach(() => {
+    resetStores();
+    vi.useFakeTimers();
+  });
+
+  const link = () => electron()!.querySelector<HTMLElement>('[data-mp="electron"]')!;
+  const menu = () => document.querySelector<HTMLElement>('[role="menu"]');
+  const orbitals = () => [...document.querySelectorAll<HTMLElement>('[data-satellite="orbital"]')];
+  const items = () => [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')];
+  const timer = (onClick = vi.fn()) => ({
+    label: "Focus timer",
+    href: "/focus",
+    orbitals: [
+      { icon: <span>+</span>, label: "+1 min", onClick },
+      { icon: <span>II</span>, label: "Pause" },
+      { icon: <span>»</span>, label: "Skip" },
+    ],
+  });
+  const longPress = () => {
+    act(() => void link().dispatchEvent(Object.assign(new Event("pointerdown", { bubbles: true }), { button: 0, clientX: 0, clientY: 0, pointerId: 1 })));
+    advance(450);
+    advance(200);
+  };
+
+  it("opens on a long press: a menu of its orbitals, coming out one after the other", () => {
+    render(<App />);
+    start(timer());
+    expect(link().getAttribute("aria-haspopup")).toBe("menu");
+    expect(menu()).toBeNull();
+
+    longPress();
+    expect(menu()?.getAttribute("aria-label")).toBe("Focus timer");
+    expect(items().map((item) => item.getAttribute("aria-label"))).toEqual(["+1 min", "Pause", "Skip"]);
+    expect(orbitals().every((orbital) => orbital.dataset.presence === "compact")).toBe(true);
+    expect(link().getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("opens from the keyboard with the arrow away from the edge, focusing the first; Escape closes them", () => {
+    render(<App />);
+    start(timer());
+    act(() => void link().dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })));
+    advance(200);
+    expect(document.activeElement?.getAttribute("aria-label")).toBe("+1 min");
+
+    act(() => void items()[0].dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true })));
+    expect(document.activeElement?.getAttribute("aria-label")).toBe("Pause");
+
+    act(() => void items()[1].dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
+    expect(document.activeElement).toBe(link());
+    advance(1000);
+    expect(menu()).toBeNull();
+  });
+
+  it("runs an orbital and stays open, or closes with orbitalsStayOpen={false}", () => {
+    const onClick = vi.fn();
+    const { rerender } = render(<App />);
+    start(timer(onClick));
+    longPress();
+    act(() => items()[0].click());
+    expect(onClick).toHaveBeenCalledOnce();
+    advance(1000);
+    expect(menu()).not.toBeNull();
+
+    rerender(<App orbitalsStayOpen={false} />);
+    act(() => items()[0].click());
+    advance(1000);
+    expect(menu()).toBeNull();
+  });
+
+  it("opens on a tap with orbitalsOpenOn=\"tap\", with a first orbital going back", () => {
+    render(<App orbitalsOpenOn="tap" />);
+    start(timer());
+    act(() => link().click());
+    advance(200);
+    expect(items()[0].getAttribute("aria-label")).toBe("Back");
+    expect(items()[0].getAttribute("href")).toBe("/focus");
+    expect(items()).toHaveLength(4);
+  });
+
+  it("closes on a tap away", () => {
+    render(<App />);
+    start(timer());
+    longPress();
+    act(() => void document.body.dispatchEvent(new Event("pointerdown", { bubbles: true })));
+    advance(1000);
+    expect(menu()).toBeNull();
+  });
+
+  it("closes when the electron tucks in", () => {
+    render(<App />);
+    start(timer());
+    longPress();
+    act(() => void pill().notify({ message: "Saved" }));
+    advance(1000);
+    expect(menu()).toBeNull();
+  });
+
+  it("shows the label of the one focused, unless orbitalLabels={false}", () => {
+    const { rerender } = render(<App />);
+    start(timer());
+    act(() => void link().dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })));
+    advance(200);
+    expect(document.querySelector('[data-mp="orbital-label"]')?.textContent).toBe("+1 min");
+    expect(orbitals()[0].dataset.hot).toBe("");
+
+    rerender(<App orbitalLabels={false} />);
+    expect(document.querySelector('[data-mp="orbital-label"]')).toBeNull();
+  });
+});

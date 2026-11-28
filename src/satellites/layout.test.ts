@@ -55,6 +55,16 @@ describe("planSatellites", () => {
     expect(layout.boxes.e2.top).toBe(624 - 16 - 72);
   });
 
+  it("keeps it in the row when the navbar can fold its labels to make room", () => {
+    // 298 px with its current page's label, 228 px folded: 228 + 16 + 72 fits the 342 px a phone leaves
+    const layout = planSatellites(phone({ host: { left: 46, top: 624, width: 298, height: 72 }, hostMin: 228 }));
+    expect(layout.movedBeside).toEqual([]);
+    expect(layout.boxes.e1.top).toBe(624);
+    expect(layout.reserve).toBe(88);
+    // Not even folded: above it, as before
+    expect(planSatellites(phone({ host: { left: 30, top: 624, width: 330, height: 72 }, hostMin: 300 })).movedBeside).toEqual(["e1"]);
+  });
+
   it("stacks several across, on the first one", () => {
     const layout = planSatellites(phone({ electrons: [electron("e1"), electron("e2")], line: "across" }));
     expect(layout.boxes.e2).toEqual({ ...layout.boxes.e1, top: layout.boxes.e1.top - 16 - 72 });

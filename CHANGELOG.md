@@ -4,10 +4,13 @@
 
 ### Added
 - **Beta:** the Electron, in an optional entry, `magic-pill/satellites`: a small round pill that splits out of the host to keep a background activity in reach. `pill().electron()`, `updateElectron()` and `endElectron()`; on `<MagicPill>`, `satellites`, `pathname`, `electronSide`, `electronLine`, `keepElectronsOut`, `electronEnding` and `arrange`. It's tucked into the pill on the page that started it and while a notification has the pill, a tap goes back to that page, and the pill and its electrons stay centred as a group
+- **Beta:** an electron's orbitals, its quick actions fanned out around it (`orbitals` on `pill().electron()`): opened by a long press (slide to one and release to run it), hovering with a mouse, or a tap (`orbitalsOpenOn`, with a first orbital going back), and the keyboard as a menu. On an arc away from the screen's edge, clear of the pill and the other electrons. `orbitalLabels`, `orbitalsStayOpen`, `backLabel`, and the tokens `--mp-orbital-size`, `--mp-orbital-distance`, `--mp-orbital-spread`, `--mp-orbital-stagger`, `--mp-hover-delay` and `--mp-long-press`
+- `labels` on `<PillNavbar>`: which labels show at rest. `"auto"` (the default) shows the current page's while the pill has room for it and folds it when it doesn't, `"current"` always shows it, `"closed"` shows none. An electron stays in the pill's row when the navbar can fold to make room, and only goes above it when it still doesn't fit
 - `PillProgress`: a progress ring around a value or an icon, in the text colour (`--mp-progress-size`, `--mp-progress-width`)
 - The split's tokens, for a sidebar's flag: `--mp-duration-split` and `--mp-duration-join` (the enter and exit durations by default), `--mp-ease-split` (`bouncy`, the default, `pop`, `smooth` or any CSS easing), `--mp-goo` (`12`; `0` for no neck) and `--mp-electron-start` (`1`)
 
 ### Changed
+- A navbar whose current page's label has no room folds it (`labels="auto"`, the new default), instead of the pill cutting its last items off. `labels="current"` keeps the old behaviour
 - A sidebar's flag comes out of the sidebar's edge as a droplet, with goo: a neck forms between them, stretches and snaps, on a bouncy curve, and it goes back into the sidebar the same way. It no longer pops in at its spot with a short bridge, nor scales in and out. With reduced motion it still fades. On the glass themes, its blur waits until it's clear of the sidebar
 
 ## [9.3.0] - 2026-11-27

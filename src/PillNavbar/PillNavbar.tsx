@@ -6,7 +6,7 @@ import PillAction from "../Pill/PillAction";
 import { PillPanelTrigger } from "../Pill/PillPanel";
 import type { LinkComponent } from "../Pill/types";
 import { findActiveIndex, type NavMatch } from "./matchPath";
-import { useRoom } from "./room";
+import { useRoom, type NavLabels } from "./room";
 import { mergeRefs } from "../utils/react";
 
 interface NavItemBase {
@@ -56,6 +56,13 @@ export interface PillNavbarProps extends Omit<ComponentPropsWithoutRef<"nav">, "
    */
   pathname?: string;
   linkComponent?: LinkComponent;
+  /**
+   * Which labels show at rest: the current page's ("current"), none
+   * ("closed"), or the current page's while the pill has room for it
+   * ("auto", the default: it folds next to an electron on a narrow screen).
+   * An item pointed at or focused shows its label in every case.
+   */
+  labels?: NavLabels;
   /** Default "Main". */
   "aria-label"?: string;
 }
@@ -80,12 +87,12 @@ const isLink = (item: NavItem): item is NavLinkItem => item.href !== undefined;
  * label and gets `aria-current="page"`. Render it inside a <Pill>, or as the base layer of a <MagicPill>.
  */
 export const PillNavbar = forwardRef<HTMLElement, PillNavbarProps>(function PillNavbar(
-  { items, pathname, linkComponent, "aria-label": ariaLabel = "Main", ...rest },
+  { items, pathname, linkComponent, labels = "auto", "aria-label": ariaLabel = "Main", ...rest },
   forwardedRef,
 ) {
   const navRef = useRef<HTMLElement | null>(null);
   const ref = useMemo(() => mergeRefs(navRef, forwardedRef), [forwardedRef]);
-  useRoom(navRef);
+  useRoom(navRef, labels);
   const locationPathname = useLocationPathname(pathname === undefined);
   const links = items.filter(isLink);
   const active = links[findActiveIndex(pathname ?? locationPathname, links)];
@@ -114,7 +121,7 @@ export const PillNavbar = forwardRef<HTMLElement, PillNavbarProps>(function Pill
   };
 
   return (
-    <nav aria-label={ariaLabel} {...rest} ref={ref} data-mp="navbar">
+    <nav aria-label={ariaLabel} {...rest} ref={ref} data-mp="navbar" data-labels={labels}>
       <PillActions>{items.map(renderItem)}</PillActions>
     </nav>
   );

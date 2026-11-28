@@ -125,10 +125,10 @@ describe("styles.css", () => {
     expect(withoutComments.match(/[^-]color var\(--_mp-change\) ease-in-out/g)?.length).toBeGreaterThanOrEqual(4);
   });
 
-  it("folds a tight navbar's open labels, except the one pointed at or focused", () => {
+  it("folds a tight (or folded) navbar's open labels, except the one pointed at or focused", () => {
     // Assert
     expect(withoutComments).toContain(
-      '& [data-mp="navbar"][data-tight] [data-mp="action"]:not(:hover, :focus-visible)',
+      '& [data-mp="navbar"]:is([data-tight], [data-folded]) [data-mp="action"]:not(:hover, :focus-visible)',
     );
   });
 

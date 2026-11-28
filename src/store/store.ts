@@ -62,6 +62,17 @@ export interface PillQueueState {
   readonly queued: readonly QueuedNotification[];
 }
 
+/** One of an electron's quick actions (beta). */
+export interface Orbital {
+  icon: ReactNode;
+  /** Its name: shown next to it while it's under the finger, the pointer or the focus */
+  label: string;
+  onClick?: (event: { preventDefault(): void }) => void;
+  /** A link instead (with the host's `linkComponent`) */
+  href?: string;
+  id?: string;
+}
+
 /**
  * An electron (beta): a small round pill that splits out of the host to keep
  * a background activity (a timer, an upload…) in reach while the person goes
@@ -94,6 +105,13 @@ export interface ElectronOptions {
   announce?: string;
   /** Your own content instead of the ring, the value and the icon. */
   render?: () => ReactNode;
+  /**
+   * Its quick actions: a long press (or hovering it with a mouse, or a tap,
+   * see the host's `orbitalsOpenOn`) fans them out around it.
+   */
+  orbitals?: readonly Orbital[];
+  /** The label of the orbital that goes back, when a tap opens them (`orbitalsOpenOn="tap"`). Default "Back". */
+  backLabel?: string;
   /** Starting an electron with an id that's already there updates it in place. */
   id?: string;
 }

@@ -233,7 +233,7 @@ export function AppPill() {
 </MagicPill>
 ```
 
-- **The active link** shows its label and gets `aria-current="page"`.
+- **The active link** shows its label and gets `aria-current="page"`. `labels` says which labels show at rest: `"auto"` (the default) shows the current page's while the pill has room for it, and folds it when it doesn't (next to an electron on a phone, or on a very narrow screen, where the pill used to cut its last items off); `"current"` always shows it; `"closed"` shows none. An item pointed at or focused shows its label in every case. A folded navbar has `data-folded`.
 - **Without `pathname`**, the navbar reads `window.location.pathname` after mounting and on back/forward navigation. That misses client-side navigations, so pass `pathname` when you use a client-side router.
 - **On a narrow screen**, when there's no room for the current page's label and the one you point at (or focus), the current one folds meanwhile. A label that still has no room ends with an ellipsis.
 - **`aria-label`** defaults to `"Main"`.
@@ -304,6 +304,8 @@ pill().endElectron(id); // it goes back into the pill
 | `variant` | as a pill's | Default: the host's. |
 | `ending` | `"join"` · `"pop"` | How it leaves when it ends: back into the pill, or scaling out like any pill. Default: the host's `electronEnding` (`"join"`). |
 | `announce` | `string` | Said once by screen readers whenever it changes, for a milestone ("Break time"). Its value is never announced on its own. |
+| `orbitals` | `{ icon, label, onClick?, href?, id? }[]` | Its quick actions, fanned out around it (see below). |
+| `backLabel` | `string` | With `orbitalsOpenOn="tap"`: the label of the first orbital, which goes back. Default `"Back"`. |
 | `id` | `string` | Starting an electron with an id that's there updates it in place. |
 
 | Host prop | Default | Notes |
@@ -315,9 +317,30 @@ pill().endElectron(id); // it goes back into the pill
 | `keepElectronsOut` | `false` | They tuck in while a notification has the pill (and come back once it has its base layer again); `true` keeps them out. |
 | `electronEnding` | `"join"` | `"join"` or `"pop"`. |
 | `arrange` | `"gather"` | `"gather"`: the pill and its electrons are centred as a group (or at the edge, for a `-start` or `-end` placement). `"spread"`: the pill stays where it is, the electrons go to the screen's edge (under the thumb on a tablet). |
+| `orbitalsOpenOn` | `"press-hover"` | What opens an electron's orbitals: a long press, or hovering it with a mouse; `"press"`, a long press only; `"tap"`, a tap, with a first orbital going back. |
+| `orbitalLabels` | `true` | The orbital under the finger, the pointer or the focus shows its label next to it. |
+| `orbitalsStayOpen` | `true` | They stay open after one of them runs (Pause becomes Resume in place). |
+
+**Orbitals** are an electron's quick actions, small round pills that bulge out of it with the goo:
+
+```ts
+pill().electron({
+  label: "Focus timer",
+  value: "4:34",
+  orbitals: [
+    { icon: <PlusIcon />, label: "+1 min", onClick: addMinute },
+    { icon: <PauseIcon />, label: "Pause", onClick: pause },
+    { icon: <SkipIcon />, label: "Skip to the break", onClick: skip },
+  ],
+});
+```
+
+- A long press opens them. Keep pressing, slide to one (it's picked by its angle from the electron) and release to run it; released on none, they stay open until a tap away. With a mouse, hovering opens them too, and they close once the pointer leaves them.
+- They fan out on an arc away from the screen's edge, clear of the pill, the other electrons and the screen's edges, moving out a little if they must. `--mp-orbital-size` (an action's size), `--mp-orbital-distance` (`0.875rem`), `--mp-orbital-spread` (`auto`, or an angle such as `120deg`), `--mp-orbital-stagger` (`30ms`), `--mp-hover-delay` (`300ms`) and `--mp-long-press` (`450ms`) tune them.
+- The keyboard opens them with the arrow pointing away from the edge, Shift+F10 or the context-menu key, and goes round them with the arrows, Home and End; Escape closes them and gives the focus back. An ARIA menu named after the electron.
 
 **How it behaves:**
-- **Short of room** (the pill and its electrons wider than the screen), the last ones go beside the pill, one row towards the page, like the ladder. On a phone, a navbar with its current page's label and one electron usually don't fit in one row: the electron goes above the pill.
+- **Short of room** (the pill and its electrons wider than the screen), a navbar folds its labels first (`labels="auto"`, its default); if they still don't fit, the last ones go beside the pill, one row towards the page, like the ladder.
 - It splits and joins with the goo, on the split's tokens (`--mp-duration-split`, `--mp-duration-join`, `--mp-ease-split`, `--mp-goo`, `--mp-electron-start`, see [Styling](#styling)); `--mp-electron-gap` (`--mp-gap` by default) keeps it apart from the pill. With reduced motion, it fades.
 - It's a link (or a button, or an image for neither) named after its `label` and `valueText`, with its own focus ring.
 

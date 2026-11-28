@@ -19,37 +19,20 @@ import { playSplit } from "../Pill/goo";
 import { PillProgress } from "../Pill/PillProgress";
 import type { PillPresence } from "../Pill/types";
 import { findActiveIndex } from "../PillNavbar/matchPath";
+import { foldedWidth } from "../PillNavbar/room";
 import { NO_ELECTRONS, type Electron } from "../store/store";
 import { useIsomorphicLayoutEffect } from "../utils/react";
-import { parseDuration, prefersReducedMotion } from "../utils/timing";
+import { prefersReducedMotion } from "../utils/timing";
 import { VISUALLY_HIDDEN } from "../utils/visuallyHidden";
 import { planSatellites, type Box } from "./layout";
+import { durations, toPixels } from "./measure";
+import { Orbitals } from "./Orbitals";
 import type { SatelliteHost } from "./types";
 
 // Fixed on the screen, placed by script; the stylesheet's inline placement gives it no z-index
 const ELECTRON_STYLE = { position: "fixed", zIndex: "var(--mp-z-index, 50)", margin: 0 } as CSSProperties;
 const SHIFT = "mp-satellite-shift";
 const SIDE_PLACEMENTS = new Set(["left", "right"]);
-
-/** "1.5rem", "24px" → px (a custom property's computed value keeps its unit). */
-function toPixels(value: string, element: HTMLElement, fallback: number): number {
-  const match = /^\s*(-?[\d.]+)(px|rem|em)?\s*$/.exec(value);
-  if (!match) return fallback;
-  const amount = Number.parseFloat(match[1]);
-  if (match[2] === "rem") return amount * (Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16);
-  if (match[2] === "em") return amount * (Number.parseFloat(getComputedStyle(element).fontSize) || 16);
-  return amount;
-}
-
-const durations = (element: HTMLElement) => {
-  const style = getComputedStyle(element);
-  return {
-    enter: parseDuration(style.getPropertyValue("--_mp-enter"), 500),
-    exit: parseDuration(style.getPropertyValue("--_mp-exit"), 300),
-    fade: parseDuration(style.getPropertyValue("--_mp-fade"), 150),
-    change: parseDuration(style.getPropertyValue("--_mp-change"), 250),
-  };
-};
 
 /** Two boxes side by side, a gap apart: the second can come out of the first. */
 const nextTo = (a: Box, b: Box, gap: number) => {
@@ -132,6 +115,8 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
   const elements = useRef(new Map<string, HTMLElement>());
   const presences = useRef(new Map<string, PillPresence>());
   const applied = useRef({ shift: 0, reserve: 0 });
+  // How short the host gets with its navbar's labels folded, measured after each render
+  const hostMin = useRef<number | undefined>(undefined);
   // The row each electron was in: one that changes rows moves there, even while following the host
   const rows = useRef(new Map<string, string>());
 
@@ -145,9 +130,11 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
     const gap = toPixels(style.getPropertyValue("--mp-electron-gap"), root, Number.parseFloat(style.columnGap) || 16);
     const offset = toPixels(style.getPropertyValue("--_mp-offset"), root, 24);
     const out = entries.filter((entry) => entry.presence !== "hidden" && elements.current.get(entry.electron.id));
+    if (animate && !vertical) hostMin.current = foldedWidth(root);
     const layout = planSatellites({
       viewport: { width: document.documentElement.clientWidth || window.innerWidth, height: window.innerHeight },
       host: { left: root.offsetLeft, top: root.offsetTop, width: root.offsetWidth, height: root.offsetHeight },
+      hostMin: vertical ? undefined : hostMin.current,
       placement: host.placement,
       vertical,
       rtl: style.direction === "rtl",
@@ -312,6 +299,17 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
           </Pill>
         );
       })}
+      {entries.map(({ electron, presence }) =>
+        electron.input.orbitals?.length ? (
+          <Orbitals
+            key={`orbitals ${electron.id}`}
+            electron={electron}
+            getElement={() => elements.current.get(electron.id)}
+            host={host}
+            out={presence !== "hidden"}
+          />
+        ) : null,
+      )}
       <div role="status" aria-live="polite" aria-atomic="true" data-mp="announcer" style={VISUALLY_HIDDEN}>
         {announcement}
       </div>

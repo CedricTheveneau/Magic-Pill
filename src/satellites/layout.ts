@@ -27,6 +27,12 @@ export interface SatelliteLayoutInput {
   viewport: { width: number; height: number };
   /** Where the host is on its own, without the shift the satellites give it */
   host: Box;
+  /**
+   * How long the host can get along its main axis when it gives the
+   * satellites room (a navbar folding its labels): what decides whether
+   * they fit in its row. Default: its own length.
+   */
+  hostMin?: number;
   placement: PillPlacement;
   /** A sidebar: the main axis runs down the screen */
   vertical: boolean;
@@ -68,10 +74,11 @@ export function planSatellites(input: SatelliteLayoutInput): SatelliteLayout {
   });
   const lengthOf = (ids: readonly string[]) => ids.reduce((sum, id) => sum + len(sizes.get(id)!) + gap, 0);
   const rowLength = () => lengthOf(sides.before) + len(host) + lengthOf(sides.after);
+  const leastRowLength = () => lengthOf(sides.before) + Math.min(len(host), input.hostMin ?? Infinity) + lengthOf(sides.after);
 
-  // Short of room: the last ones go beside the pill
+  // Short of room, even with the host as short as it gets: the last ones go beside the pill
   const movedBeside: string[] = [];
-  while (rowLength() > available) {
+  while (leastRowLength() > available) {
     const from = sides.after.length > 0 ? "after" : sides.before.length > 0 ? "before" : null;
     if (!from) break;
     const id = sides[from].pop()!;

@@ -195,6 +195,7 @@ describe("styles.css", () => {
 
   it("lets a theme join the pill's transitions, in every state", () => {
     // Assert
-    expect(css.match(/var\(--_mp-also, visibility 0s\)/g)).toHaveLength(3);
+    // The pill at rest, hidden and closed, and an electron's orbital
+    expect(css.match(/var\(--_mp-also, visibility 0s\)/g)).toHaveLength(4);
   });
 });
