@@ -16,6 +16,16 @@
         "default": "./dist/index.js"
       }
     },
+    "./satellites": {
+      "import": {
+        "types": "./dist/satellites.d.mts",
+        "default": "./dist/satellites.mjs"
+      },
+      "require": {
+        "types": "./dist/satellites.d.ts",
+        "default": "./dist/satellites.js"
+      }
+    },
     "./styles.css": "./dist/styles.css",
     "./themes.css": "./dist/themes.css",
     "./forms.css": "./dist/forms.css",

@@ -1,7 +1,8 @@
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
-  entry: { index: "src/index.ts" },
+  // The satellites (the Electron) are an entry of their own: only apps that pass them to the host pay for them
+  entry: { index: "src/index.ts", satellites: "src/satellites/index.ts" },
   format: ["esm", "cjs"],
   // Runs in browsers and in React Server Components' SSR, so no Node-only shims
   platform: "neutral",

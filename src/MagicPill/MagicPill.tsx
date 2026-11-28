@@ -27,13 +27,14 @@ import {
 import { getStore, type QueuedNotification } from "../store/store";
 import { getInputModality, trackInputModality } from "../utils/inputModality";
 import { usePillQueue } from "../store/usePillQueue";
-import { mergeRefs, useIsomorphicLayoutEffect } from "../utils/react";
+import { devWarn, mergeRefs, useIsomorphicLayoutEffect } from "../utils/react";
 import { prefersReducedMotion } from "../utils/timing";
 import { VISUALLY_HIDDEN } from "../utils/visuallyHidden";
 import { BASE, IDLE, NONE, isOpen, readTimings, type Displayed, type Scene, type SwapMode } from "./choreography";
 import { flagStyle, measureFlagSpot, type FlagSpot } from "./flag";
 import { playSplit } from "../Pill/goo";
 import { useChoreography } from "./useChoreography";
+import type { ElectronEnding, ElectronLine, ElectronSide, PillSatellites, SatelliteArrangement, SatelliteHost } from "../satellites/types";
 
 export interface MagicPillProps
   extends Omit<PillProps, "presence" | "defaultPresence" | "onPresenceChange" | "children" | "scene" | "sceneChange"> {
@@ -70,9 +71,29 @@ export interface MagicPillProps
    * in one row. A notification's own `layout` wins.
    */
   notificationLayout?: NotificationLayout;
-  /** Passed to notification actions that have an `href`. */
+  /** Passed to notification actions that have an `href`, and to electrons going back. */
   linkComponent?: LinkComponent;
   classNames?: PillNotificationClassNames;
+  /**
+   * The current path, as for the navbar: an electron is tucked in while the
+   * person is on its page (beta).
+   */
+  pathname?: string;
+  /**
+   * The electrons and the other satellites (beta): `satellites` from
+   * `magic-pill/satellites`. Without it, `pill().electron()` does nothing.
+   */
+  satellites?: PillSatellites;
+  /** Where electrons go: further along the edge (default), before the pill, or beside it, one row towards the page (beta). */
+  electronSide?: ElectronSide;
+  /** Several electrons line up along the pill (default) or stack across it (beta). */
+  electronLine?: ElectronLine;
+  /** Electrons stay out while a notification shows. Default false: they tuck in (beta). */
+  keepElectronsOut?: boolean;
+  /** How an electron leaves when it ends: back into the pill (default) or scaling out (beta). */
+  electronEnding?: ElectronEnding;
+  /** Satellites gathered around the pill (default) or spread to the screen's edges (beta). */
+  arrange?: SatelliteArrangement;
 }
 
 const DEFAULT_DURATION = 5000;
@@ -167,6 +188,13 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
     notificationLayout = "pill",
     linkComponent,
     classNames,
+    pathname,
+    satellites,
+    electronSide = "after",
+    electronLine = "along",
+    keepElectronsOut = false,
+    electronEnding = "join",
+    arrange = "gather",
     placement = "bottom",
     orientation,
     moveThroughCircle,
@@ -187,6 +215,18 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
   const flagRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => store.registerHost(), [store]);
+  useEffect(() => {
+    if (satellites) return;
+    const check = () => {
+      if (store.getElectrons().length > 0) {
+        devWarn(`pill("${name}").electron() needs the satellites: <MagicPill satellites={satellites}>, from "magic-pill/satellites".`);
+        unsubscribe();
+      }
+    };
+    const unsubscribe = store.subscribe(check);
+    check();
+    return unsubscribe;
+  }, [store, satellites, name]);
   useEffect(trackInputModality, []);
 
   // What the pill should show now. Stable objects, so a re-render isn't a change.
@@ -474,6 +514,32 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
         >
           {renderScene(flagDisplayed.scene)}
         </Pill>
+      )}
+      {satellites && (
+        <satellites.Layer
+          host={{
+            name,
+            store,
+            rootRef,
+            placement,
+            vertical: isVertical,
+            pathname,
+            // A notification has the pill, or it's still closing on one or reopening:
+            // the electrons come out again once it's open with its base layer
+            notifying:
+              target.kind === "notification" ||
+              displayed.scene.kind === "notification" ||
+              (hasBase && !isOpen(displayed.presence)),
+            linkComponent,
+            variant,
+            theme: rest.theme,
+            electronSide,
+            electronLine,
+            keepElectronsOut,
+            electronEnding,
+            arrange,
+          } satisfies SatelliteHost}
+        />
       )}
       <div role="status" aria-live="polite" aria-atomic="true" data-mp="announcer" style={VISUALLY_HIDDEN}>
         {announcement && <span key={announcement.key.id + announcement.text}>{announcement.text}</span>}
