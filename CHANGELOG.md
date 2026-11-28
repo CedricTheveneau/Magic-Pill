@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ### Added
+- **Beta:** the Electron, in an optional entry, `magic-pill/satellites`: a small round pill that splits out of the host to keep a background activity in reach. `pill().electron()`, `updateElectron()` and `endElectron()`; on `<MagicPill>`, `satellites`, `pathname`, `electronSide`, `electronLine`, `keepElectronsOut`, `electronEnding` and `arrange`. It's tucked into the pill on the page that started it and while a notification has the pill, a tap goes back to that page, and the pill and its electrons stay centred as a group
+- `PillProgress`: a progress ring around a value or an icon, in the text colour (`--mp-progress-size`, `--mp-progress-width`)
 - The split's tokens, for a sidebar's flag: `--mp-duration-split` and `--mp-duration-join` (the enter and exit durations by default), `--mp-ease-split` (`bouncy`, the default, `pop`, `smooth` or any CSS easing), `--mp-goo` (`12`; `0` for no neck) and `--mp-electron-start` (`1`)
 
 ### Changed

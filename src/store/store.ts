@@ -62,6 +62,49 @@ export interface PillQueueState {
   readonly queued: readonly QueuedNotification[];
 }
 
+/**
+ * An electron (beta): a small round pill that splits out of the host to keep
+ * a background activity (a timer, an upload…) in reach while the person goes
+ * elsewhere in the app. Shown by `magic-pill/satellites`, passed to the host.
+ */
+export interface ElectronOptions {
+  /** Its accessible name, e.g. "Focus timer". */
+  label: string;
+  /** A short live text, e.g. "4:34" or "64%". */
+  value?: string;
+  /**
+   * What screen readers read for the value, e.g. "4 minutes left". Default:
+   * `value`. Round it, so that the name doesn't change every second.
+   */
+  valueText?: string;
+  /** An icon; with `progress` and no `value`, it sits inside the ring. */
+  icon?: ReactNode;
+  /** 0 to 1: draws a progress ring around its content. */
+  progress?: number;
+  variant?: PillVariant;
+  /** Where it came from: a tap goes back there. Default: the path it was started on. */
+  href?: string;
+  /** Instead of going back: what a tap does. */
+  onClick?: (event: { preventDefault(): void }) => void;
+  /** Tucked into the pill while the current path is its `href` (needs the host's `pathname`). Default true. */
+  hideOnOrigin?: boolean;
+  /** How it leaves when it ends: back into the pill ("join") or scaling out ("pop"). Default: the host's. */
+  ending?: "join" | "pop";
+  /** Said once by screen readers whenever it changes, for a milestone ("Break time"). */
+  announce?: string;
+  /** Your own content instead of the ring, the value and the icon. */
+  render?: () => ReactNode;
+  /** Starting an electron with an id that's already there updates it in place. */
+  id?: string;
+}
+
+export interface Electron {
+  readonly id: string;
+  readonly input: ElectronOptions;
+  /** Where a tap takes the person back to: its `href`, or the path it was started on */
+  readonly origin: string | undefined;
+}
+
 export interface PillController {
   readonly name: string;
   /**
@@ -74,6 +117,12 @@ export interface PillController {
   dismiss: (id?: string) => void;
   /** Empty the queue and dismiss the visible notification. */
   clear: () => void;
+  /** Start an electron (beta, `magic-pill/satellites`). Returns its id. */
+  electron: (input: ElectronOptions) => string;
+  /** Change an electron's options, e.g. its value every second. */
+  updateElectron: (id: string, patch: Partial<ElectronOptions>) => void;
+  /** End an electron: it joins back into the pill (or pops away). */
+  endElectron: (id: string) => void;
 }
 
 /** One named pill's queue. Internal: the host uses more than the controller exposes. */
@@ -86,7 +135,13 @@ export interface PillStore {
   clear: () => void;
   /** Counts mounted hosts, to warn about two hosts with the same name. Returns the cleanup. */
   registerHost: () => () => void;
+  getElectrons: () => readonly Electron[];
+  electron: (input: ElectronOptions) => string;
+  updateElectron: (id: string, patch: Partial<ElectronOptions>) => void;
+  endElectron: (id: string) => void;
 }
+
+export const NO_ELECTRONS: readonly Electron[] = Object.freeze([]);
 
 export const EMPTY_STATE: PillQueueState = Object.freeze({ current: null, queued: Object.freeze([]) });
 
@@ -99,7 +154,12 @@ function createStore(name: string): PillStore {
   let items: readonly QueuedNotification[] = [];
   let state: PillQueueState = EMPTY_STATE;
   let hosts = 0;
+  let electrons: readonly Electron[] = NO_ELECTRONS;
   const listeners = new Set<() => void>();
+  const setElectrons = (next: readonly Electron[]) => {
+    electrons = next.length === 0 ? NO_ELECTRONS : next;
+    listeners.forEach((listener) => listener());
+  };
 
   const commit = (next: readonly QueuedNotification[]) => {
     items = next;
@@ -153,6 +213,34 @@ function createStore(name: string): PillStore {
       dismissed.forEach((item) => item.input.onDismiss?.(item.id, "cleared"));
     },
 
+    getElectrons: () => electrons,
+
+    electron(input) {
+      const id = input.id ?? `mp-${++lastId}`;
+      if (isServer()) {
+        devWarn(`pill("${name}").electron() was called on the server and does nothing: call it from client code.`);
+        return id;
+      }
+      const existing = electrons.find((electron) => electron.id === id);
+      if (existing) {
+        setElectrons(electrons.map((electron) => (electron === existing ? { ...existing, input } : electron)));
+      } else {
+        setElectrons([...electrons, { id, input, origin: input.href ?? window.location.pathname }]);
+      }
+      return id;
+    },
+
+    updateElectron(id, patch) {
+      const existing = electrons.find((electron) => electron.id === id);
+      if (existing) {
+        setElectrons(electrons.map((electron) => (electron === existing ? { ...existing, input: { ...existing.input, ...patch } } : electron)));
+      }
+    },
+
+    endElectron(id) {
+      if (electrons.some((electron) => electron.id === id)) setElectrons(electrons.filter((electron) => electron.id !== id));
+    },
+
     registerHost() {
       hosts += 1;
       if (hosts > 1) {
@@ -190,6 +278,9 @@ export function pill(name = "main"): PillController {
       update: (id: string, patch: Partial<NotifyOptions>) => store.update(id, patch),
       dismiss: (id?: string) => store.dismiss(id, "dismissed"),
       clear: () => store.clear(),
+      electron: (input: ElectronOptions) => store.electron(input),
+      updateElectron: (id: string, patch: Partial<ElectronOptions>) => store.updateElectron(id, patch),
+      endElectron: (id: string) => store.endElectron(id),
     });
     controllers.set(name, controller);
   }

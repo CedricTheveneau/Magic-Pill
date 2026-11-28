@@ -34,7 +34,7 @@ One folder per component, with its children, tests and local types next to it:
 ```
 src/
 ├── index.ts                  the public API: every export goes through here
-├── Pill/                     layer 1, the primitive: Pill, parts, PillAction, PillPanel, usePill, types
+├── Pill/                     layer 1, the primitive: Pill, parts, PillAction, PillPanel, PillProgress, usePill, types
 │                             (+ morph.ts, the size, swap and placement animations, the exit, scene.ts, going from one content to the next,
 │                             travel.ts, placement changes through the circle, modal.ts, the overlay's <dialog>, zone.ts, pills sharing a
 │                             placement, themed.ts, the ones with a theme, and goo.ts, one pill splitting out of another)
@@ -48,6 +48,7 @@ src/
 ├── MagicPill/                layer 3, the host (+ choreography.ts, its pure animation planning, useChoreography.ts, its timed steps,
 │                             and flag.ts, a sidebar's flag)
 ├── store/                    layer 3, the named-pill store, pill() and usePillQueue
+├── satellites/               magic-pill/satellites (beta): the Electron's layer (Satellites.tsx), its layout (layout.ts), the host's types
 ├── icons/                    one component per icon (PascalCase, e.g. CheckIcon.tsx); no new ones: apps bring their own icons
 │                             (the exports are deprecated, and the library keeps the ones it draws as defaults)
 ├── utils/                    shared helpers (url.ts, react.ts, timing.ts, inputModality.ts)

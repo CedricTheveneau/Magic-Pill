@@ -262,16 +262,26 @@
         right: calc(var(--_mp-offset) + env(safe-area-inset-right, 0px) + var(--_mp-shift-x, 0px));
       }
 
-      /* A sidebar's flag comes out of the sidebar's edge as a droplet and goes
-         back into it (goo.ts moves it), so it doesn't scale in or out. Its
-         entry and exit take the split's and the join's durations */
-      &[data-layout="flag"] {
+      /* A sidebar's flag and an electron (magic-pill/satellites) come out of
+         the pill's edge as a droplet and go back into it (goo.ts moves them),
+         so they don't scale in or out. Their entry and exit take the split's
+         and the join's durations */
+      &:is([data-layout="flag"], [data-satellite]) {
         --_mp-enter: var(--mp-duration-split, var(--mp-duration-enter, 500ms));
         --_mp-exit: var(--mp-duration-join, var(--mp-duration-exit, 300ms));
         --_mp-exit-scale: 1;
 
         &[data-presence="hidden"] {
           scale: 1;
+        }
+      }
+
+      /* An electron whose activity ends can pop away instead, like any pill leaving */
+      &[data-satellite][data-ending="pop"] {
+        --_mp-exit-scale: 0;
+
+        &[data-presence="hidden"] {
+          scale: 0;
         }
       }
 
@@ -492,6 +502,78 @@
       & [data-mp="action"]:focus-visible {
         outline: 2px solid var(--_mp-on-surface);
         outline-offset: 2px;
+      }
+
+      /* An electron: all of the circle is a link back to where it came from */
+      & [data-mp="electron"] {
+        display: grid;
+        place-items: center;
+        box-sizing: content-box;
+        inline-size: var(--_mp-action-size);
+        block-size: var(--_mp-action-size);
+        margin: calc(var(--_mp-padding) * -1);
+        padding: var(--_mp-padding);
+        border: 0;
+        border-radius: 50%;
+        background: none;
+        color: inherit;
+        font: inherit;
+        text-decoration: none;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      & [data-mp="electron"]:focus-visible {
+        outline: 2px solid var(--_mp-on-surface);
+        outline-offset: -5px;
+      }
+
+      & [data-mp="electron-value"] {
+        font: 700 0.8125rem / 1 var(--mp-font-accent, inherit);
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* The value alone, without a ring: larger */
+      & [data-mp="electron"] > [data-mp="electron-value"] {
+        font-size: 1rem;
+      }
+
+      & [data-mp="electron-icon"] {
+        display: grid;
+        font-size: 1.375rem;
+
+        & > :is(svg, img) {
+          inline-size: 1em;
+          block-size: 1em;
+        }
+      }
+
+      /* A progress ring around its content, in the text colour */
+      & [data-mp="progress"] {
+        position: relative;
+        display: grid;
+        place-items: center;
+        inline-size: var(--_mp-action-size);
+        block-size: var(--_mp-action-size);
+
+        & > svg {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          inline-size: var(--mp-progress-size, 3.375rem);
+          block-size: var(--mp-progress-size, 3.375rem);
+          translate: -50% -50%;
+          rotate: -90deg;
+          overflow: visible;
+          fill: none;
+          stroke: currentColor;
+          stroke-width: var(--mp-progress-width, 3.5);
+          stroke-linecap: round;
+        }
+      }
+
+      & [data-mp="progress-track"] {
+        opacity: 0.25;
       }
 
       & [data-mp="action"][aria-disabled="true"] {
