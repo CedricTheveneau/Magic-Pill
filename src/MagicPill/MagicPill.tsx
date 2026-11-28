@@ -131,7 +131,7 @@ export interface MagicPillProps
    * Default false (beta).
    */
   actionsWheel?: boolean;
-  /** On a side they share, the electrons are nearer the pill (default), or the page's actions (beta). */
+  /** On a side they share, the page's actions are nearer the pill (default), or the electrons (beta). */
   nearestToPill?: NearestToPill;
   /** The page's actions' accessible name. Default "Page actions" (beta). */
   actionsLabel?: string;
@@ -243,7 +243,7 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
     actionsSide = "start",
     actionsOrientation = "auto",
     actionsWheel = false,
-    nearestToPill = "electrons",
+    nearestToPill = "actions",
     actionsLabel = "Page actions",
     placement = "bottom",
     orientation,

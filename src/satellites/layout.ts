@@ -61,7 +61,7 @@ export interface SatelliteLayoutInput {
      */
     wheel?: { count: number; first: number; step: number };
   };
-  /** Which are closer to the pill on a side they share. Default: the electrons */
+  /** Which are closer to the pill on a side they share. Default here: the electrons (the host's default is the actions) */
   nearest?: "electrons" | "actions";
   side: ElectronSide;
   line: ElectronLine;
