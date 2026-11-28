@@ -2,6 +2,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BoxIcon, DocumentIcon, InfoIcon, MagicPill, PillNavbar } from "magic-pill";
+// The Electron (beta): the docs' timer and upload come out of this pill
+import { satellites } from "magic-pill/satellites";
 
 import { useDemo } from "./demo-context";
 import { BookIcon } from "./icons";
@@ -30,6 +32,8 @@ export function AppPill() {
   return (
     <MagicPill
       linkComponent={Link}
+      pathname={pathname}
+      satellites={satellites}
       {...stage?.pill}
       className={stage?.pill?.className ? `app-pill ${stage.pill.className}` : "app-pill"}
       scene={staged ? stage.id : "navbar"}

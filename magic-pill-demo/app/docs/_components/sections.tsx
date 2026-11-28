@@ -13,6 +13,7 @@ import {
   PanelIcon,
   PillsIcon,
   ShapesIcon,
+  AtomIcon,
   SparkIcon,
 } from "../../icons";
 
@@ -36,6 +37,7 @@ export const SECTIONS: readonly Section[] = [
   { href: "/docs/several-pills/", label: "Several pills", icon: <PillsIcon />, summary: "Named hosts, and pills that share a spot." },
   { href: "/docs/forms/", label: "Forms", icon: <FormIcon />, summary: "Every field, on native controls, in a panel or in the pill." },
   { href: "/docs/calendar/", label: "Calendar", icon: <CalendarIcon />, summary: "PillDate: dates, months, weeks and times in the pill's language." },
+  { href: "/docs/electron/", label: "Electron (beta)", icon: <AtomIcon />, summary: "Beta: a background activity in reach anywhere, its quick actions, and the page's actions." },
   { href: "/docs/icons/", label: "Icons", icon: <ShapesIcon />, summary: "Bring your own: any SVG, image, font icon or icon library." },
   { href: "/docs/styling/", label: "Styling", icon: <PaletteIcon />, summary: "Tokens, your own variants, classes and layers." },
   { href: "/docs/themes/", label: "Themes", icon: <DropIcon />, summary: "Glass and Liquid Glass, refraction and adaptive tinting." },
