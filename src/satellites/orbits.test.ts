@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { orbitalAt, planOrbit, type OrbitInput } from "./orbits";
+import { orbitalAt, planOrbit, spotOn, wheelEnd, type OrbitInput } from "./orbits";
 
 const input = (overrides: Partial<OrbitInput> = {}): OrbitInput => ({
   electron: { left: 400, top: 400, width: 72, height: 72 },
@@ -73,5 +73,81 @@ describe("orbitalAt", () => {
   it("none in the middle of the electron, nor far away", () => {
     expect(orbitalAt(orbit, 44, 36, 436, 436)).toBe(-1);
     expect(orbitalAt(orbit, 44, 36, 436, 100)).toBe(-1);
+  });
+});
+
+describe("the wheel", () => {
+  // Eight orbitals in a phone's bottom right corner, next to the navbar
+  const navbar = { left: 31, top: 704, width: 240, height: 72 };
+  const corner = (overrides: Partial<OrbitInput> = {}) =>
+    planOrbit(
+      input({
+        electron: { left: 287, top: 704, width: 72, height: 72 },
+        count: 8,
+        obstacles: [navbar],
+        viewport: { width: 390, height: 800 },
+        ...overrides,
+      }),
+    );
+
+  it("shows what fits, clear of everything, when they don't all fit", () => {
+    const orbit = corner();
+    expect(orbit.wheel).toBe(true);
+    expect(orbit.clear).toBe(true);
+    expect(orbit.visible).toBeGreaterThan(1);
+    expect(orbit.visible).toBeLessThan(8);
+    expect(wheelEnd(orbit)).toBe(8 - orbit.visible);
+    for (let index = 0; index < orbit.visible; index++) {
+      const spot = spotOn(orbit, index);
+      expect(spot.shown).toBe(1);
+      expect(overlaps(spot, navbar, 44)).toBe(false);
+    }
+  });
+
+  it("lets the next one peek out faintly where its spot is clear, and hides the rest", () => {
+    const orbit = corner();
+    const next = spotOn(orbit, orbit.visible);
+    expect(next.shown).toBeCloseTo(orbit.peek.high ? 0.2 : 0);
+    expect(spotOn(orbit, orbit.visible + 1).shown).toBe(0);
+    // Turned, the one before the arc's start peeks out only if it's clear of the navbar
+    const before = spotOn(orbit, 0, 1);
+    expect(before.shown).toBeCloseTo(orbit.peek.low ? 0.2 : 0);
+    if (before.shown > 0) expect(overlaps(before, navbar, 44)).toBe(false);
+  });
+
+  it("doesn't peek over the first ones on a wheel that goes all the way round", () => {
+    const orbit = planOrbit(input({ count: 20 }));
+    expect(orbit.wheel).toBe(true);
+    expect(orbit.peek).toEqual({ low: false, high: false });
+    expect(spotOn(orbit, orbit.visible).shown).toBe(0);
+  });
+
+  it("turns: the next ones take the slots, the first ones fade out", () => {
+    const orbit = corner();
+    const turned = spotOn(orbit, 2, 2);
+    expect(turned.angle).toBeCloseTo(spotOn(orbit, 0).angle);
+    expect(turned.shown).toBe(1);
+    expect(spotOn(orbit, 0, 2).shown).toBe(0);
+  });
+
+  it("starts from the right in a right-to-left page", () => {
+    const orbit = corner({ rtl: true });
+    const first = spotOn(orbit, 0);
+    const second = spotOn(orbit, 1);
+    expect(first.shown).toBe(1);
+    expect(first.x).toBeGreaterThan(second.x);
+  });
+
+  it("only picks the ones that show", () => {
+    const orbit = corner();
+    const hidden = spotOn(orbit, 4, 0);
+    expect(hidden.shown).toBe(0);
+    expect(orbitalAt(orbit, 44, 36, hidden.x, hidden.y)).not.toBe(4);
+  });
+
+  it("isn't one when they fit", () => {
+    const orbit = planOrbit(input());
+    expect(orbit.wheel).toBe(false);
+    expect(orbit.visible).toBe(3);
   });
 });

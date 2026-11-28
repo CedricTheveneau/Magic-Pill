@@ -267,3 +267,55 @@ describe("an electron's orbitals", () => {
     expect(document.querySelector('[data-mp="orbital-label"]')).toBeNull();
   });
 });
+
+describe("an electron's orbitals as a wheel", () => {
+  beforeEach(() => {
+    resetStores();
+    vi.useFakeTimers();
+    // jsdom has no layout: the electron in the bottom right corner, the navbar on its left
+    vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (this: Element) {
+      const box = (left: number, top: number, width: number, height: number) =>
+        ({ left, top, width, height, right: left + width, bottom: top + height, x: left, y: top, toJSON: () => ({}) }) as DOMRect;
+      const element = this as HTMLElement;
+      if (element.dataset?.satellite === "electron") return box(928, 672, 72, 72);
+      if (element.dataset?.mp === "pill" && !element.dataset.satellite) return box(400, 672, 500, 72);
+      return box(0, 0, 0, 0);
+    });
+  });
+
+  const link = () => electron()!.querySelector<HTMLElement>('[data-mp="electron"]')!;
+  const pills = () => [...document.querySelectorAll<HTMLElement>('[data-satellite="orbital"]')];
+  const items = () => [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')];
+  const eight = () => ({
+    label: "Focus timer",
+    href: "/focus",
+    orbitals: Array.from({ length: 8 }, (_, index) => ({ icon: <span>{index}</span>, label: `Action ${index + 1}` })),
+  });
+
+  it("shows what fits, the others faded out, and turns to bring the focused one into view", () => {
+    render(<App />);
+    start(eight());
+    act(() => void link().dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true })));
+    advance(400);
+    expect(pills()[0].style.opacity).toBe("1");
+    expect(pills()[7].style.opacity).toBe("0");
+    expect(pills()[7].style.pointerEvents).toBe("none");
+
+    act(() => void items()[0].dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true })));
+    advance(400);
+    expect(document.activeElement?.getAttribute("aria-label")).toBe("Action 8");
+    expect(pills()[7].style.opacity).toBe("1");
+    expect(pills()[0].style.opacity).toBe("0");
+  });
+
+  it("stays open when the mouse leaves it", () => {
+    render(<App />);
+    start(eight());
+    act(() => void link().dispatchEvent(Object.assign(new Event("pointerenter"), { pointerType: "mouse" })));
+    advance(400);
+    expect(document.querySelector('[role="menu"]')).not.toBeNull();
+    act(() => void document.dispatchEvent(Object.assign(new Event("pointermove"), { clientX: 10, clientY: 10 })));
+    advance(1000);
+    expect(document.querySelector('[role="menu"]')).not.toBeNull();
+  });
+});
