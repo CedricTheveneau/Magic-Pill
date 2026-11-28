@@ -22,7 +22,10 @@
 - Beside the pill, the actions and the electrons make a row of their own, clear of each other and kept on the screen (on a phone, four actions covered the second electron and could run off the screen); automatic actions turn across there when the row is too long, and a row that still doesn't fit wraps into a further one
 - The actions slide with the group (gathered to spread, another satellite coming or going), instead of jumping; and whether they turn across is decided again once a resize settles, not only after a render
 - An orbital's label is a small pill of the electron's look (its theme and colours), instead of always light on dark
-- A sidebar's navbar longer than the screen scrolls inside its pill, instead of its last items being cut off; where the browser has scroll-driven animations, the ends that hide some fade out
+- A navbar too long for its pill scrolls inside it, instead of its last items being cut off: a sidebar's, and a horizontal one once its labels have folded; where the browser has scroll-driven animations, the ends that hide some fade out
+- An electron and the page's actions come out of the pill and go back into it as the orbitals do, drawing themselves the whole way: on the glass themes they no longer switch colour at the end; changing sides, they no longer flicker between going in and coming out. For a notification, they go into the pill's centre as it closes to a circle
+- The actions go into the pill and come out of it with the goo when `actionsStyle` changes, instead of disappearing; turned while they were in, they come out turned, instead of at their old shape first. Two satellites passing each other (`nearestToPill` changed) melt together as they meet
+- An electron's orbitals keep clear of the page's actions, as they do of the other electrons
 
 ### Changed
 - A navbar whose current page's label has no room folds it (`labels="auto"`, the new default), instead of the pill cutting its last items off. `labels="current"` keeps the old behaviour

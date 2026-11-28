@@ -113,8 +113,10 @@ const PROBES = [
     // 27.03 kB with the orbitals bulging out of their electron's centre and back (playOrbit), the
     // actions' wheel (turning, snapping, fading, cut at the divider inside the pill), a row of their
     // own beside the pill, nearestToPill, deciding again once a resize settles, the actions sliding
-    // with the group, waiting for the host to grow back, and the orbitals' label as a pill
-    budget: 27.5 * KB,
+    // with the group, waiting for the host to grow back, and the orbitals' label as a pill,
+    // 27.86 kB with electrons and actions budding like the orbitals, the necks of two passing each
+    // other (playNecks), the actions going into the pill and out of it with the goo
+    budget: 28.25 * KB,
   },
 ];
 const STYLESHEETS = [
@@ -130,7 +132,7 @@ const STYLESHEETS = [
     // then from 3.5 kB for the electron (its link, its value) and PillProgress's ring: 3.66 kB,
     // then from 3.75 kB for the orbitals and their label: 3.92 kB,
     // then from 4 kB for the actions' wheel, the orbitals' label as a pill, and a sidebar's navbar
-    // scrolling with its ends fading: 4.33 kB
+    // scrolling with its ends fading: 4.33 kB, a horizontal navbar scrolling too: 4.37 kB
     budget: 4.5 * KB, // 2.15 kB at 9.0.0-next.1 (3.89 kB with its comments, as shipped)
   },
   {
