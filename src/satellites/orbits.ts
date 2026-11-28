@@ -1,7 +1,9 @@
 // Where an electron's orbitals go: on an arc around it, on the side away from
 // the screen's edge, clear of the host, the other satellites and the screen's
 // edges. If they don't all fit at the set distance, the arc moves out a
-// little (up to one orbital's size). No DOM here: boxes in, spots out.
+// little (up to one orbital's size); if they still don't, they turn into a
+// wheel: the arc shows as many as fit, the next one peeking out faintly at
+// each end, and turns to show the others. No DOM here: boxes in, spots out.
 import type { Box } from "./layout";
 
 export interface OrbitInput {
@@ -28,6 +30,8 @@ export interface OrbitSpot {
   y: number;
   /** Its angle from the electron's centre, in degrees */
   angle: number;
+  /** How much of it shows: 1 on the arc, less past a wheel's ends, 0 out of sight */
+  shown: number;
 }
 
 export interface Orbit {
@@ -37,9 +41,44 @@ export interface Orbit {
   radius: number;
   /** Between two orbitals, in degrees */
   step: number;
+  /** The angle of the arc's first slot */
+  first: number;
+  count: number;
+  /** How many show at once: all of them, or what fits on a wheel */
+  visible: number;
+  /** More of them than room: the arc turns to show the others */
+  wheel: boolean;
+  /** Whether the spot just past each end of a wheel's arc is clear, for the next one to peek out there */
+  peek: { low: boolean; high: boolean };
+  rtl: boolean;
+  /** Where they are with the wheel at rest, at its start */
   spots: OrbitSpot[];
-  /** They fit, clear of everything */
+  /** They fit, clear of everything (a wheel shows what fits, clear too) */
   clear: boolean;
+}
+
+/** How far a wheel can turn: from 0 to this many orbitals. */
+export const wheelEnd = (orbit: Orbit) => Math.max(0, orbit.count - orbit.visible);
+
+/**
+ * Where orbital `index` is with the wheel turned by `turn` orbitals: on the
+ * arc's slots, fading out past either end (the next one peeks out at a
+ * fifth), mirrored in a right-to-left page (the first one on the right).
+ */
+export function spotOn(orbit: Orbit, index: number, turn = 0): OrbitSpot {
+  const { count, visible } = orbit;
+  const slot = orbit.rtl ? count - 1 - index + turn - (count - visible) : index - turn;
+  const angle = orbit.first + slot * orbit.step;
+  const past = slot < 0 ? -slot : slot > visible - 1 ? slot - (visible - 1) : 0;
+  // Past an end with a clear spot, the next one peeks out at a fifth; elsewhere, it's gone by the next slot
+  const peeks = slot < 0 ? orbit.peek.low : orbit.peek.high;
+  const shown = orbit.wheel ? Math.min(1, Math.max(0, 1 - past / (peeks ? 1.25 : 1))) : 1;
+  return {
+    x: orbit.x + Math.cos(radians(angle)) * orbit.radius,
+    y: orbit.y + Math.sin(radians(angle)) * orbit.radius,
+    angle,
+    shown,
+  };
 }
 
 const radians = (degrees: number) => (degrees * Math.PI) / 180;
@@ -83,13 +122,18 @@ export function planOrbit(input: OrbitInput): Orbit {
     return { low, high };
   };
 
-  const place = (radius: number, step: number, first: number, clear: boolean): Orbit => {
-    const spots = Array.from({ length: count }, (_, index) => {
-      const slot = input.rtl ? count - 1 - index : index;
-      const angle = first + slot * step;
-      return { ...at(radius, angle), angle };
-    });
-    return { x, y, radius, step, spots, clear };
+  const place = (radius: number, step: number, first: number, visible: number, clear: boolean): Orbit => {
+    const wheel = count > visible;
+    const clearAt = (angle: number) => {
+      const spot = at(radius, angle);
+      return free(spot.x, spot.y);
+    };
+    // Not on a wheel that goes all the way round: the next one would sit on the first ones
+    const room = wheel && (visible + 1) * step < 360;
+    const peek = { low: room && clearAt(first - step), high: room && clearAt(first + visible * step) };
+    const orbit: Orbit = { x, y, radius, step, first, count, visible, wheel, peek, rtl: input.rtl, spots: [], clear };
+    orbit.spots = Array.from({ length: count }, (_, index) => spotOn(orbit, index));
+    return orbit;
   };
 
   const base = electron.width / 2 + distance + size / 2;
@@ -104,17 +148,34 @@ export function planOrbit(input: OrbitInput): Orbit {
       const needed = step * (count - 1);
       if (needed <= arc.high - arc.low) {
         const centre = Math.min(Math.max(0, arc.low + needed / 2), arc.high - needed / 2);
-        return place(radius, step, away + centre - needed / 2, true);
+        return place(radius, step, away + centre - needed / 2, count, true);
       }
     }
   }
-  // No room for all of them, clear of everything: centred away from the edge at the set distance
-  const step = count > 1 ? tightest(base) + 2 : 0;
-  return place(base, step, away - (step * (count - 1)) / 2, false);
+  // Not all of them: a wheel, at the radius that shows the most, with what fits on its arc
+  let best: { radius: number; arc: { low: number; high: number }; step: number; visible: number } | null = null;
+  for (const radius of radii) {
+    const arc = arcAt(radius);
+    if (!arc) continue;
+    const step = tightest(radius) + 2;
+    const visible = Math.max(1, Math.min(count, Math.floor((arc.high - arc.low) / step) + 1));
+    if (!best || visible > best.visible) best = { radius, arc, step, visible };
+  }
+  if (!best) {
+    // Nowhere clear at all: centred away from the edge at the set distance
+    const step = count > 1 ? tightest(base) + 2 : 0;
+    return place(base, step, away - (step * (count - 1)) / 2, count, false);
+  }
+  const width = best.step * (best.visible - 1);
+  const centre = Math.min(Math.max(0, best.arc.low + width / 2), best.arc.high - width / 2);
+  return place(best.radius, best.step, away + centre - width / 2, best.visible, true);
 }
 
-/** Which orbital a point is over, by its angle from the electron's centre: -1 for none (or the middle). */
-export function orbitalAt(orbit: Orbit, size: number, electronRadius: number, px: number, py: number): number {
+/**
+ * Which orbital a point is over, by its angle from the electron's centre: -1
+ * for none (or the middle). On a wheel turned by `turn`, only the ones that show.
+ */
+export function orbitalAt(orbit: Orbit, size: number, electronRadius: number, px: number, py: number, turn = 0): number {
   const dx = px - orbit.x;
   const dy = py - orbit.y;
   const distance = Math.hypot(dx, dy);
@@ -122,7 +183,8 @@ export function orbitalAt(orbit: Orbit, size: number, electronRadius: number, px
   const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
   let best = -1;
   let bestGap = Infinity;
-  orbit.spots.forEach((spot, index) => {
+  Array.from({ length: orbit.count }, (_, index) => spotOn(orbit, index, turn)).forEach((spot, index) => {
+    if (spot.shown < 0.5) return;
     const gap = Math.abs(((angle - spot.angle + 540) % 360) - 180);
     if (gap < bestGap) {
       bestGap = gap;
