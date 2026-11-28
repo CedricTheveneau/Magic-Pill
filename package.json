@@ -1,6 +1,6 @@
 {
   "name": "magic-pill",
-  "version": "9.4.0-next.1",
+  "version": "9.4.0-next.2",
   "type": "commonjs",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
