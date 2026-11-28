@@ -1,6 +1,6 @@
 # The Electron, its orbitals and the wide atom: API proposal
 
-> **Status: proposal, waiting for the maintainer's review.** Built from a throwaway prototype, the **Electron lab** (private page, version 2 of 2026-11-28), with every setting adjustable. The maintainer tried version 1 in detail on 2026-11-27 ("exactly what I had in mind") and answered every question; version 2 carries those answers. **Beta:** it ships in `9.4.0-next.N` releases and is marked beta in the docs and the demo until it settles.
+> **Status: approved by the maintainer on 2026-11-28** ("just PERFECT"), with the answers in §10. Built from a throwaway prototype, the **Electron lab** (private page, version 2 of 2026-11-28), with every setting adjustable. The maintainer tried version 1 in detail on 2026-11-27 ("exactly what I had in mind") and answered every question; version 2 carries those answers. **Beta:** it ships in `9.4.0-next.N` releases and is marked beta in the docs and the demo until it settles.
 
 ## 1. What was decided (the maintainer, 2026-11-27)
 
@@ -119,12 +119,13 @@ interface Orbital {
 - **Keyboard:** Enter does the tap; the arrow pointing away from the edge, Shift+F10 or the context-menu key open them, focus on the first; arrows move around the ring, Home and End, Enter runs, Escape closes and gives focus back. ARIA menu pattern.
 - **Labels:** the one under the finger (or the pointer, or focus) shows its label in a small pill. Host prop `orbitalLabels`, default `true`.
 - **After an action they stay open** (host prop `orbitalsStayOpen`, default `true`), with their icons updated (Pause becomes Resume).
+- **How many:** as many as the app passes (the demo's example has 3). **How many show at once depends on the room:** the automatic spread shows all of them when they fit (5 if there's room for 5); the wheel only comes when they don't, and then shows what fits (2 visible, the other 3 on the wheel), as in the prototype.
 - **Where they go:** on an arc on the side away from the screen's edge, at a distance from the electron. **The automatic spread** looks for the free arc around that direction, clear of the pill, the wide atom, the other electrons and the edges; if all of them don't fit, it moves the arc out a little (up to one orbital's size); if they still don't fit, **the wheel**: it shows what fits, the next one peeking out faintly at each end, and turns with the mouse wheel, a drag along the arc, or the arrow keys. A wheel stays open until a tap away or Escape. A fixed spread that doesn't fit falls back to the automatic one first.
 - **Motion:** they bulge out of the electron, staggered, in its own goo layer (so they never melt into the pill), and fold back into it.
 
 ## 5. The wide atom (contextual actions)
 
-The actions of the current page, one or more, next to the pill. The docs will call it the wide atom; the API says actions, which reads by itself.
+The actions of the current page, one or more, next to the pill. The API says **actions** (`usePillActions`, `actionsStyle`…); the docs call them **contextual actions**, and mention the wide atom as the design's name for them.
 
 ```ts
 /** Registers the current page's actions while the calling component is mounted. */
@@ -155,7 +156,6 @@ Visual settings are tokens, like the rest of the library; behaviours are props. 
 | `--mp-orbital-size` | `--mp-action-size` (`2.75rem`) | An orbital's diameter |
 | `--mp-orbital-distance` | `0.875rem` | Between the electron and its orbitals |
 | `--mp-orbital-spread` | `auto` | Or an angle (`120deg`) |
-| `--mp-orbitals-shown` | `3` | How many show at once before the wheel (see Q2) |
 | `--mp-orbital-stagger` | `30ms` | Between two orbitals coming out |
 | `--mp-hover-delay` / `--mp-long-press` | `300ms` / `450ms` | Before hovering or pressing opens them |
 
@@ -171,15 +171,15 @@ Visual settings are tokens, like the rest of the library; behaviours are props. 
 ## 8. Beta
 
 - Ships in **`9.4.0-next.N`** releases (npm's `next` tag; `latest` stays 9.3.x). The API may change between them; `@beta` in the TSDoc of every new export.
-- **The demo:** a docs page, "The Electron", with a **Beta** tag in the navbar and the page's title, and the Electron lab rebuilt on the real code (every setting of the prototype, as for the Glass and Forms labs). To try it on devices, the live demo depends on the `-next` release (Q5).
+- **The demo:** a docs page, "The Electron", with a **Beta** tag in the navbar and the page's title, and the Electron lab rebuilt on the real code (every setting of the prototype, as for the Glass and Forms labs). To try it on devices, the live demo depends on the `-next` release (§10, 5).
 - README: a short section marked beta, linking to the docs page.
 
 ## 9. Cost and delivery
 
-**Estimated cost** (gzipped): the goo overlay about 1.5 kB, the electrons and their layout 2.5 kB, the orbitals and the wheel 2.5 kB, the wide atom 1 kB: **about 7.5 kB**, in an optional entry (Q1), so the quick start doesn't change. The flag's switch to the goo moves about 1 kB into the quick start's sidebar code (the bridge goes, the overlay comes).
+**Estimated cost** (gzipped): the goo overlay about 1.5 kB, the electrons and their layout 2.5 kB, the orbitals and the wheel 2.5 kB, the wide atom 1 kB: **about 7.5 kB**, in the optional `magic-pill/satellites` entry (§10, 1), so the quick start doesn't change. The flag's switch to the goo moves about 1 kB into the quick start's sidebar code (the bridge goes, the overlay comes).
 
 **PRs, in order, each with tests (the ones for motion fail on the old code first):**
-1. This proposal.
+1. This proposal (#125).
 2. The goo overlay and the curves; the flag moves to it (the bridge goes).
 3. Electrons: the store and controller, `pathname` and the origin, the layout (sides, line, gather or spread, short of room), tucking in during notifications, the endings, `PillProgress`, accessibility.
 4. Orbitals: the arc and the automatic spread, the three ways to open, press-slide-release, labels, staying open, the keyboard.
@@ -187,11 +187,11 @@ Visual settings are tokens, like the rest of the library; behaviours are props. 
 6. The wide atom: `usePillActions`, the two styles, the sides, the automatic orientation.
 7. The demo: the beta docs page and the lab on the real code. Then **9.4.0-next.1**, for you to try on your devices.
 
-## 10. Questions for the maintainer
+## 10. The maintainer's answers (2026-11-28)
 
-1. **An optional entry?** I'd put the satellites in `magic-pill/satellites`, passed to the host (`satellites={satellites}`), like forms and themes are optional: apps that don't use them pay nothing. The controller's methods (`electron`, `updateElectron`, `endElectron`, `setActions`) stay on `pill()` (a few bytes) and warn in development without it. The other way: built into the host, about +7.5 kB for every app.
-2. **"3 by default":** I read it as how many orbitals show at once, the rest on the wheel (`--mp-orbitals-shown`). The other reading is only the demo's example (an app passes as many as it wants, and the wheel only comes when there's no room). Which one?
-3. **Names:** `electron` and `orbitals` in the API, and `actions` for the wide atom (`usePillActions`, `actionsStyle`…) since "wide atom" needs explaining. Or `atom` everywhere (`useAtomActions`, `atomStyle`)?
-4. **`pathname` on the host**, for tucking an electron in on its page (the host can't see the router otherwise). OK?
-5. **The live demo on `9.4.0-next.N`** while the Electron is in beta, so you can try it on your devices from the real site (the other pages don't change). Or a separate preview?
-6. **The flag's switch to the goo** is a visible change to a 9.2 feature: it lands with 9.4 (in `next.1`), in the changelog's Changed section. OK?
+1. **An optional entry: yes.** The satellites go in `magic-pill/satellites`, passed to the host (`satellites={satellites}`), so developers add them if they want; the controller's methods stay on `pill()` and warn in development without it.
+2. **Orbitals: as in the prototype.** As many as the app passes (the demo shows 3); how many show at once is up to the automatic spread and the room. The wheel only comes when they don't all fit, whatever their number. No `--mp-orbitals-shown` token.
+3. **Names: Electron, Orbitals and Actions** (`electron`, `orbitals`, `usePillActions`, `actionsStyle`…); "contextual actions" in the docs' prose.
+4. **`pathname` on the host: yes.**
+5. **The live demo runs on the `-next` release** during the beta, so the maintainer can try it freely. No separate preview for now (the revamped demo may get a preview section).
+6. **The flag's switch to the goo lands with 9.4**, in the changelog's Changed section.
