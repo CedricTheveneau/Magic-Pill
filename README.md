@@ -24,12 +24,13 @@ On top of it come ready-made **templates** (a notification, a navbar, a form pan
  - [X] Anything inside: messages, icons and panels are React content; build your own templates from the same parts
  - [X] Shape-changing animations (circle ↔ pill ↔ panel) at the pill's real size, notifications that slide into each other, a pill that travels when its placement changes, all respecting reduced motion
  - [X] Notifications laid out the way the pill is: in one row, in rows, and in a sidebar as cards or as a flag out of its edge
+ - [X] **Beta:** the Electron, a small round pill that splits out of the main one to keep a background activity (a timer, an upload) in reach anywhere in the app (optional)
  - [X] Forms: fields on native controls, in a panel or in the pill, validated by the browser, and a calendar (optional)
  - [X] Themes (optional): glass and Liquid Glass, with refraction, a pointer light and adaptive tinting, or a theme of your own from the tokens
  - [X] Accessible: screen reader announcements, keyboard focus pauses the countdown, focus handling for panels and modals
  - [X] Works in any React 18+ app, including React Server Components (Next.js App Router), with any router
  - [X] Styles you can override without `!important`, design tokens, no fonts loaded behind your back
- - [X] Tiny: the quick start adds about **16.5 kB gzipped** to your app (13.1 kB of JavaScript + 3.4 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
+ - [X] Tiny: the quick start adds about **19 kB gzipped** to your app (15.5 kB of JavaScript + 3.7 kB of CSS, minified by your bundler), checked in CI. Unused parts are tree-shaken.
  - [X] Written in TypeScript, zero runtime dependencies
 
 ## Installation
@@ -267,6 +268,58 @@ pill("assistant").notify({ icon: <HelpIcon />, message: "Need a hand?", duration
 A sidebar's notifications are pills like the others: it turns horizontal for them while it's a circle, and back once they're gone. Between its base layer and a notification it goes through the circle, even with `swap="always"`, unless the notification is in `rows` (it slides, turning as it goes) or a `card`: a card stays in the sidebar's column, and slides like any other content.
 
 **A flag** (`notificationLayout="flag"`, `left`/`right` sidebars) leaves the sidebar where it is, usable: the notification comes out of its edge as a pill of its own (`[data-layout="flag"]`), next to the section it's about (`at`), and goes back into it. Pointing at it or focusing it pauses it; the next one slides in it, and it moves to its own section. Its panel opens beside the sidebar, in the middle of the screen. It comes out of the sidebar's edge as a droplet (a neck forms between them, stretches and snaps) and goes back into it the same way: `--mp-duration-split` and `--mp-duration-join` time it, `--mp-ease-split` picks its curve (`bouncy`, the default, `pop`, `smooth` or any CSS easing), `--mp-goo` how sticky it is (`0`: no neck), `--mp-electron-start` the size it starts at.
+
+## The Electron (beta)
+A small round pill that splits out of the host to keep a background activity in reach while the person goes elsewhere in the app: a timer, a call, an upload. It's tucked into the pill on the page that started it, and comes out as a droplet (with the goo, like a sidebar's flag) anywhere else; a tap goes back to that page. **Beta:** it ships in `9.4.0-next` releases, and its API may still change.
+
+It's optional: import `satellites` and give it to the host, with the current path.
+
+```tsx
+"use client";
+import { MagicPill, PillNavbar } from "magic-pill";
+import { satellites } from "magic-pill/satellites";
+
+<MagicPill pathname={pathname} satellites={satellites} linkComponent={Link}>
+  <PillNavbar items={items} pathname={pathname} linkComponent={Link} />
+</MagicPill>
+```
+
+```ts
+// Anywhere in the app
+const id = pill().electron({ label: "Focus timer", value: "25:00", valueText: "25 minutes left", progress: 0 });
+pill().updateElectron(id, { value: "24:59", progress: 1 / 1500 }); // every second
+pill().endElectron(id); // it goes back into the pill
+```
+
+| Option | Type | Notes |
+|---|---|---|
+| `label` | `string` | Required: its accessible name ("Focus timer"). |
+| `value` / `valueText` | `string` | A short live text ("4:34", "64%"), and what screen readers read for it ("5 minutes left", default: `value`). Round `valueText`, so the name doesn't change every second. |
+| `progress` | `number` (0 to 1) | Draws a progress ring around its content (`PillProgress`, which you can use in any pill). |
+| `icon` | `ReactNode` | With `progress` and no `value`, it sits inside the ring. |
+| `render` | `() => ReactNode` | Your own content instead of the ring, the value and the icon. |
+| `href` | `string` | Where a tap goes back to (with the host's `linkComponent`). Default: the path it was started on. |
+| `onClick` | `(event) => void` | Instead of going back: a button. |
+| `hideOnOrigin` | `boolean` | Tucked into the pill while the current path is its `href` (or a page under it). Default `true`. |
+| `variant` | as a pill's | Default: the host's. |
+| `ending` | `"join"` · `"pop"` | How it leaves when it ends: back into the pill, or scaling out like any pill. Default: the host's `electronEnding` (`"join"`). |
+| `announce` | `string` | Said once by screen readers whenever it changes, for a milestone ("Break time"). Its value is never announced on its own. |
+| `id` | `string` | Starting an electron with an id that's there updates it in place. |
+
+| Host prop | Default | Notes |
+|---|---|---|
+| `satellites` | none | `satellites` from `magic-pill/satellites`. Without it, `pill().electron()` warns in development and shows nothing. |
+| `pathname` | none | The current path, as for the navbar: an electron tucks in on its page. |
+| `electronSide` | `"after"` | `"after"` (further along the edge), `"before"`, or `"beside"` (one row towards the page: above a bottom pill, next to a sidebar). |
+| `electronLine` | `"along"` | Several electrons line up `"along"` the pill or stack `"across"` it. |
+| `keepElectronsOut` | `false` | They tuck in while a notification has the pill (and come back once it has its base layer again); `true` keeps them out. |
+| `electronEnding` | `"join"` | `"join"` or `"pop"`. |
+| `arrange` | `"gather"` | `"gather"`: the pill and its electrons are centred as a group (or at the edge, for a `-start` or `-end` placement). `"spread"`: the pill stays where it is, the electrons go to the screen's edge (under the thumb on a tablet). |
+
+**How it behaves:**
+- **Short of room** (the pill and its electrons wider than the screen), the last ones go beside the pill, one row towards the page, like the ladder. On a phone, a navbar with its current page's label and one electron usually don't fit in one row: the electron goes above the pill.
+- It splits and joins with the goo, on the split's tokens (`--mp-duration-split`, `--mp-duration-join`, `--mp-ease-split`, `--mp-goo`, `--mp-electron-start`, see [Styling](#styling)); `--mp-electron-gap` (`--mp-gap` by default) keeps it apart from the pill. With reduced motion, it fades.
+- It's a link (or a button, or an image for neither) named after its `label` and `valueText`, with its own focus ring.
 
 ## The primitive
 Everything above is built from `<Pill>` and its parts, and you can use them directly. A `<Pill>` you write yourself isn't connected to `pill()`: you control it with props.
@@ -557,7 +610,9 @@ An `<img>` keeps its file's colours: `currentColor` only reaches inline SVGs and
 | `--mp-duration-split` / `--mp-duration-join` | `--mp-duration-enter` / `--mp-duration-exit`: a sidebar's flag coming out of the sidebar and going back |
 | `--mp-ease-split` | `bouncy`: the split's curve, `bouncy`, `pop`, `smooth` or any CSS easing (the join is always smooth) |
 | `--mp-goo` | `12`: how sticky the split is, the blur behind the neck in px. `0`: a plain split, no neck |
-| `--mp-electron-start` | `1`: the size a flag starts at as it comes out. `1`: full size, hidden behind the sidebar's edge. Lower: it starts small and grows on its way out |
+| `--mp-electron-start` | `1`: the size a flag or an electron starts at as it comes out. `1`: full size, hidden behind the pill's edge. Lower: it starts small and grows on its way out |
+| `--mp-electron-gap` | `--mp-gap`: between the pill and its electrons (beta) |
+| `--mp-progress-size` / `--mp-progress-width` | `3.375rem` / `3.5`: `PillProgress`'s ring, and its stroke |
 | `--mp-scale-origin` | `center`: where the pill pops in from and scales out to (e.g. `bottom` to come out of the edge) |
 | `--mp-align` | How a vertical pill lines up its items: `start`, `center` or `end` (following the text direction). By default, along the screen edge for a `left` or `right` pill, centred otherwise |
 
