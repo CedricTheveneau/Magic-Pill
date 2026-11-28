@@ -465,6 +465,56 @@
         align-items: var(--_mp-align);
       }
 
+      /* The page's actions cut short (actionsWheel, magic-pill/satellites):
+         what fits shows, the others turn in, each snapping into place; the
+         ends that hide some fade out, a cut that starts right at the divider */
+      & [data-mp="actions"][data-wheel] {
+        --_mp-wheel-fade: calc(var(--_mp-action-size) * 0.6);
+        --_mp-wheel-start: 0px;
+        --_mp-wheel-end: 0px;
+        max-inline-size: var(--_mp-wheel-length);
+        overflow: auto hidden;
+        overscroll-behavior: contain;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        mask-image: linear-gradient(
+          to var(--_mp-wheel-to, right),
+          transparent,
+          #000 var(--_mp-wheel-start),
+          #000 calc(100% - var(--_mp-wheel-end)),
+          transparent
+        );
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+
+        & > * {
+          flex: none;
+          scroll-snap-align: start;
+        }
+
+        &[data-more-start] {
+          --_mp-wheel-start: var(--_mp-wheel-fade);
+        }
+
+        &[data-more-end] {
+          --_mp-wheel-end: var(--_mp-wheel-fade);
+        }
+
+        &:dir(rtl) {
+          --_mp-wheel-to: left;
+        }
+      }
+
+      &[data-orientation="vertical"] [data-mp="actions"][data-wheel] {
+        --_mp-wheel-to: bottom;
+        max-inline-size: none;
+        max-block-size: var(--_mp-wheel-length);
+        overflow: hidden auto;
+        scroll-snap-type: y mandatory;
+      }
+
       /* A notification in rows (layout="rows"): the message and the actions
          wrap in a body beside the icon. The actions stay on the message's
          line while they fit, go under it when it wraps (the body is as wide

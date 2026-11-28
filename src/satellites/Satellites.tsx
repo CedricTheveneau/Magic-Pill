@@ -38,11 +38,20 @@ const SHIFT = "mp-satellite-shift";
 const ACTIONS = "\u0000actions";
 const SIDE_PLACEMENTS = new Set(["left", "right"]);
 
+/** The page's actions' box along the pill, with all of them, and what a wheel needs to cut it short. */
+interface AlongBox {
+  width: number;
+  height: number;
+  /** How many there are, the pill's length with one, what each next one adds, and one action's length */
+  wheel: { count: number; first: number; step: number; action: number };
+}
+
 /**
  * The page's actions' box along the pill, whichever way their pill runs now
- * and even while its size animates: laid out on a hidden copy, turned along.
+ * and even while its size animates: laid out on a hidden copy, turned along,
+ * with all of them (not cut short by a wheel).
  */
-function alongBox(atom: HTMLElement, vertical: boolean): { width: number; height: number } {
+function alongBox(atom: HTMLElement, vertical: boolean): AlongBox {
   const copy = atom.cloneNode(true) as HTMLElement;
   copy.setAttribute("data-orientation", vertical ? "vertical" : "horizontal");
   copy.removeAttribute("id");
@@ -51,10 +60,42 @@ function alongBox(atom: HTMLElement, vertical: boolean): { width: number; height
   copy.style.pointerEvents = "none";
   copy.style.translate = "none";
   copy.style.scale = "none";
+  copy.querySelector('[data-mp="actions"]')?.removeAttribute("data-wheel");
   atom.after(copy);
-  const box = { width: copy.offsetWidth, height: copy.offsetHeight };
+  const width = copy.offsetWidth;
+  const height = copy.offsetHeight;
+  const actions = [...copy.querySelectorAll<HTMLElement>('[data-mp="actions"] > *')];
+  const along = (element: HTMLElement) => (vertical ? element.offsetTop : element.offsetLeft);
+  const action = actions[0] ? (vertical ? actions[0].offsetHeight : actions[0].offsetWidth) : 0;
+  const step = actions.length > 1 ? Math.abs(along(actions[1]) - along(actions[0])) : action;
+  const length = vertical ? height : width;
   copy.remove();
-  return box;
+  return { width, height, wheel: { count: actions.length, first: length - Math.max(0, actions.length - 1) * step, step, action } };
+}
+
+/** The screen's length along the host's edge, less its offsets. */
+const mainRoom = (vertical: boolean, offset: number) =>
+  (vertical ? window.innerHeight : document.documentElement.clientWidth || window.innerWidth) - offset * 2;
+
+/**
+ * The length of the page's actions inside the pill when they must be cut
+ * short to leave it `room` (undefined: all of them fit). `least`: how short
+ * the host gets with its navbar's labels folded.
+ */
+function insideWheelLength(track: HTMLElement, root: HTMLElement, vertical: boolean, room: number, least?: number): number | undefined {
+  const actions = [...track.children] as HTMLElement[];
+  if (actions.length < 2) return undefined;
+  const along = (element: HTMLElement) => (vertical ? element.offsetTop : element.offsetLeft);
+  const action = vertical ? actions[0].offsetHeight : actions[0].offsetWidth;
+  const step = Math.abs(along(actions[1]) - along(actions[0]));
+  const all = action + (actions.length - 1) * step;
+  const now = vertical ? track.clientHeight : track.clientWidth;
+  const host = vertical ? root.offsetHeight : Math.min(root.offsetWidth, least ?? Infinity);
+  // What the pill holds besides them, and what that leaves them
+  const left = room - (host - now);
+  if (left >= all - 0.5 || step <= 0) return undefined;
+  const fit = Math.max(1, Math.min(actions.length, 1 + Math.floor((left - action) / step)));
+  return action + (fit - 1) * step;
 }
 
 /** Two boxes side by side, a gap apart: the second can come out of the first. */
@@ -186,8 +227,10 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
   const shownActions = detached ? (actions ?? lastActions.current) : null;
   const atom = useRef<HTMLElement | null>(null);
   const [actionsAcross, setActionsAcross] = useState(false);
+  // With a wheel, short of room: how long their row of actions is, showing what fits
+  const [wheelLength, setWheelLength] = useState<number | undefined>(undefined);
   // Measured after each render, on a copy: a turned pill whose size animates would mislead the layout
-  const actionsBox = useRef<{ width: number; height: number } | null>(null);
+  const actionsBox = useRef<AlongBox | null>(null);
   const across = useRef(actionsAcross);
   across.current = actionsAcross;
   const presenceOf = ({ electron, leaving }: Shown): PillPresence => {
@@ -245,14 +288,35 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
       }),
       actions:
         atomOut && actionsBox.current
-          ? { width: actionsBox.current.width, height: actionsBox.current.height, side: host.actionsSide, turn }
+          ? {
+              width: actionsBox.current.width,
+              height: actionsBox.current.height,
+              side: host.actionsSide,
+              turn,
+              ...(host.actionsWheel ? { wheel: actionsBox.current.wheel } : {}),
+            }
           : undefined,
+      nearest: host.nearestToPill,
       side: host.electronSide,
       line: host.electronLine,
       arrange: host.arrange,
       gap,
       offset,
     });
+    // In the pill itself, with a wheel: cut short to the room the pill has, at the divider
+    if (animate && host.actionsStyle === "inside") {
+      const track = root.querySelector<HTMLElement>('[data-mp="actions"][data-inside]');
+      if (track) {
+        const length = host.actionsWheel ? insideWheelLength(track, root, vertical, mainRoom(vertical, offset) - layout.reserve, hostMin.current) : undefined;
+        if (length === undefined) {
+          track.removeAttribute("data-wheel");
+          track.style.removeProperty("--_mp-wheel-length");
+        } else {
+          track.setAttribute("data-wheel", "");
+          track.style.setProperty("--_mp-wheel-length", `${length}px`);
+        }
+      }
+    }
     const reduced = prefersReducedMotion();
     const moving = animate && !reduced && typeof root.animate === "function";
     const timings = durations(out[0] ? elements.current.get(out[0].electron.id)! : root);
@@ -314,15 +378,34 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
         // They turn after a render only, never while following the host as it resizes (no back and forth)
         setActionsAcross(layout.actionsAcross);
       }
+      // With a wheel, short of room: their row cut short to what shows (set after a render only, like turning)
+      if (animate && atomOut && actionsBox.current) {
+        const { wheel } = actionsBox.current;
+        const length = layout.actionsShown !== undefined ? wheel.action + (layout.actionsShown - 1) * wheel.step : undefined;
+        if (length !== wheelLength) setWheelLength(length);
+      }
       if (box && atomOut && settled && !rejoining.current.has(ACTIONS)) {
         // By the edge that faces the host: an action's label opening on hover grows away from it
         const before = alongOf(box) < hostAlong;
         const width = atomElement.offsetWidth || box.width;
         const height = atomElement.offsetHeight || box.height;
+        const from = atomElement.getBoundingClientRect();
         atomElement.style.left = `${!vertical && before ? box.left + box.width - width : box.left}px`;
         atomElement.style.top = `${vertical && before ? box.top + box.height - height : box.top}px`;
         spots.current.set(ACTIONS, spotOf(box));
         if (animate && was !== "compact") playSplit(root, atomElement, "split", { delay: 0, duration: durations(atomElement).enter });
+        else if (moving && was === "compact" && from.width > 0) {
+          // Moving with the group (gathered or spread, another one coming or going): it slides there
+          const to = atomElement.getBoundingClientRect();
+          if (Math.abs(from.left - to.left) > 0.5 || Math.abs(from.top - to.top) > 0.5) {
+            atomElement.animate([{ translate: `${from.left - to.left}px ${from.top - to.top}px` }, { translate: "0px 0px" }], {
+              id: SHIFT,
+              duration: timings.change,
+              easing: "ease-in-out",
+              composite: "add",
+            });
+          }
+        }
       } else if (animate && !atomOut && was === "compact") {
         const { fade, exit } = durations(atomElement);
         playSplit(root, atomElement, "join", { delay: fade, duration: exit });
@@ -402,13 +485,20 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
   useEffect(() => {
     const root = host.rootRef.current;
     if (!root) return;
-    const follow = () => arrange.current(false);
+    // Once it has settled, everything is decided again (turning, a row, a wheel), as after a render
+    let settle: ReturnType<typeof setTimeout> | undefined;
+    const follow = () => {
+      arrange.current(false);
+      clearTimeout(settle);
+      settle = setTimeout(() => arrange.current(true), 200);
+    };
     const observer = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(follow);
     observer?.observe(root);
     // The actions' pill too: it resizes as the page's actions change
     if (atom.current) observer?.observe(atom.current);
     window.addEventListener("resize", follow);
     return () => {
+      clearTimeout(settle);
       observer?.disconnect();
       window.removeEventListener("resize", follow);
       root.style.removeProperty("translate");
@@ -487,7 +577,7 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
           data-satellite="actions"
           style={ELECTRON_STYLE}
         >
-          <ActionList items={shownActions} host={host} />
+          <ActionList items={shownActions} host={host} wheel={wheelLength} />
         </Pill>
       )}
       {entries.map(({ electron, presence }) =>
