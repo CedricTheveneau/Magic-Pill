@@ -97,6 +97,8 @@ export type {
   QueuedNotification,
   PillQueueState,
   DismissReason,
+  ElectronOptions,
+  Electron,
 } from './store/store';
 export { usePillQueue } from './store/usePillQueue';
 
