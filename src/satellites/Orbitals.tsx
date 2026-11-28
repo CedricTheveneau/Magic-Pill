@@ -114,7 +114,8 @@ export function Orbitals({
     if (!element || !root) return null;
     const read = readSettings(element);
     settings.current = read;
-    const obstacles = [root, ...document.querySelectorAll<HTMLElement>('[data-mp="pill"][data-satellite="electron"]')]
+    // The host, the other electrons and the page's actions: they don't go over any of them
+    const obstacles = [root, ...document.querySelectorAll<HTMLElement>('[data-mp="pill"]:is([data-satellite="electron"], [data-satellite="actions"])')]
       .filter((other) => other !== element && other.dataset.presence !== "hidden")
       .map((other) => other.getBoundingClientRect());
     orbit.current = planOrbit({
