@@ -49,7 +49,7 @@ src/
 │                             and flag.ts, a sidebar's flag)
 ├── store/                    layer 3, the named-pill store, pill() and usePillQueue
 ├── satellites/               magic-pill/satellites (beta): the Electron's layer (Satellites.tsx), its layout (layout.ts), its
-│                             orbitals (Orbitals.tsx, orbits.ts: their arc), measure.ts, the host's types
+│                             orbitals (Orbitals.tsx, orbits.ts: their arc), the page's actions (Actions.tsx), measure.ts, the host's types
 ├── icons/                    one component per icon (PascalCase, e.g. CheckIcon.tsx); no new ones: apps bring their own icons
 │                             (the exports are deprecated, and the library keeps the ones it draws as defaults)
 ├── utils/                    shared helpers (url.ts, react.ts, timing.ts, inputModality.ts)

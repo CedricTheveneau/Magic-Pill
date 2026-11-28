@@ -344,6 +344,35 @@ pill().electron({
 - It splits and joins with the goo, on the split's tokens (`--mp-duration-split`, `--mp-duration-join`, `--mp-ease-split`, `--mp-goo`, `--mp-electron-start`, see [Styling](#styling)); `--mp-electron-gap` (`--mp-gap` by default) keeps it apart from the pill. With reduced motion, it fades.
 - It's a link (or a button, or an image for neither) named after its `label` and `valueText`, with its own focus ring.
 
+### The page's actions (beta)
+The design's wide atom: one or more actions for the current page, next to the pill. A page sets them while it's mounted, and they go with it:
+
+```tsx
+"use client";
+import { usePillActions } from "magic-pill/satellites";
+
+const ACTIONS = [
+  { icon: <PenIcon />, label: "Write", onClick: compose },
+  { icon: <CheckIcon />, label: "Mark all as read", href: "/inbox/read" },
+];
+
+export function InboxPage() {
+  usePillActions(ACTIONS); // a stable array: a constant, or useMemo
+  return …;
+}
+```
+
+`pill().setActions(items)` does the same from anywhere (`null` or none: they go). Each one is `{ icon, label, onClick?, href?, expanded?, id? }`, shown like the pill's own actions: the label on hover and focus, or all the time with `expanded`.
+
+| Host prop | Default | Notes |
+|---|---|---|
+| `actionsStyle` | `"detached"` | `"detached"`: a pill of their own, which comes out of the host with the goo and goes back into it when the page has none (or while a notification has the pill). `"inside"`: in the pill itself, after a divider. |
+| `actionsSide` | `"start"` | `"start"` or `"end"` (following the text direction: under the thumb you want), or `"beside"` (one row towards the page). |
+| `actionsOrientation` | `"auto"` | `"auto"`: like the pill, turning across it when they'd leave the pill too little room (a column next to a bottom pill), and back once they're beside it. `"horizontal"` or `"vertical"`, always. |
+| `actionsLabel` | `"Page actions"` | Their accessible name. |
+
+Short of room, the actions turn across first (`"auto"`), then the last electrons, the actions and the first electron go beside the pill, in that order.
+
 ## The primitive
 Everything above is built from `<Pill>` and its parts, and you can use them directly. A `<Pill>` you write yourself isn't connected to `pill()`: you control it with props.
 

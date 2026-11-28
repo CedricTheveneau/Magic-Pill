@@ -544,13 +544,15 @@
         outline-offset: 2px;
       }
 
-      /* An electron: all of the circle is a link back to where it came from */
+      /* An electron: all of the circle is a link back to where it came from.
+         The circle's size, padding included, the same whatever box-sizing an
+         app's reset gives everything (its CSS beats these layers) */
       & [data-mp="electron"] {
         display: grid;
         place-items: center;
-        box-sizing: content-box;
-        inline-size: var(--_mp-action-size);
-        block-size: var(--_mp-action-size);
+        box-sizing: border-box;
+        inline-size: var(--_mp-rest-size);
+        block-size: var(--_mp-rest-size);
         margin: calc(var(--_mp-padding) * -1);
         padding: var(--_mp-padding);
         border: 0;

@@ -35,6 +35,9 @@ import { flagStyle, measureFlagSpot, type FlagSpot } from "./flag";
 import { playSplit } from "../Pill/goo";
 import { useChoreography } from "./useChoreography";
 import type {
+  ActionsOrientation,
+  ActionsSide,
+  ActionsStyle,
   ElectronEnding,
   ElectronLine,
   ElectronSide,
@@ -112,6 +115,17 @@ export interface MagicPillProps
   orbitalLabels?: boolean;
   /** Orbitals stay open after one of them runs. Default true (beta). */
   orbitalsStayOpen?: boolean;
+  /**
+   * The current page's actions (`usePillActions()`): a pill of their own
+   * (default), or in the pill itself, after a divider (beta).
+   */
+  actionsStyle?: ActionsStyle;
+  /** Where the page's actions go: the start side (default), the end side, or beside the pill (beta). */
+  actionsSide?: ActionsSide;
+  /** The page's actions run like the pill, turning across when room runs out (default), or horizontal, or vertical (beta). */
+  actionsOrientation?: ActionsOrientation;
+  /** The page's actions' accessible name. Default "Page actions" (beta). */
+  actionsLabel?: string;
 }
 
 const DEFAULT_DURATION = 5000;
@@ -216,6 +230,10 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
     orbitalsOpenOn = "press-hover",
     orbitalLabels = true,
     orbitalsStayOpen = true,
+    actionsStyle = "detached",
+    actionsSide = "start",
+    actionsOrientation = "auto",
+    actionsLabel = "Page actions",
     placement = "bottom",
     orientation,
     moveThroughCircle,
@@ -430,12 +448,51 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
       }
     };
 
+  // What the satellites see of the host (magic-pill/satellites)
+  const satelliteHost: SatelliteHost | undefined = satellites
+    ? {
+        name,
+        store,
+        rootRef,
+        placement,
+        vertical: isVertical,
+        pathname,
+        // A notification has the pill, or it's still closing on one or reopening:
+        // the electrons come out again once it's open with its base layer
+        notifying:
+          target.kind === "notification" ||
+          displayed.scene.kind === "notification" ||
+          (hasBase && !isOpen(displayed.presence)),
+        linkComponent,
+        variant,
+        theme: rest.theme,
+        electronSide,
+        electronLine,
+        keepElectronsOut,
+        electronEnding,
+        arrange,
+        orbitalsOpenOn,
+        orbitalLabels,
+        orbitalsStayOpen,
+        actionsStyle,
+        actionsSide,
+        actionsOrientation,
+        actionsLabel,
+      }
+    : undefined;
+  const inside = satellites && satelliteHost && actionsStyle === "inside" ? <satellites.Inside host={satelliteHost} /> : null;
+
   const renderScene = (shownScene: Scene): ReactNode => {
     switch (shownScene.kind) {
       case "base":
         // A scene of its own: its fields' state doesn't go over to the next one
+        // The page's actions inside the pill: before its content or after it, past a divider
         return (
-          <Fragment key={shownScene.key}>{lastScenes.current.get(shownScene.key)?.children ?? lastBase.current}</Fragment>
+          <Fragment key={shownScene.key}>
+            {actionsSide !== "end" && inside}
+            {lastScenes.current.get(shownScene.key)?.children ?? lastBase.current}
+            {actionsSide === "end" && inside}
+          </Fragment>
         );
       case "idle":
         return <PillIcon>{idleIcon}</PillIcon>;
@@ -536,35 +593,7 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
           {renderScene(flagDisplayed.scene)}
         </Pill>
       )}
-      {satellites && (
-        <satellites.Layer
-          host={{
-            name,
-            store,
-            rootRef,
-            placement,
-            vertical: isVertical,
-            pathname,
-            // A notification has the pill, or it's still closing on one or reopening:
-            // the electrons come out again once it's open with its base layer
-            notifying:
-              target.kind === "notification" ||
-              displayed.scene.kind === "notification" ||
-              (hasBase && !isOpen(displayed.presence)),
-            linkComponent,
-            variant,
-            theme: rest.theme,
-            electronSide,
-            electronLine,
-            keepElectronsOut,
-            electronEnding,
-            arrange,
-            orbitalsOpenOn,
-            orbitalLabels,
-            orbitalsStayOpen,
-          } satisfies SatelliteHost}
-        />
-      )}
+      {satellites && satelliteHost && <satellites.Layer host={satelliteHost} />}
       <div role="status" aria-live="polite" aria-atomic="true" data-mp="announcer" style={VISUALLY_HIDDEN}>
         {announcement && <span key={announcement.key.id + announcement.text}>{announcement.text}</span>}
       </div>

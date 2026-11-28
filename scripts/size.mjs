@@ -37,8 +37,10 @@ const PROBES = [
     // then from 13.5 kB for the goo, a flag's split and join (Pill/goo.ts: an overlay and its SVG filter,
     // the curves, the content's fade, the glass' blur kept off the sidebar), in place of the bridge: 15.16 kB,
     // then from 15.5 kB for the electrons' part of the store and the host (pill().electron(), the host's
-    // satellites props and its warning without them; the rest is in magic-pill/satellites): 15.54 kB
-    budget: 15.75 * KB, // 4.89 kB at 9.0.0-next.0
+    // satellites props and its warning without them; the rest is in magic-pill/satellites): 15.54 kB,
+    // then from 15.75 kB for the page's actions' part (pill().setActions(), the host's props and the
+    // actions inside the pill): 15.78 kB
+    budget: 16 * KB, // 4.89 kB at 9.0.0-next.0
   },
   {
     name: "Pill primitive",
@@ -63,8 +65,8 @@ const PROBES = [
     // 12.17 kB, then 12.71 kB with the busy labels, 13.38 kB with scenes,
     // 13.88 kB with the exit played by script, 14.23 kB with placement changes through the circle,
     // 14.62 kB with notifications in rows, 16.33 kB with cards and the flag, 18.48 kB with the goo,
-    // 18.88 kB with the electrons' part of the store and the host
-    budget: 19 * KB,
+    // 18.88 kB with the electrons' part of the store and the host, 19.11 kB with the page's actions' part
+    budget: 19.25 * KB,
   },
   {
     name: "Everything",
@@ -102,8 +104,9 @@ const PROBES = [
     // 18.49 kB with the navbar's folded width, to know whether an electron fits next to it,
     // 21.71 kB with the orbitals (their arc around obstacles, the long press, sliding to one,
     // hovering, the keyboard's menu, their labels),
-    // 22.75 kB with the wheel (turning with the mouse wheel, a drag and the keys, snapping, peeking where clear)
-    budget: 23 * KB,
+    // 22.75 kB with the wheel (turning with the mouse wheel, a drag and the keys, snapping, peeking where clear),
+    // 23.62 kB with the page's actions (usePillActions, their pill, their side and orientation)
+    budget: 24 * KB,
   },
 ];
 const STYLESHEETS = [
