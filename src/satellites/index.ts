@@ -5,12 +5,17 @@
 //
 //   import { satellites } from "magic-pill/satellites";
 //   <MagicPill pathname={pathname} satellites={satellites}>…</MagicPill>
+import { InsideActions } from "./Actions";
 import { SatellitesLayer } from "./Satellites";
 import type { PillSatellites } from "./types";
 
-export const satellites: PillSatellites = { Layer: SatellitesLayer };
+export const satellites: PillSatellites = { Layer: SatellitesLayer, Inside: InsideActions };
+export { usePillActions } from "./Actions";
 
 export type {
+  ActionsOrientation,
+  ActionsSide,
+  ActionsStyle,
   ElectronEnding,
   ElectronLine,
   ElectronSide,
@@ -18,4 +23,4 @@ export type {
   PillSatellites,
   SatelliteArrangement,
 } from "./types";
-export type { ElectronOptions, Electron, Orbital } from "../store/store";
+export type { ElectronOptions, Electron, Orbital, PillActionItem } from "../store/store";

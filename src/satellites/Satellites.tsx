@@ -27,11 +27,14 @@ import { VISUALLY_HIDDEN } from "../utils/visuallyHidden";
 import { planSatellites, type Box } from "./layout";
 import { durations, toPixels } from "./measure";
 import { Orbitals } from "./Orbitals";
+import { ActionList, useHostActions } from "./Actions";
 import type { SatelliteHost } from "./types";
 
 // Fixed on the screen, placed by script; the stylesheet's inline placement gives it no z-index
 const ELECTRON_STYLE = { position: "fixed", zIndex: "var(--mp-z-index, 50)", margin: 0 } as CSSProperties;
 const SHIFT = "mp-satellite-shift";
+/** The page's actions' entry among the satellites' presences */
+const ACTIONS = "\u0000actions";
 const SIDE_PLACEMENTS = new Set(["left", "right"]);
 
 /** Two boxes side by side, a gap apart: the second can come out of the first. */
@@ -102,6 +105,18 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
   }
 
   const tucked = host.notifying && !host.keepElectronsOut;
+
+  // The page's actions, in a pill of their own: out while there are some, the last ones kept while they go back
+  const actions = useHostActions(host);
+  const lastActions = useRef<typeof actions>(null);
+  if (actions) lastActions.current = actions;
+  const detached = host.actionsStyle === "detached";
+  const actionsPresence: PillPresence = detached && actions && !tucked ? "compact" : "hidden";
+  const shownActions = detached ? (actions ?? lastActions.current) : null;
+  const atom = useRef<HTMLElement | null>(null);
+  const [actionsAcross, setActionsAcross] = useState(false);
+  const across = useRef(actionsAcross);
+  across.current = actionsAcross;
   const presenceOf = ({ electron, leaving }: Shown): PillPresence => {
     if (leaving || tucked) return "hidden";
     const onOrigin =
@@ -131,6 +146,15 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
     const offset = toPixels(style.getPropertyValue("--_mp-offset"), root, 24);
     const out = entries.filter((entry) => entry.presence !== "hidden" && elements.current.get(entry.electron.id));
     if (animate && !vertical) hostMin.current = foldedWidth(root);
+    // The actions' box along the pill (turned back if they run across it now)
+    const atomElement = atom.current;
+    const atomOut = actionsPresence !== "hidden" && atomElement;
+    const turn =
+      host.actionsOrientation === "auto"
+        ? ("auto" as const)
+        : (host.actionsOrientation === "vertical") === vertical
+          ? ("along" as const)
+          : ("across" as const);
     const layout = planSatellites({
       viewport: { width: document.documentElement.clientWidth || window.innerWidth, height: window.innerHeight },
       host: { left: root.offsetLeft, top: root.offsetTop, width: root.offsetWidth, height: root.offsetHeight },
@@ -142,6 +166,14 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
         const element = elements.current.get(electron.id)!;
         return { id: electron.id, width: element.offsetWidth || 72, height: element.offsetHeight || 72 };
       }),
+      actions: atomOut
+        ? {
+            width: across.current ? atomElement.offsetHeight : atomElement.offsetWidth,
+            height: across.current ? atomElement.offsetWidth : atomElement.offsetHeight,
+            side: host.actionsSide,
+            turn,
+          }
+        : undefined,
       side: host.electronSide,
       line: host.electronLine,
       arrange: host.arrange,
@@ -173,8 +205,25 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
     }
     applied.current = { shift: layout.shift, reserve: layout.reserve };
 
-    // The electrons: into their spots, and out of the host (or back into it) when that changes
+    if (atomOut && layout.actionsAcross !== across.current) setActionsAcross(layout.actionsAcross);
+
+    // The actions: into their spot, out of the host as they come, back into it as they go
     const boxes = layout.boxes;
+    if (atomElement) {
+      const was = presences.current.get(ACTIONS);
+      const box = boxes.actions;
+      // Turning across: placed (and coming out) on the next pass, once it has turned
+      const settled = layout.actionsAcross === across.current;
+      if (box && atomOut && settled) {
+        atomElement.style.left = `${box.left}px`;
+        atomElement.style.top = `${box.top}px`;
+        if (animate && was !== "compact") playSplit(root, atomElement, "split", { delay: 0, duration: durations(atomElement).enter });
+      } else if (animate && !atomOut && was === "compact") {
+        const { fade, change, exit } = durations(atomElement);
+        playSplit(root, atomElement, "join", { delay: fade + change, duration: exit });
+      }
+      if (animate && (settled || !atomOut)) presences.current.set(ACTIONS, actionsPresence);
+    }
     const crossOf = (box: Box) => Math.round(vertical ? box.left : box.top);
     out.forEach(({ electron }, index) => {
       const element = elements.current.get(electron.id)!;
@@ -236,6 +285,8 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
     const follow = () => arrange.current(false);
     const observer = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(follow);
     observer?.observe(root);
+    // The actions' pill too: it resizes as the page's actions change
+    if (atom.current) observer?.observe(atom.current);
     window.addEventListener("resize", follow);
     return () => {
       observer?.disconnect();
@@ -244,7 +295,7 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
       if (!SIDE_PLACEMENTS.has(host.placement)) root.style.removeProperty("--_mp-shift-x");
       applied.current = { shift: 0, reserve: 0 };
     };
-  }, [host.rootRef, host.placement]);
+  }, [host.rootRef, host.placement, !!shownActions]);
 
   // The ones that ended leave the page once they've gone
   const leavingIds = entries.filter((entry) => entry.leaving).map((entry) => entry.electron.id);
@@ -299,6 +350,25 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
           </Pill>
         );
       })}
+      {shownActions && (
+        <Pill
+          ref={atom}
+          placement="inline"
+          ladder={false}
+          moveThroughCircle={false}
+          theme={host.theme}
+          variant={host.variant}
+          orientation={(host.vertical !== actionsAcross) ? "vertical" : "horizontal"}
+          presence={actionsPresence}
+          scene={shownActions.map((item) => item.id ?? item.label).join("\n")}
+          role="group"
+          aria-label={host.actionsLabel}
+          data-satellite="actions"
+          style={ELECTRON_STYLE}
+        >
+          <ActionList items={shownActions} host={host} />
+        </Pill>
+      )}
       {entries.map(({ electron, presence }) =>
         electron.input.orbitals?.length ? (
           <Orbitals
