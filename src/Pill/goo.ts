@@ -403,40 +403,65 @@ export function playSplit(anchor: HTMLElement, moving: HTMLElement, kind: "split
   return stop;
 }
 
+/** Where a pill starts (or ends) inside another, from its spot: an offset, and a scale. */
+export type Inside = (rect: DOMRect, element: HTMLElement) => { x: number; y: number; scale: number };
+
+export interface BudItem {
+  element: HTMLElement;
+  delay: number;
+  /** How much of it shows at its spot (a wheel's faint ends). Default 1 */
+  shown?: number;
+  /** Where it's inside the anchor. Default: the anchor's centre, at 0.3 */
+  from?: Inside;
+  /** It's seen the whole way (the page's actions moving out of the pill): no fade */
+  opaque?: boolean;
+}
+
+/** Inside the anchor at its nearest edge, as a flag goes into its sidebar (`--mp-electron-start`). */
+export const atEdgeOf =
+  (anchor: HTMLElement): Inside =>
+  (rect, element) =>
+    tuckedOffset(anchor.getBoundingClientRect(), rect, readNumber(getComputedStyle(element), "--mp-electron-start", 1));
+
+/** Inside the anchor at a point of the screen (where a pill closing to a circle ends), small. */
+export const atPoint =
+  (x: number, y: number, scale = 0.3): Inside =>
+  (rect) => ({ x: x - (rect.left + rect.width / 2), y: y - (rect.top + rect.height / 2), scale });
+
+// The motion each pill is in, so that the next one stops it first
+const budding = new WeakMap<HTMLElement, () => void>();
+
 /**
- * An electron's orbitals bulging out of its centre (or folding back into it),
- * one after the other, as the concept drew them. The pills draw themselves
- * the whole time (their glass, rim and shadow stay); one overlay under them
- * draws only the necks between the electron and its orbitals: the goo of the
- * moment, every pill's inside cut out of it.
+ * Pills budding out of another (or going back into it), one after the other,
+ * as the concept drew an electron's orbitals: from inside it, small and
+ * see-through, to their spot. The pills draw themselves the whole time (their
+ * glass, rim and shadow stay, no colour switch at the end); one overlay under
+ * them draws only the necks between them and the anchor: the goo of the
+ * moment, every pill's inside cut out of it. An electron's orbitals, an
+ * electron out of its host or out of the one next to it, the page's actions.
  */
-export function playOrbit(
-  electron: HTMLElement,
-  items: { element: HTMLElement; delay: number; shown?: number }[],
-  kind: "open" | "close",
-  timing: { duration: number },
-): () => void {
+export function playOrbit(electron: HTMLElement, items: BudItem[], kind: "open" | "close", timing: { duration: number }): () => void {
   for (const { element } of items) {
+    budding.get(element)?.();
     for (const animation of element.getAnimations?.() ?? []) if (animation.id === SPLIT) animation.cancel();
   }
   if (timing.duration <= 0 || prefersReducedMotion() || typeof electron.animate !== "function" || items.length === 0) return () => {};
 
   const style = getComputedStyle(electron);
-  const goo = readNumber(style, "--mp-goo", DEFAULT_GOO);
   const easing = kind === "open" ? splitEasing(style.getPropertyValue("--mp-ease-split")) : SMOOTH;
   const centre = electron.getBoundingClientRect();
   const cx = centre.left + centre.width / 2;
   const cy = centre.top + centre.height / 2;
   const longest = Math.max(...items.map(({ delay }) => delay)) + timing.duration;
 
-  // Each orbital from the electron's centre, small and see-through, to its spot (or back)
-  for (const { element, delay, shown = 1 } of items) {
+  // Each one from inside the anchor, small and see-through, to its spot (or back)
+  for (const { element, delay, shown = 1, from = atPoint(cx, cy), opaque = false } of items) {
     if (shown <= 0) continue;
     const rect = element.getBoundingClientRect();
-    const from = `${cx - (rect.left + rect.width / 2)}px ${cy - (rect.top + rect.height / 2)}px`;
+    const start = from(rect, element);
     const end = getComputedStyle(element).scale;
     type Frame = { translate: string; scale: string; opacity: number; offset?: number };
-    const inside: Frame = { translate: from, scale: "0.3", opacity: 0 };
+    const inside: Frame = { translate: `${start.x}px ${start.y}px`, scale: String(start.scale), opacity: opaque ? shown : 0 };
     const out: Frame = { translate: "0px 0px", scale: end === "none" ? "1" : end, opacity: shown };
     // Opaque once out of the electron (and until it's back in): it shows only outside it
     const frames: Frame[] = kind === "open" ? [inside, { ...out, offset: 0.35 }, out] : [out, { ...out, offset: 0.65 }, inside];
@@ -448,9 +473,34 @@ export function playOrbit(
     } catch {
       element.animate(ends, { ...options, easing: POP });
     }
-    element.animate(frames.map(({ opacity, offset }) => (offset === undefined ? { opacity } : { opacity, offset })), { ...options, easing: "linear" });
+    if (!opaque) {
+      element.animate(frames.map(({ opacity, offset }) => (offset === undefined ? { opacity } : { opacity, offset })), { ...options, easing: "linear" });
+    } else if (kind === "close") {
+      // Seen the whole way, and gone as it gets there (what it went into shows it from then on)
+      element.animate([{ opacity: shown }, { opacity: shown, offset: 0.85 }, { opacity: 0 }], { ...options, easing: "linear" });
+    }
   }
+  const stop = playNecks([electron, ...items.filter(({ shown = 1 }) => shown > 0).map(({ element }) => element)], longest);
+  const stopAll = () => {
+    stop();
+    for (const { element } of items) if (budding.get(element) === stopAll) budding.delete(element);
+  };
+  for (const { element } of items) budding.set(element, stopAll);
+  return stopAll;
+}
+
+/**
+ * The necks between pills, for `duration` ms: the goo of the moment under
+ * them, every pill's inside cut out of it, in the first one's colour. The
+ * pills draw themselves. Pills sliding past each other (or out of one
+ * another) seem to melt together as they meet and part.
+ */
+export function playNecks(pills: HTMLElement[], duration: number): () => void {
+  if (pills.length < 2 || duration <= 0 || prefersReducedMotion() || typeof document === "undefined") return () => {};
+  const style = getComputedStyle(pills[0]);
+  const goo = readNumber(style, "--mp-goo", DEFAULT_GOO);
   if (goo <= 0) return () => {};
+  const longest = duration;
 
   // The necks: the goo of every pill, with every pill's inside cut out
   const id = `mp-goo-${++overlays}`;
@@ -478,7 +528,6 @@ export function playOrbit(
   svg.append(filter);
   const layer = document.createElement("div");
   layer.style.cssText = `position:absolute;inset:0;filter:url(#${id});`;
-  const pills = [electron, ...items.filter(({ shown = 1 }) => shown > 0).map(({ element }) => element)];
   const radii = pills.map((pill) => Number.parseFloat(getComputedStyle(pill).borderTopLeftRadius) || 0);
   const shapes = pills.map(() => {
     const shape = document.createElement("div");

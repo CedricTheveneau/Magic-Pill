@@ -15,8 +15,8 @@ import {
 } from "react";
 
 import Pill from "../Pill/Pill";
-import { playSplit } from "../Pill/goo";
-import { MORPH } from "../Pill/morph";
+import { atEdgeOf, atPoint, playNecks, playOrbit, type Inside } from "../Pill/goo";
+import { cancel, MORPH } from "../Pill/morph";
 import { PillProgress } from "../Pill/PillProgress";
 import type { PillPresence } from "../Pill/types";
 import { findActiveIndex } from "../PillNavbar/matchPath";
@@ -72,6 +72,13 @@ function alongBox(atom: HTMLElement, vertical: boolean): AlongBox {
   copy.remove();
   return { width, height, wheel: { count: actions.length, first: length - Math.max(0, actions.length - 1) * step, step, action } };
 }
+
+/**
+ * Out of the anchor (or back into it) with the goo, drawing itself the whole
+ * way, as the orbitals do: from inside it at its nearest edge by default.
+ */
+const bud = (anchor: HTMLElement, element: HTMLElement, kind: "split" | "join", delay: number, duration: number, from?: Inside, opaque = false) =>
+  playOrbit(anchor, [{ element, delay, from: from ?? atEdgeOf(anchor), opaque }], kind === "split" ? "open" : "close", { duration });
 
 /** The screen's length along the host's edge, less its offsets. */
 const mainRoom = (vertical: boolean, offset: number) =>
@@ -255,6 +262,10 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
   const rejoining = useRef(new Set<string>());
   // Back in, to come out at their new spot on the next pass
   const splitNext = useRef(new Set<string>());
+  // The page's actions in the pill (actionsStyle="inside"): where they were last, for their own pill
+  // to come out of there (and go back there) when the style changes
+  const insideSpot = useRef<{ x: number; y: number } | null>(null);
+  const lastStyle = useRef(host.actionsStyle);
 
   // Measures, places, and moves: animated after a render, at once while the host resizes
   const arrange = useRef<(animate: boolean) => void>(() => {});
@@ -328,6 +339,11 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
     const hostAlong = (vertical ? root.offsetTop : root.offsetLeft) + layout.shift + (vertical ? root.offsetHeight : root.offsetWidth) / 2;
     const alongOf = (box: Box) => (vertical ? box.top + box.height / 2 : box.left + box.width / 2);
     const spotOf = (box: Box) => `${alongOf(box) < hostAlong ? "before" : "after"} ${Math.round(vertical ? box.left : box.top)}`;
+    // The host's centre at its spot: where it closes to a circle
+    const hostCentre = () =>
+      vertical
+        ? atPoint(root.offsetLeft + root.offsetWidth / 2, hostAlong)
+        : atPoint(hostAlong, root.offsetTop + root.offsetHeight / 2);
     // One that changes side or row (or actions that turn) goes back into the host first: meanwhile,
     // the host and the others stay where they are; then the host moves as it comes out at its new spot
     const changing = (id: string, box: Box | undefined) =>
@@ -365,12 +381,26 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
     const rejoin = (id: string, element: HTMLElement, then: () => void) => {
       rejoining.current.add(id);
       const { exit } = durations(element);
-      playSplit(root, element, "join", { delay: 0, duration: exit });
+      bud(root, element, "join", 0, exit);
       setTimeout(() => {
         rejoining.current.delete(id);
         then();
       }, exit + 20);
     };
+
+    // The page's actions in the pill: where they are, at the host's spot (not where an animation has it)
+    const styleChanged = lastStyle.current !== host.actionsStyle;
+    if (animate) {
+      const track = host.actionsStyle === "inside" ? root.querySelector<HTMLElement>('[data-mp="actions"][data-inside]') : null;
+      if (track) {
+        const hostLeft = root.offsetLeft + (vertical ? 0 : layout.shift);
+        const hostTop = root.offsetTop + (vertical ? layout.shift : 0);
+        insideSpot.current = { x: hostLeft + track.offsetLeft + track.offsetWidth / 2, y: hostTop + track.offsetTop + track.offsetHeight / 2 };
+      }
+      lastStyle.current = host.actionsStyle;
+    }
+    // While the satellites slide: each one's start and end along the edge, for the ones that pass each other
+    const slides: { element: HTMLElement; from: number; to: number }[] = [];
 
     // The actions: into their spot, out of the host as they come, back into it as they go
     if (atomElement) {
@@ -410,10 +440,16 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
         atomElement.style.left = `${left}px`;
         atomElement.style.top = `${top}px`;
         spots.current.set(ACTIONS, spotOf(box));
-        if (animate && was !== "compact") playSplit(root, atomElement, "split", { delay: 0, duration: durations(atomElement).enter });
-        else if (moving && was === "compact" && Number.isFinite(from.left) && Number.isFinite(from.top)) {
+        if (animate && was !== "compact") {
+          // Out of the pill: from where they were in it when they've just left it, seen the whole way
+          const fromInside = styleChanged && insideSpot.current ? atPoint(insideSpot.current.x, insideSpot.current.y, 1) : undefined;
+          // At their size as they are now: turned while they were in, they don't grow from their old shape
+          cancel(atomElement, MORPH, true);
+          bud(root, atomElement, "split", 0, durations(atomElement).enter, fromInside, !!fromInside);
+        } else if (moving && was === "compact" && Number.isFinite(from.left) && Number.isFinite(from.top)) {
           // Moving with the group (gathered or spread, another one coming or going): it slides there
           if (Math.abs(from.left - left) > 0.5 || Math.abs(from.top - top) > 0.5) {
+            slides.push({ element: atomElement, from: vertical ? from.top : from.left, to: vertical ? top : left });
             atomElement.animate([{ translate: `${from.left - left}px ${from.top - top}px` }, { translate: "0px 0px" }], {
               id: SHIFT,
               duration: timings.change,
@@ -424,7 +460,18 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
         }
       } else if (animate && !atomOut && was === "compact") {
         const { fade, exit } = durations(atomElement);
-        playSplit(root, atomElement, "join", { delay: fade, duration: exit });
+        if (styleChanged && host.actionsStyle === "inside" && insideSpot.current) {
+          // Into the pill, where they now are in it, seen the whole way (their content too)
+          for (const child of atomElement.children) (child as HTMLElement).style.opacity = "1";
+          bud(root, atomElement, "join", 0, exit, atPoint(insideSpot.current.x, insideSpot.current.y, 1), true);
+          setTimeout(() => {
+            for (const child of atomElement.children) (child as HTMLElement).style.removeProperty("opacity");
+          }, exit + 20);
+        } else if (tucked) {
+          bud(root, atomElement, "join", 0, Math.max(exit, fade + durations(atomElement).change), hostCentre());
+        } else {
+          bud(root, atomElement, "join", fade, exit);
+        }
         spots.current.delete(ACTIONS);
       }
       if (animate && !rejoining.current.has(ACTIONS) && !holding && (settled || !atomOut)) presences.current.set(ACTIONS, actionsPresence);
@@ -441,7 +488,7 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
         element.style.left = `${box.left}px`;
         element.style.top = `${box.top}px`;
         rows.current.set(electron.id, String(crossOf(box)));
-        playSplit(root, element, "split", { delay: 0, duration: durations(element).enter });
+        bud(root, element, "split", 0, durations(element).enter);
         return;
       }
       const moved = was === "compact" && spots.current.has(electron.id) && spots.current.get(electron.id) !== spotOf(box);
@@ -480,8 +527,9 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
         const before = out[index - 1];
         const neighbour = before ? elements.current.get(before.electron.id) : undefined;
         const anchor = neighbour && before && nextTo(boxes[before.electron.id], box, gap) ? neighbour : root;
-        playSplit(anchor, element, "split", { delay: 0, duration: durations(element).enter });
+        bud(anchor, element, "split", 0, durations(element).enter);
       } else if (moving && placed && (Math.abs(from.left - box.left) > 0.5 || Math.abs(from.top - box.top) > 0.5)) {
+        slides.push({ element, from: vertical ? from.top : from.left, to: vertical ? box.top : box.left });
         element.animate([{ translate: `${from.left - box.left}px ${from.top - box.top}px` }, { translate: "0px 0px" }], {
           id: SHIFT,
           duration: timings.change,
@@ -490,6 +538,18 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
         });
       }
     });
+    // Two that pass each other (the actions and an electron swapping places): they melt together as they meet
+    const passing = new Set<HTMLElement>();
+    slides.forEach((a, i) =>
+      slides.slice(i + 1).forEach((b) => {
+        if (Math.sign(a.from - b.from) !== Math.sign(a.to - b.to)) {
+          passing.add(a.element);
+          passing.add(b.element);
+        }
+      }),
+    );
+    if (passing.size > 1) playNecks([...passing], timings.change);
+
     // Holding: the next pass, once it's back in, takes the others' changes
     if (animate && !holding) {
       for (const entry of entries) {
@@ -498,8 +558,13 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
         const ending = entry.leaving ? (entry.electron.input.ending ?? host.electronEnding) : "join";
         spots.current.delete(entry.electron.id);
         if (ending === "pop") continue; // the stylesheet scales it out
-        const { fade, exit } = durations(element);
-        playSplit(root, element, "join", { delay: fade, duration: exit });
+        const { fade, change, exit } = durations(element);
+        if (tucked && !entry.leaving) {
+          // For a notification (or a trip): with the host as it closes, into its centre, where it ends as a circle
+          bud(root, element, "join", 0, Math.max(exit, fade + change), hostCentre());
+        } else {
+          bud(root, element, "join", fade, exit);
+        }
       }
       for (const entry of entries) presences.current.set(entry.electron.id, entry.presence);
     }
