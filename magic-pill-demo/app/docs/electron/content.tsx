@@ -165,7 +165,7 @@ usePillActions([
           >
             <p>
               The design’s wide atom: a pill of their own on the start side, or in the pill after a divider (see the
-              settings). Short of room, they turn across, then go above the pill. They go when you leave this page.
+              settings). Short of room, they turn across (or, with the wheel, show what fits), then go above the pill. They go when you leave this page.
             </p>
           </Example>
           <Example title="Four actions" notify={() => pill().setActions(MORE_ACTIONS)} tryLabel="Show four" code={`pill().setActions([write, readAll, newNote, search]);`}>
