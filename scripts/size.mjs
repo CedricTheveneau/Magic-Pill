@@ -39,8 +39,8 @@ const PROBES = [
     // then from 15.5 kB for the electrons' part of the store and the host (pill().electron(), the host's
     // satellites props and its warning without them; the rest is in magic-pill/satellites): 15.54 kB,
     // then from 15.75 kB for the page's actions' part (pill().setActions(), the host's props and the
-    // actions inside the pill): 15.78 kB
-    budget: 16 * KB, // 4.89 kB at 9.0.0-next.0
+    // actions inside the pill): 15.78 kB, 15.96 kB with the goo's overlay bounded to its two pills
+    budget: 16.25 * KB, // 4.89 kB at 9.0.0-next.0
   },
   {
     name: "Pill primitive",
@@ -65,8 +65,9 @@ const PROBES = [
     // 12.17 kB, then 12.71 kB with the busy labels, 13.38 kB with scenes,
     // 13.88 kB with the exit played by script, 14.23 kB with placement changes through the circle,
     // 14.62 kB with notifications in rows, 16.33 kB with cards and the flag, 18.48 kB with the goo,
-    // 18.88 kB with the electrons' part of the store and the host, 19.11 kB with the page's actions' part
-    budget: 19.25 * KB,
+    // 18.88 kB with the electrons' part of the store and the host, 19.11 kB with the page's actions' part,
+    // 19.33 kB with the goo's overlay bounded to its two pills
+    budget: 19.5 * KB,
   },
   {
     name: "Everything",
@@ -93,8 +94,9 @@ const PROBES = [
     // then from 31.25 kB for cards and the flag: 32.39 kB,
     // then from 32.75 kB for the goo: 34.74 kB,
     // then from 35 kB for the electrons' part of the store and the host, and PillProgress: 35.31 kB,
-    // then from 35.5 kB for the navbar's labels at rest (folded while they have no room): 35.65 kB
-    budget: 36 * KB, // 9.07 kB at 9.0.0-next.0
+    // then from 35.5 kB for the navbar's labels at rest (folded while they have no room): 35.65 kB,
+    // then from 36 kB for the goo's overlay bounded to its two pills: 36.03 kB
+    budget: 36.25 * KB, // 9.07 kB at 9.0.0-next.0
   },
   {
     name: "With the satellites",
@@ -105,8 +107,10 @@ const PROBES = [
     // 21.71 kB with the orbitals (their arc around obstacles, the long press, sliding to one,
     // hovering, the keyboard's menu, their labels),
     // 22.75 kB with the wheel (turning with the mouse wheel, a drag and the keys, snapping, peeking where clear),
-    // 23.62 kB with the page's actions (usePillActions, their pill, their side and orientation)
-    budget: 24 * KB,
+    // 23.62 kB with the page's actions (usePillActions, their pill, their side and orientation),
+    // 24.37 kB with tucking in while the host travels, going back in and out to change sides, and
+    // the actions growing away from the pill
+    budget: 24.75 * KB,
   },
 ];
 const STYLESHEETS = [

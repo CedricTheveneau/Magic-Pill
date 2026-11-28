@@ -10,6 +10,12 @@
 - `PillProgress`: a progress ring around a value or an icon, in the text colour (`--mp-progress-size`, `--mp-progress-width`)
 - The split's tokens, for a sidebar's flag: `--mp-duration-split` and `--mp-duration-join` (the enter and exit durations by default), `--mp-ease-split` (`bouncy`, the default, `pop`, `smooth` or any CSS easing), `--mp-goo` (`12`; `0` for no neck) and `--mp-electron-start` (`1`)
 
+### Fixed
+- Opening an electron's orbitals no longer stutters: each orbital's goo ran an SVG filter over the whole screen; it now only covers the two pills it joins (60 frames a second where it fell to about 30, with frames of up to 180 ms)
+- Two electrons given an empty `id` are two electrons, instead of one flickering between them
+- The page's actions grow away from the pill when an action's label opens on hover, instead of over it
+- When the host changes placement or turns, its electrons and actions tuck in while it travels and come out at its new place; one that changes side or row (or actions that turn) goes back into the pill and out again, instead of sliding across it or jumping
+
 ### Changed
 - A navbar whose current page's label has no room folds it (`labels="auto"`, the new default), instead of the pill cutting its last items off. `labels="current"` keeps the old behaviour
 - A sidebar's flag comes out of the sidebar's edge as a droplet, with goo: a neck forms between them, stretches and snaps, on a bouncy curve, and it goes back into the sidebar the same way. It no longer pops in at its spot with a short bridge, nor scales in and out. With reduced motion it still fades. On the glass themes, its blur waits until it's clear of the sidebar
