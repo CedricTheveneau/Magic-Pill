@@ -16,7 +16,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import Pill from "../Pill/Pill";
-import { playOrbit } from "../Pill/goo";
+import { playOrbit, SPLIT } from "../Pill/goo";
 import type { Electron, Orbital } from "../store/store";
 import { useIsomorphicLayoutEffect } from "../utils/react";
 import { parseDuration } from "../utils/timing";
@@ -568,8 +568,10 @@ export function Orbitals({
             data-index={index}
             data-hot={hot === index ? "" : undefined}
             style={ORBITAL_STYLE}
-            onPointerEnter={() => {
-              if (!closing.current) setHot(index);
+            onPointerEnter={(event) => {
+              // Still on its way out of the electron (it starts under the pointer): not yet
+              const moving = (event.currentTarget as HTMLElement).getAnimations?.().some((animation) => animation.id === SPLIT && animation.playState === "running");
+              if (!closing.current && !moving) setHot(index);
             }}
             onPointerLeave={() => setHot(-1)}
           >
