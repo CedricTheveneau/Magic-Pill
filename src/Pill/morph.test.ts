@@ -120,6 +120,14 @@ describe("planExit", () => {
     });
   });
 
+  it("ends at the scale the stylesheet asks for: a flag goes back into its sidebar at its own size", () => {
+    // Act
+    const plan = planExit({ scale: "1", content: "1", to: "1" }, TIMINGS, 300);
+
+    // Assert
+    expect(plan?.pill.keyframes[2]).toEqual({ scale: "1", visibility: "visible" });
+  });
+
   it("starts from where an entry under way had got to", () => {
     // Act
     const plan = planExit({ scale: "0.6", content: "0.3" }, TIMINGS, 300);

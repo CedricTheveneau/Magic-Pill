@@ -31,7 +31,8 @@ import { mergeRefs, useIsomorphicLayoutEffect } from "../utils/react";
 import { prefersReducedMotion } from "../utils/timing";
 import { VISUALLY_HIDDEN } from "../utils/visuallyHidden";
 import { BASE, IDLE, NONE, isOpen, readTimings, type Displayed, type Scene, type SwapMode } from "./choreography";
-import { flagStyle, measureFlagSpot, playBridge, type FlagSpot } from "./flag";
+import { flagStyle, measureFlagSpot, type FlagSpot } from "./flag";
+import { playSplit } from "../Pill/goo";
 import { useChoreography } from "./useChoreography";
 
 export interface MagicPillProps
@@ -299,7 +300,9 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
     });
   }, [flagSpot, flagY]);
 
-  // The bridge between the sidebar and its flag, as they part and join again
+  // The flag comes out of the sidebar's edge as a droplet, and goes back into
+  // it once it has closed to a circle (Pill/goo.ts). Its enter and exit are
+  // the split's and the join's durations (styles.css)
   const flagPresence = useRef(flagDisplayed.presence);
   useIsomorphicLayoutEffect(() => {
     const previous = flagPresence.current;
@@ -309,9 +312,9 @@ const MagicPill = forwardRef<HTMLElement, MagicPillProps>(function MagicPill(
     if (!sidebar || !flag || previous === flagDisplayed.presence) return;
     const { enter, fade, change, exit } = readTimings(flag);
     if (previous === "hidden" && flagDisplayed.presence === "rest") {
-      playBridge(sidebar, flag, flagSpot.y, "split", { delay: 0, duration: enter });
+      playSplit(sidebar, flag, "split", { delay: 0, duration: enter });
     } else if (flagDisplayed.presence === "hidden") {
-      playBridge(sidebar, flag, flagSpot.y, "join", { delay: fade + change, duration: exit });
+      playSplit(sidebar, flag, "join", { delay: fade + change, duration: exit });
     }
   }, [flagDisplayed.presence]);
 

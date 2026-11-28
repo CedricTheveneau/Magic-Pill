@@ -1,0 +1,376 @@
+// The goo: a pill splits out of another as a droplet (a neck forms between
+// them, stretches and snaps), or joins back into it the other way round.
+// Used by a sidebar's flag, and by the Electron and its satellites
+// (docs/v9/electron-proposal.md, §7).
+//
+// The goo only runs while the pills move. At rest every pill is drawn by the
+// stylesheet as usual: a goo layer left on melts shapes that sit close
+// together and rounds their corners. While they move, an overlay just under
+// the pills draws the moving pill's fill and the neck through an SVG filter
+// (a blur, then an alpha threshold), with the moving pill's own fill and
+// shadow made transparent. The anchor (the pill it comes out of) keeps
+// drawing itself: the filter cuts its inside out of the overlay, so its glass,
+// rim and shadow never change. The blur rises and falls with the motion, so
+// the overlay starts and ends exactly as the pills look at rest.
+import { parseDuration, prefersReducedMotion } from "../utils/timing";
+
+/** The id of the moving pill's animations, so that a new split or join can stop the last one. */
+export const SPLIT = "mp-split";
+
+/** How sticky the goo is by default: the blur behind the neck, in px (`--mp-goo`). */
+const DEFAULT_GOO = 12;
+
+const POP = "cubic-bezier(0.34, 1.56, 0.64, 1)";
+const SMOOTH = "cubic-bezier(0.42, 0, 0.58, 1)";
+
+/**
+ * A spring as a CSS `linear()` curve: it overshoots, then settles with a
+ * little wobble. The prototype's "bouncy" curve, the default for a split.
+ */
+export function springEasing(points = 40): string {
+  const values: string[] = [];
+  for (let index = 0; index <= points; index++) {
+    const t = index / points;
+    const value = t === 1 ? 1 : 1 - Math.exp(-6 * t) * Math.cos(2 * Math.PI * 1.35 * t);
+    values.push(String(Number(value.toFixed(4))));
+  }
+  return `linear(${values.join(", ")})`;
+}
+
+const BOUNCY = springEasing();
+
+/** `--mp-ease-split`: `bouncy` (default), `pop`, `smooth`, or any CSS easing. */
+export function splitEasing(token: string): string {
+  const value = token.trim();
+  if (value === "" || value === "bouncy") return BOUNCY;
+  if (value === "pop") return POP;
+  if (value === "smooth") return SMOOTH;
+  return value;
+}
+
+/** How much goo the motion needs at progress `k` (0 to 1): none at the ends, all of it while the neck forms. */
+export function gooAmount(k: number): number {
+  const step = (from: number, to: number, x: number) => {
+    const t = Math.min(1, Math.max(0, (x - from) / (to - from)));
+    return t * t * (3 - 2 * t);
+  };
+  return step(0, 0.12, k) * (1 - step(0.72, 1, k));
+}
+
+export interface Box {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+/** Where the moving pill hides: behind the anchor's edge, on its own side. */
+export interface Tucked {
+  /** Its offset from where it sits, in px */
+  x: number;
+  y: number;
+  /** Its scale there */
+  scale: number;
+}
+
+/**
+ * Where the moving pill is tucked in: centred on the anchor's edge minus half
+ * its own size, so that it's hidden behind the anchor's end and comes out of
+ * it. It starts at `start` of its size (`--mp-electron-start`, 1 by default),
+ * smaller when it wouldn't fit inside the anchor (a flag, wider than the
+ * sidebar it comes out of), so that it can hide there. Pure, so it can be tested.
+ */
+export function tuckedOffset(anchor: Box, moving: Box, start = 1): Tucked {
+  const anchorX = anchor.left + anchor.width / 2;
+  const anchorY = anchor.top + anchor.height / 2;
+  const movingX = moving.left + moving.width / 2;
+  const movingY = moving.top + moving.height / 2;
+  const dx = movingX - anchorX;
+  const dy = movingY - anchorY;
+  // Inside the anchor on both axes (a little over is fine: the goo covers it)
+  const fits = (size: number, room: number) => size * start <= room * 1.05;
+  let scale = start;
+  if (!fits(moving.width, anchor.width)) scale = Math.min(scale, anchor.width / moving.width);
+  if (!fits(moving.height, anchor.height)) scale = Math.min(scale, anchor.height / moving.height);
+  scale = Math.max(0.2, scale);
+  const sideways = Math.abs(dx) / (anchor.width / 2 + moving.width / 2) >= Math.abs(dy) / (anchor.height / 2 + moving.height / 2);
+  if (sideways) {
+    const sign = Math.sign(dx) || 1;
+    const edge = anchorX + (sign * anchor.width) / 2;
+    return { x: edge - (sign * moving.width * scale) / 2 - movingX, y: 0, scale };
+  }
+  const sign = Math.sign(dy) || 1;
+  const edge = anchorY + (sign * anchor.height) / 2;
+  return { x: 0, y: edge - (sign * moving.height * scale) / 2 - movingY, scale };
+}
+
+export interface Shadow {
+  color: string;
+  x: number;
+  y: number;
+  blur: number;
+}
+
+/** The first outer shadow of a computed `box-shadow` (a theme's rim is inset, and skipped). */
+export function dropShadow(boxShadow: string): Shadow | null {
+  if (!boxShadow || boxShadow === "none") return null;
+  const parts: string[] = [];
+  let depth = 0;
+  let current = "";
+  for (const character of boxShadow) {
+    if (character === "(") depth++;
+    if (character === ")") depth--;
+    if (character === "," && depth === 0) {
+      parts.push(current.trim());
+      current = "";
+    } else current += character;
+  }
+  parts.push(current.trim());
+  for (const part of parts) {
+    if (/\binset\b/.test(part)) continue;
+    const color = /[a-z-]+\([^)]*\)|#[0-9a-f]{3,8}\b/i.exec(part)?.[0] ?? "rgb(0 0 0 / 0.3)";
+    const lengths = part.replace(color, "").match(/-?[\d.]+px/g)?.map((length) => Number.parseFloat(length)) ?? [];
+    if (lengths.length < 2) continue;
+    return { color, x: lengths[0], y: lengths[1], blur: lengths[2] ?? 0 };
+  }
+  return null;
+}
+
+export interface SplitTiming {
+  /** Before it starts moving: a join waits for the pill to close to a circle */
+  delay: number;
+  duration: number;
+}
+
+// The motion running on each moving pill, so that the next one stops it first
+const running = new WeakMap<HTMLElement, () => void>();
+let overlays = 0;
+
+const SVG = "http://www.w3.org/2000/svg";
+
+/** The overlay: a filter (blur, threshold, the anchor's inside cut out, a fill, a shadow) and two shapes. */
+function createOverlay(zIndex: number, color: string, shadow: Shadow | null) {
+  const id = `mp-goo-${++overlays}`;
+  const root = document.createElement("div");
+  root.setAttribute("data-mp", "goo");
+  root.setAttribute("aria-hidden", "true");
+  root.style.cssText = `position:fixed;inset:0;pointer-events:none;z-index:${zIndex};`;
+  const svg = document.createElementNS(SVG, "svg");
+  svg.setAttribute("width", "0");
+  svg.setAttribute("height", "0");
+  svg.style.position = "absolute";
+  const filter = document.createElementNS(SVG, "filter");
+  filter.id = id;
+  for (const [name, value] of Object.entries({ x: "-50%", y: "-50%", width: "200%", height: "200%", "color-interpolation-filters": "sRGB" })) {
+    filter.setAttribute(name, value);
+  }
+  // The anchor is drawn blue and the moving pill red: blue tells the
+  // anchor's inside apart, to cut it out (the anchor draws itself)
+  filter.innerHTML = `
+    <feGaussianBlur in="SourceAlpha" stdDeviation="0" result="blur"/>
+    <feComponentTransfer in="blur" result="goo"><feFuncA type="linear" slope="24" intercept="-12"/></feComponentTransfer>
+    <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 1 0 0" result="anchor"/>
+    <feMorphology in="anchor" operator="erode" radius="1" result="inside"/>
+    <feComposite in="goo" in2="inside" operator="out" result="cut"/>
+    <feFlood result="color"/>
+    <feComposite in="color" in2="cut" operator="in" result="fill"/>
+    <feGaussianBlur in="cut" stdDeviation="${shadow ? shadow.blur / 2 : 0}" result="spread"/>
+    <feOffset in="spread" dx="${shadow?.x ?? 0}" dy="${shadow?.y ?? 0}" result="offset"/>
+    <feFlood result="shade"/>
+    <feComposite in="shade" in2="offset" operator="in" result="shadow"/>
+    <feComposite in="shadow" in2="cut" operator="out" result="outside"/>
+    <feMerge><feMergeNode in="outside"/><feMergeNode in="fill"/></feMerge>`;
+  const [fill, shade] = filter.querySelectorAll("feFlood");
+  // As CSS properties, so that any colour the stylesheet computes works (color(), oklch())
+  (fill as SVGElement).style.setProperty("flood-color", color);
+  (shade as SVGElement).style.setProperty("flood-color", shadow?.color ?? "transparent");
+  svg.append(filter);
+  const layer = document.createElement("div");
+  layer.style.cssText = `position:absolute;inset:0;filter:url(#${id});`;
+  const shape = (marker: string) => {
+    const element = document.createElement("div");
+    element.style.cssText = `position:absolute;left:0;top:0;background:${marker};`;
+    layer.append(element);
+    return element;
+  };
+  const anchor = shape("rgb(0 0 255)");
+  const moving = shape("rgb(255 0 0)");
+  root.append(svg, layer);
+  document.body.append(root);
+  return { root, layer, blur: filter.querySelector("feGaussianBlur")!, anchor, moving };
+}
+
+/** Puts a shape where a pill is on screen, with its rounded corners at its current scale. */
+function place(shape: HTMLElement, element: HTMLElement) {
+  const rect = element.getBoundingClientRect();
+  const scale = element.offsetWidth > 0 ? rect.width / element.offsetWidth : 1;
+  const radius = Number.parseFloat(getComputedStyle(element).borderTopLeftRadius) || 0;
+  shape.style.width = `${rect.width}px`;
+  shape.style.height = `${rect.height}px`;
+  shape.style.transform = `translate(${rect.left}px, ${rect.top}px)`;
+  shape.style.borderRadius = `${Math.min(radius * scale, rect.width / 2, rect.height / 2)}px`;
+}
+
+// The moving pill's own look, transparent while the overlay draws it. Its
+// transitions go too: a running transition beats even an !important
+// declaration, so its fill would take its time to fade out under the overlay
+const OWN_LOOK: Record<string, string> = {
+  transition: "none",
+  "background-color": "transparent",
+  "background-image": "none",
+  "box-shadow": "none",
+};
+// A glass pill's blur, which the overlay can't draw: off only while the
+// moving pill overlaps the anchor (it would blur the anchor's own content)
+const BLUR = ["backdrop-filter", "-webkit-backdrop-filter"];
+const GLASS_FADE = 120;
+
+const overlaps = (a: DOMRect, b: DOMRect) =>
+  a.left < b.right + 1 && a.right > b.left - 1 && a.top < b.bottom + 1 && a.bottom > b.top - 1;
+
+const readNumber = (style: CSSStyleDeclaration, name: string, fallback: number) => {
+  const value = Number.parseFloat(style.getPropertyValue(name));
+  return Number.isFinite(value) ? value : fallback;
+};
+
+/**
+ * Plays a split (the moving pill comes out of the anchor's edge, from where
+ * it's tucked in to where it sits) or a join (the other way, after `delay`).
+ * Reads `--mp-goo`, `--mp-electron-start` and `--mp-ease-split` on the
+ * moving pill. Does nothing with reduced motion. Returns a function that
+ * stops it at once.
+ */
+export function playSplit(anchor: HTMLElement, moving: HTMLElement, kind: "split" | "join", timing: SplitTiming): () => void {
+  running.get(moving)?.();
+  for (const animation of moving.getAnimations?.({ subtree: true }) ?? []) if (animation.id === SPLIT) animation.cancel();
+  if (timing.duration <= 0 || prefersReducedMotion() || typeof moving.animate !== "function") return () => {};
+
+  const style = getComputedStyle(moving);
+  const goo = readNumber(style, "--mp-goo", DEFAULT_GOO);
+  const start = readNumber(style, "--mp-electron-start", 1);
+  const fade = parseDuration(style.getPropertyValue("--_mp-fade"), 150);
+  const easing = kind === "split" ? splitEasing(style.getPropertyValue("--mp-ease-split")) : SMOOTH;
+
+  let overlay: ReturnType<typeof createOverlay> | null = null;
+  // A join starts apart, with its blur; a split starts inside the anchor, without
+  let glass = kind === "join";
+  const saved = new Map<string, [string, string]>();
+  let frame = 0;
+  let begun = false;
+  let stopped = false;
+
+  const hideOwnLook = () => {
+    for (const [name, value] of Object.entries(OWN_LOOK)) {
+      if (!saved.has(name)) saved.set(name, [moving.style.getPropertyValue(name), moving.style.getPropertyPriority(name)]);
+      moving.style.setProperty(name, value, "important");
+    }
+  };
+  const setGlass = (on: boolean) => {
+    if (on === glass) return;
+    glass = on;
+    if (on) {
+      for (const name of BLUR) restore(name);
+      moving.animate([{ backdropFilter: "none", offset: 0 }], { id: SPLIT, duration: GLASS_FADE, easing: "ease-out" });
+    } else {
+      moving.animate([{ backdropFilter: "none", offset: 1 }], { id: SPLIT, duration: GLASS_FADE, easing: "ease-in", fill: "forwards" });
+    }
+  };
+  const restore = (name: string) => {
+    const [value, priority] = saved.get(name) ?? ["", ""];
+    if (value) moving.style.setProperty(name, value, priority);
+    else moving.style.removeProperty(name);
+  };
+  // Its fill comes back at once (no transition yet), the transitions only once that style is applied
+  const restoreOwnLook = () => {
+    if (saved.size === 0) return;
+    for (const name of saved.keys()) if (name !== "transition") restore(name);
+    void getComputedStyle(moving).backgroundColor;
+    restore("transition");
+    saved.clear();
+  };
+
+  // The motion: from where it's tucked in, measured once it's a circle at its spot
+  const move = () => {
+    const tucked = tuckedOffset(anchor.getBoundingClientRect(), moving.getBoundingClientRect(), start);
+    const out = { translate: "0px 0px", scale: "1", transformOrigin: "center" };
+    const tuck = { translate: `${tucked.x}px ${tucked.y}px`, scale: String(tucked.scale), transformOrigin: "center" };
+    const options: KeyframeAnimationOptions = { id: SPLIT, duration: timing.duration, fill: kind === "split" ? "backwards" : "forwards" };
+    try {
+      moving.animate(kind === "split" ? [tuck, out] : [out, tuck], { ...options, easing });
+    } catch {
+      // A browser without linear() curves: the library's own pop
+      moving.animate(kind === "split" ? [tuck, out] : [out, tuck], { ...options, easing: POP });
+    }
+    // Its content (a flag's icon) comes in once it's out, and goes first on the way back:
+    // tucked in, it would show over the anchor's own
+    const content = [...moving.children].filter(
+      (child) => !["panel", "outgoing"].includes(child.getAttribute("data-mp") ?? ""),
+    );
+    const total = timing.duration + fade;
+    for (const child of content) {
+      if (kind === "split") {
+        child.animate([{ opacity: 0 }, { opacity: 0, offset: (timing.duration * 0.8) / total }, { opacity: 1 }], {
+          id: SPLIT,
+          duration: total,
+        });
+      } else {
+        child.animate([{ opacity: 1 }, { opacity: 0 }], { id: SPLIT, duration: Math.max(1, fade), fill: "forwards" });
+      }
+    }
+  };
+
+  const begin = () => {
+    begun = true;
+    move();
+    if (goo <= 0) return;
+    const zIndex = (Number.parseInt(style.zIndex, 10) || 50) - 1;
+    // Its colours as they end up, not as a transition under way has them (a
+    // flag coming out still has its hidden colours for a moment)
+    saved.set("transition", [moving.style.getPropertyValue("transition"), moving.style.getPropertyPriority("transition")]);
+    moving.style.setProperty("transition", "none", "important");
+    const own = getComputedStyle(moving);
+    overlay = createOverlay(zIndex, own.backgroundColor, dropShadow(own.boxShadow));
+    place(overlay.anchor, anchor);
+    place(overlay.moving, moving);
+    hideOwnLook();
+    if (kind === "split") {
+      for (const name of BLUR) {
+        saved.set(name, [moving.style.getPropertyValue(name), moving.style.getPropertyPriority(name)]);
+        moving.style.setProperty(name, "none", "important");
+      }
+    }
+  };
+
+  const stop = () => {
+    if (stopped) return;
+    stopped = true;
+    cancelAnimationFrame(frame);
+    overlay?.root.remove();
+    overlay = null;
+    restoreOwnLook();
+    running.delete(moving);
+  };
+
+  const startedAt = performance.now();
+  const draw = (now: number) => {
+    if (stopped) return;
+    const elapsed = now - startedAt;
+    if (!begun && elapsed >= timing.delay) begin();
+    if (begun && overlay) {
+      const k = Math.min(1, Math.max(0, (elapsed - timing.delay) / timing.duration));
+      overlay.blur.setAttribute("stdDeviation", (goo * gooAmount(k)).toFixed(2));
+      place(overlay.anchor, anchor);
+      place(overlay.moving, moving);
+      setGlass(!overlaps(moving.getBoundingClientRect(), anchor.getBoundingClientRect()));
+    }
+    if (elapsed >= timing.delay + timing.duration) {
+      stop();
+      return;
+    }
+    frame = requestAnimationFrame(draw);
+  };
+  if (timing.delay <= 0) begin();
+  frame = requestAnimationFrame(draw);
+  running.set(moving, stop);
+  return stop;
+}

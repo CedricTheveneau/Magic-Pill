@@ -37,7 +37,7 @@ src/
 ├── Pill/                     layer 1, the primitive: Pill, parts, PillAction, PillPanel, usePill, types
 │                             (+ morph.ts, the size, swap and placement animations, the exit, scene.ts, going from one content to the next,
 │                             travel.ts, placement changes through the circle, modal.ts, the overlay's <dialog>, zone.ts, pills sharing a
-│                             placement, and themed.ts, the ones with a theme)
+│                             placement, themed.ts, the ones with a theme, and goo.ts, one pill splitting out of another)
 ├── PillOptics/               what themes can't do in CSS (+ lens.ts, the refraction, light.ts, the pointer's
 │                             light, and adaptive.ts, the tinting)
 ├── PillNotification/         layer 2, a template

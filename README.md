@@ -266,7 +266,7 @@ pill("assistant").notify({ icon: <HelpIcon />, message: "Need a hand?", duration
 ```
 A sidebar's notifications are pills like the others: it turns horizontal for them while it's a circle, and back once they're gone. Between its base layer and a notification it goes through the circle, even with `swap="always"`, unless the notification is in `rows` (it slides, turning as it goes) or a `card`: a card stays in the sidebar's column, and slides like any other content.
 
-**A flag** (`notificationLayout="flag"`, `left`/`right` sidebars) leaves the sidebar where it is, usable: the notification comes out of its edge as a pill of its own (`[data-layout="flag"]`), next to the section it's about (`at`), and goes back into it. Pointing at it or focusing it pauses it; the next one slides in it, and it moves to its own section. Its panel opens beside the sidebar, in the middle of the screen. Its motion (a pop out of the sidebar, with a short bridge while they part) will follow the Electron's once it's designed.
+**A flag** (`notificationLayout="flag"`, `left`/`right` sidebars) leaves the sidebar where it is, usable: the notification comes out of its edge as a pill of its own (`[data-layout="flag"]`), next to the section it's about (`at`), and goes back into it. Pointing at it or focusing it pauses it; the next one slides in it, and it moves to its own section. Its panel opens beside the sidebar, in the middle of the screen. It comes out of the sidebar's edge as a droplet (a neck forms between them, stretches and snaps) and goes back into it the same way: `--mp-duration-split` and `--mp-duration-join` time it, `--mp-ease-split` picks its curve (`bouncy`, the default, `pop`, `smooth` or any CSS easing), `--mp-goo` how sticky it is (`0`: no neck), `--mp-electron-start` the size it starts at.
 
 ## The primitive
 Everything above is built from `<Pill>` and its parts, and you can use them directly. A `<Pill>` you write yourself isn't connected to `pill()`: you control it with props.
@@ -554,6 +554,10 @@ An `<img>` keeps its file's colours: `currentColor` only reaches inline SVGs and
 | `--mp-backdrop` / `--mp-backdrop-blur` | the overlay's backdrop: `rgb(20 20 20 / 0.4)` / no blur |
 | `--mp-duration-enter` / `--mp-duration-change` / `--mp-duration-exit` | `500ms` / `250ms` / `300ms` |
 | `--mp-duration-fade` | `150ms`: the content fades out before the pill shrinks, and in once it has grown |
+| `--mp-duration-split` / `--mp-duration-join` | `--mp-duration-enter` / `--mp-duration-exit`: a sidebar's flag coming out of the sidebar and going back |
+| `--mp-ease-split` | `bouncy`: the split's curve, `bouncy`, `pop`, `smooth` or any CSS easing (the join is always smooth) |
+| `--mp-goo` | `12`: how sticky the split is, the blur behind the neck in px. `0`: a plain split, no neck |
+| `--mp-electron-start` | `1`: the size a flag starts at as it comes out. `1`: full size, hidden behind the sidebar's edge. Lower: it starts small and grows on its way out |
 | `--mp-scale-origin` | `center`: where the pill pops in from and scales out to (e.g. `bottom` to come out of the edge) |
 | `--mp-align` | How a vertical pill lines up its items: `start`, `center` or `end` (following the text direction). By default, along the screen edge for a `left` or `right` pill, centred otherwise |
 
