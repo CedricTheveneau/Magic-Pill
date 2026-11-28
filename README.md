@@ -336,7 +336,7 @@ pill().electron({
 ```
 
 - A long press opens them. Keep pressing, slide to one (it's picked by its angle from the electron) and release to run it; released on none, they stay open until a tap away. With a mouse, hovering opens them too, and they close once the pointer leaves them.
-- They fan out on an arc away from the screen's edge, clear of the pill, the other electrons and the screen's edges, moving out a little if they must. `--mp-orbital-size` (an action's size), `--mp-orbital-distance` (`0.875rem`), `--mp-orbital-spread` (`auto`, or an angle such as `120deg`), `--mp-orbital-stagger` (`30ms`), `--mp-hover-delay` (`300ms`) and `--mp-long-press` (`450ms`) tune them.
+- They fan out on an arc away from the screen's edge, clear of the pill, the other electrons and the screen's edges, moving out a little if they must. **When they don't all fit, they're a wheel:** the arc shows what fits and turns to show the others, with the mouse wheel, a drag along it, or the arrow keys (it brings the focused one into view). One past an end fades out (it peeks out faintly where its spot is clear). A wheel stays open until a tap away or Escape. `--mp-orbital-size` (an action's size), `--mp-orbital-distance` (`0.875rem`), `--mp-orbital-spread` (`auto`, or an angle such as `120deg`), `--mp-orbital-stagger` (`30ms`), `--mp-hover-delay` (`300ms`) and `--mp-long-press` (`450ms`) tune them.
 - The keyboard opens them with the arrow pointing away from the edge, Shift+F10 or the context-menu key, and goes round them with the arrows, Home and End; Escape closes them and gives the focus back. An ARIA menu named after the electron.
 
 **How it behaves:**
