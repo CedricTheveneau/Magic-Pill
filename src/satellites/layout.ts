@@ -233,8 +233,7 @@ export function planSatellites(input: SatelliteLayoutInput): SatelliteLayout {
   for (const row of besideRows) {
     const total = lengthOfRow(row);
     if (total <= len(host)) {
-      // Within the pill's length: the actions from its start, the electrons from its end
-      let fromStart = hostStart;
+      // Within the pill's length: the actions at its start, the electrons from its end
       let fromEnd = hostEnd;
       for (const id of [...row].reverse()) {
         if (id === "actions") continue;
@@ -242,10 +241,7 @@ export function planSatellites(input: SatelliteLayoutInput): SatelliteLayout {
         at[id] = fromEnd;
         fromEnd -= gap;
       }
-      if (row.includes("actions")) {
-        at.actions = fromStart;
-        fromStart += len(sizes.get("actions")!) + gap;
-      }
+      if (row.includes("actions")) at.actions = hostStart;
       continue;
     }
     // Longer: from the pill's start, kept on the screen
