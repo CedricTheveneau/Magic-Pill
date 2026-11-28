@@ -19,6 +19,7 @@ import { playSplit } from "../Pill/goo";
 import { PillProgress } from "../Pill/PillProgress";
 import type { PillPresence } from "../Pill/types";
 import { findActiveIndex } from "../PillNavbar/matchPath";
+import { foldedWidth } from "../PillNavbar/room";
 import { NO_ELECTRONS, type Electron } from "../store/store";
 import { useIsomorphicLayoutEffect } from "../utils/react";
 import { parseDuration, prefersReducedMotion } from "../utils/timing";
@@ -132,6 +133,8 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
   const elements = useRef(new Map<string, HTMLElement>());
   const presences = useRef(new Map<string, PillPresence>());
   const applied = useRef({ shift: 0, reserve: 0 });
+  // How short the host gets with its navbar's labels folded, measured after each render
+  const hostMin = useRef<number | undefined>(undefined);
   // The row each electron was in: one that changes rows moves there, even while following the host
   const rows = useRef(new Map<string, string>());
 
@@ -145,9 +148,11 @@ export function SatellitesLayer({ host }: { host: SatelliteHost }) {
     const gap = toPixels(style.getPropertyValue("--mp-electron-gap"), root, Number.parseFloat(style.columnGap) || 16);
     const offset = toPixels(style.getPropertyValue("--_mp-offset"), root, 24);
     const out = entries.filter((entry) => entry.presence !== "hidden" && elements.current.get(entry.electron.id));
+    if (animate && !vertical) hostMin.current = foldedWidth(root);
     const layout = planSatellites({
       viewport: { width: document.documentElement.clientWidth || window.innerWidth, height: window.innerHeight },
       host: { left: root.offsetLeft, top: root.offsetTop, width: root.offsetWidth, height: root.offsetHeight },
+      hostMin: vertical ? undefined : hostMin.current,
       placement: host.placement,
       vertical,
       rtl: style.direction === "rtl",

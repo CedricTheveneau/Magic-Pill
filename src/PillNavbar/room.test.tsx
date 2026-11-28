@@ -114,3 +114,49 @@ describe("a navbar with no room for two labels", () => {
     expect(document.querySelector<HTMLInputElement>("input")?.checked).toBe(true);
   });
 });
+
+describe("a navbar's labels at rest", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  const isFolded = () => navbar().hasAttribute("data-folded");
+  const renderWith = (labels?: "current" | "closed" | "auto") =>
+    render(
+      <Pill>
+        <PillNavbar items={items} pathname="/" labels={labels} />
+      </Pill>,
+    );
+  /** A pill `room` px wide: the icons take 100 px, the current page's label 120 more unless it's folded */
+  const layOutWith = (room: number) => {
+    vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(room);
+    vi.spyOn(Element.prototype, "scrollWidth", "get").mockImplementation(function (this: Element) {
+      const folded = this.closest?.('[data-mp="navbar"]')?.hasAttribute("data-folded") ?? this.hasAttribute("data-folded");
+      return 100 + (folded ? 0 : 120);
+    });
+  };
+
+  it("shows the current page's label while it fits, and folds it when it doesn't (auto, the default)", () => {
+    layOutWith(300);
+    const { unmount } = renderWith();
+    expect(navbar().dataset.labels).toBe("auto");
+    expect(isFolded()).toBe(false);
+    unmount();
+
+    layOutWith(180);
+    renderWith();
+    expect(isFolded()).toBe(true);
+  });
+
+  it("keeps it open with labels=\"current\", even without room", () => {
+    layOutWith(180);
+    renderWith("current");
+    expect(isFolded()).toBe(false);
+  });
+
+  it("folds them all with labels=\"closed\", even with room", () => {
+    layOutWith(600);
+    renderWith("closed");
+    expect(isFolded()).toBe(true);
+  });
+});

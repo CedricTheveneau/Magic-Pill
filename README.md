@@ -233,7 +233,7 @@ export function AppPill() {
 </MagicPill>
 ```
 
-- **The active link** shows its label and gets `aria-current="page"`.
+- **The active link** shows its label and gets `aria-current="page"`. `labels` says which labels show at rest: `"auto"` (the default) shows the current page's while the pill has room for it, and folds it when it doesn't (next to an electron on a phone, or on a very narrow screen, where the pill used to cut its last items off); `"current"` always shows it; `"closed"` shows none. An item pointed at or focused shows its label in every case. A folded navbar has `data-folded`.
 - **Without `pathname`**, the navbar reads `window.location.pathname` after mounting and on back/forward navigation. That misses client-side navigations, so pass `pathname` when you use a client-side router.
 - **On a narrow screen**, when there's no room for the current page's label and the one you point at (or focus), the current one folds meanwhile. A label that still has no room ends with an ellipsis.
 - **`aria-label`** defaults to `"Main"`.
@@ -317,7 +317,7 @@ pill().endElectron(id); // it goes back into the pill
 | `arrange` | `"gather"` | `"gather"`: the pill and its electrons are centred as a group (or at the edge, for a `-start` or `-end` placement). `"spread"`: the pill stays where it is, the electrons go to the screen's edge (under the thumb on a tablet). |
 
 **How it behaves:**
-- **Short of room** (the pill and its electrons wider than the screen), the last ones go beside the pill, one row towards the page, like the ladder. On a phone, a navbar with its current page's label and one electron usually don't fit in one row: the electron goes above the pill.
+- **Short of room** (the pill and its electrons wider than the screen), a navbar folds its labels first (`labels="auto"`, its default); if they still don't fit, the last ones go beside the pill, one row towards the page, like the ladder.
 - It splits and joins with the goo, on the split's tokens (`--mp-duration-split`, `--mp-duration-join`, `--mp-ease-split`, `--mp-goo`, `--mp-electron-start`, see [Styling](#styling)); `--mp-electron-gap` (`--mp-gap` by default) keeps it apart from the pill. With reduced motion, it fades.
 - It's a link (or a button, or an image for neither) named after its `label` and `valueText`, with its own focus ring.
 

@@ -90,15 +90,17 @@ const PROBES = [
     // then from 30.75 kB for notifications in rows: 30.68 kB,
     // then from 31.25 kB for cards and the flag: 32.39 kB,
     // then from 32.75 kB for the goo: 34.74 kB,
-    // then from 35 kB for the electrons' part of the store and the host, and PillProgress: 35.31 kB
-    budget: 35.5 * KB, // 9.07 kB at 9.0.0-next.0
+    // then from 35 kB for the electrons' part of the store and the host, and PillProgress: 35.31 kB,
+    // then from 35.5 kB for the navbar's labels at rest (folded while they have no room): 35.65 kB
+    budget: 36 * KB, // 9.07 kB at 9.0.0-next.0
   },
   {
     name: "With the satellites",
     description: "the quick start, with the electrons (magic-pill/satellites, beta)",
     code: 'export { MagicPill, pill } from "ENTRY"; export { satellites } from "SATELLITES";',
-    // 18.16 kB with the electrons (the layer, the layout, PillProgress): 2.62 kB more than the quick start
-    budget: 18.5 * KB,
+    // 18.16 kB with the electrons (the layer, the layout, PillProgress): 2.62 kB more than the quick start,
+    // 18.49 kB with the navbar's folded width, to know whether an electron fits next to it
+    budget: 18.75 * KB,
   },
 ];
 const STYLESHEETS = [

@@ -725,8 +725,9 @@
       }
 
       /* No room for two labels (PillNavbar/room.ts): the one that was open
-         folds while another is pointed at or focused */
-      & [data-mp="navbar"][data-tight] [data-mp="action"]:not(:hover, :focus-visible) {
+         folds while another is pointed at or focused. Folded at rest too with
+         labels="closed", or "auto" while the current one has no room */
+      & [data-mp="navbar"]:is([data-tight], [data-folded]) [data-mp="action"]:not(:hover, :focus-visible) {
         & [data-mp="action-body"] {
           padding-inline-end: calc((var(--_mp-action-size) - 1.25rem) / 2);
         }
